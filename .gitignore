@@ -1,0 +1,9 @@
+node_modules
+.env
+dist
+docs
+
+# user profile image
+uploads/users/images/*
+!uploads/users/images/.gitkeep
+

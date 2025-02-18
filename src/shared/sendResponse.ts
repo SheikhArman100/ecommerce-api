@@ -1,0 +1,33 @@
+import { Response } from 'express';
+
+export type IApiResponse<T> = {
+  statusCode: number;
+  success: boolean;
+  message?: string | null;
+  meta?: {
+    page: number;
+    limit: number;
+    count: number;
+  };
+  data?: T | null;
+};
+
+/**
+ *  Sends a standardized JSON response to the client.
+ * in this structure,user will get success response
+ * @param res
+ * @param data
+ */
+const sendResponse = <T>(res: Response, data: IApiResponse<T>): void => {
+  const responseData: IApiResponse<T> = {
+    statusCode: data.statusCode,
+    success: data.success,
+    message: data.message || null,
+    meta: data.meta || null || undefined,
+    data: data.data || null,
+  };
+
+  res.status(data.statusCode).json(responseData);
+};
+
+export default sendResponse;
