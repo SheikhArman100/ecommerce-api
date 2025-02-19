@@ -22,6 +22,7 @@ const createToken = (
   try {
     return jwt.sign(payload, secret, options);
   } catch (error) {
+    console.log(error);
     throw new ApiError(
       status.INTERNAL_SERVER_ERROR,
       'Error creating token',

@@ -7,13 +7,13 @@ import status from 'http-status';
 
 
 
-const createAuth = catchAsync(async (req: Request, res: Response) => {
-    const result = await AuthService.createAuth();
+const signup = catchAsync(async (req: Request, res: Response) => {
+    const result = await AuthService.signup(req.body);
 
     sendResponse(res, {
         statusCode: status.OK,
         success:true,
-        message: 'Auth created successfully',
+        message: 'Signup successful! Please check your email to verify your account.',
         data: result,
     });
 });
@@ -21,6 +21,6 @@ const createAuth = catchAsync(async (req: Request, res: Response) => {
 
 
 export const AuthController = {
-    createAuth,
+    signup
     
 };

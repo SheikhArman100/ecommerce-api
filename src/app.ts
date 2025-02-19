@@ -5,6 +5,7 @@ import express, { Application, Request, Response } from 'express';
 import config from './config';
 import { ApplicationRouters } from './routes';
 import globalErrorHandler from './middleware/globalErrorHandler';
+import passport from 'passport';
 
 const app: Application = express();
 
@@ -37,6 +38,8 @@ app.use(cookieParser());
 
 // Trust proxy to get the correct client IP
 app.set('trust proxy', true);
+
+app.use(passport.initialize());
 
 /**
  * Health Check Endpoint

@@ -16,6 +16,8 @@ export default {
     refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
     forget_password_secret: process.env.JWT_FORGET_PASSWORD_SECRET,
     forget_password_expires_in: process.env.JWT_FORGET_PASSWORD_EXPIRES_IN,
+    verify_email_secret: process.env.JWT_EMAIL_VERIFY_SECRET,
+    verify_email_expires_in: process.env.JWT_EMAIL_VERIFY_EXPIRES_IN,
   },
   softograph_email: process.env.SOFTOGRAPH_EMAIL,
   softograph_pass: process.env.SOFTOPGRAPH_PASS,
