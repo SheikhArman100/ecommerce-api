@@ -1,3 +1,4 @@
+import { UserRole } from "../../constant";
 
 
 export interface IUser {
@@ -6,7 +7,7 @@ export interface IUser {
     email: string;
     phoneNumber: string;
     password: string;
-    role: string;
+    role: UserRole;
     createdAt: Date;
     updatedAt: Date;
   }
