@@ -5,6 +5,9 @@ import { AuthService } from './auth.service';
 import catchAsync from '../../shared/catchAsync';
 import status from 'http-status';
 import ApiError from '../../errors/ApiError';
+import { IUser } from '../user/user.interface';
+import config from '../../config';
+import { ENUM_COOKIE_NAME } from '../../enum/user';
 
 
 
@@ -37,11 +40,27 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const signin = catchAsync(async (req: Request, res: Response) => {
+    const { refreshToken, ...result } = await AuthService.signin(req.user as IUser);
+    const cookieOptions = {
+        secure: config.env === 'production',
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+      };
+    
+      res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
 
+    sendResponse(res, {
+        statusCode: status.OK,
+        success:true,
+        message: 'Signin successful!',
+        data: result,
+    });
+});
 
 
 
 export const AuthController = {
-    signup,verifyEmail
+    signup,verifyEmail,signin
     
 };

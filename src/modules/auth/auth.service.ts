@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt, { compare } from 'bcrypt';
 import status from 'http-status';
 import { Secret } from 'jsonwebtoken';
 import { prisma } from '../../client';
@@ -8,6 +8,7 @@ import { jwtHelpers } from '../../helpers/jwtHelpers';
 import { sendEmail } from '../../helpers/nodeMailer';
 import { parseExpirationTime } from '../../utils';
 import { IUser } from '../user/user.interface';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 const signup = async (payload: IUser) => {
   const existingUser = await prisma.user.findFirst({
@@ -106,7 +107,65 @@ const verifyEmail = async (token:string) => {
   return updatedUser
 
 }
+const signin = async (payload: IUser) => {
+  const { email, password } = payload;
+
+  // Find user in database
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, "User doesn't exist.");
+  }
+
+  
+  if (!user.isVerified) {
+    throw new ApiError(status.FORBIDDEN, 'Your account is not verified');
+  }
+
+  // Verify password using bcrypt
+  const isPasswordValid = compare(password, user.password);
+  if (!isPasswordValid) {
+    throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Password is incorrect.');
+  }
+
+  // Generate Access Token
+  const accessToken = jwtHelpers.createToken(
+    { id: user.id, role: user.role, email: user.email },
+    config.jwt.access_secret as Secret,
+    parseExpirationTime(config.jwt.access_expires_in as string),
+  );
+
+  // Generate Refresh Token
+  const refreshToken = jwtHelpers.createToken(
+    { id: user.id, role: user.role },
+    config.jwt.refresh_secret as Secret,
+    parseExpirationTime(config.jwt.refresh_expires_in as string),
+  );
+
+  // Store refresh token in DB
+const refreshExpiresIn = Number(parseExpirationTime(config.jwt.refresh_expires_in as string))
+const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
+console.log(new Date());
+console.log(expiresAt);
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt,
+    },
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+    role: user.role,
+  };
+};
 export const AuthService = {
   signup,
-  verifyEmail
+  verifyEmail,
+  signin
 };
