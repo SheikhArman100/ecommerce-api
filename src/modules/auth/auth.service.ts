@@ -50,6 +50,7 @@ const signup = async (payload: IUser) => {
     {
       id: newUser.id,
       email: newUser.email,
+      role:newUser.role
     },
     config.jwt.verify_email_secret as Secret,
     parseExpirationTime(config.jwt.verify_email_expires_in as string),
@@ -84,6 +85,28 @@ const signup = async (payload: IUser) => {
 
 };
 
+const verifyEmail = async (token:string) => {
+  let verifiedUser = null;
+
+  verifiedUser = jwtHelpers.verifyToken(
+    token,
+    config.jwt.verify_email_secret as Secret,
+  );
+
+  const user = await prisma.user.findUnique({where:{email:verifiedUser.email}})
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found!');
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { email: verifiedUser.email },
+    data: { isVerified: true },
+  });
+  return updatedUser
+
+}
 export const AuthService = {
   signup,
+  verifyEmail
 };

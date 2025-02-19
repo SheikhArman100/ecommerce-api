@@ -18,6 +18,7 @@ export type Role =
 export type UserInfoFromToken = {
   id: string; 
   role: Role;
+  email:string,
   iat: number;
   exp: number;
 };

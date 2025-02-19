@@ -17,4 +17,14 @@ const SignupSchema = z.object({
   }).strict(),
 });
 
-export const AuthValidation = { SignupSchema };
+const verifyEmailSchema = z.object({
+  query: z.object({
+    token: z
+      .string({
+        required_error: 'Verify email token is required',
+      })
+      .min(1, 'Verify email token is required'),
+  }).strict(),
+});
+
+export const AuthValidation = { SignupSchema,verifyEmailSchema };
