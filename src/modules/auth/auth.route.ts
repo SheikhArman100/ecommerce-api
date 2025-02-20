@@ -24,6 +24,7 @@ router.get(
 );
 
 router.get('/token', AuthController.updateToken);
+router.post('/signout', AuthController.signOut);
 
     
 

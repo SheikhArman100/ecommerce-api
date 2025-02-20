@@ -264,10 +264,17 @@ const updateToken = async (refreshToken: string) => {
     role: checkToken?.user.role,
   };
 };
+
+const signOut = async (refreshToken: string) => {
+  return await prisma.refreshToken.deleteMany({
+    where: { token: refreshToken },
+  });
+};
 export const AuthService = {
   signup,
   verifyEmail,
   signin,
   googleSignIn,
   updateToken,
+  signOut
 };
