@@ -78,6 +78,7 @@ const signup = async (payload: IUser) => {
     );
   } catch (error) {
     console.error('Email sending failed:', error);
+    throw new ApiError(status.INTERNAL_SERVER_ERROR,"failed to send mail")
   }
   return {
     id: newUser.id,
@@ -163,8 +164,7 @@ const signin = async (payload: IUser) => {
 };
 
 const googleSignIn = async (payload: any) => {
-  const { user,password, accessToken,refreshToken } = payload as any;
-  
+  const { user, password, accessToken, refreshToken } = payload as any;
 
   // Store refresh token in DB
   const refreshExpiresIn = Number(
@@ -196,9 +196,8 @@ const googleSignIn = async (payload: any) => {
     );
   } catch (error) {
     console.error('Email sending failed:', error);
+    throw new ApiError(status.INTERNAL_SERVER_ERROR,"failed to send mail")
   }
-
-
 
   return {
     accessToken,
@@ -206,9 +205,69 @@ const googleSignIn = async (payload: any) => {
     role: user.role,
   };
 };
+
+const updateToken = async (refreshToken: string) => {
+  const checkToken = await prisma.refreshToken.findFirst({
+    where: { token: refreshToken },
+    include: { user: true },
+  });
+  if (!checkToken || !checkToken.user) {
+    throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+  }
+
+  const verifiedUser = jwtHelpers.verifyToken(
+    refreshToken,
+    config.jwt.refresh_secret as Secret,
+  );
+  console.log(verifiedUser.id);
+  console.log(checkToken.userId.toString());
+
+  if (verifiedUser.id.toString() !== checkToken.userId.toString()) {
+    throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+  }
+
+  const newAccessToken = jwtHelpers.createToken(
+    {
+      id: checkToken.user.id,
+      role: checkToken.user.role,
+      email: checkToken.user.email,
+    },
+    config.jwt.access_secret as Secret,
+    parseExpirationTime(config.jwt.access_expires_in as string),
+  );
+
+  // Generate Refresh Token
+  const newRefreshToken = jwtHelpers.createToken(
+    {
+      id: checkToken.user.id,
+      role: checkToken.user.role,
+      email: checkToken.user.email,
+    },
+    config.jwt.refresh_secret as Secret,
+    parseExpirationTime(config.jwt.refresh_expires_in as string),
+  );
+
+  // Store refresh token in DB
+  const refreshExpiresIn = Number(
+    parseExpirationTime(config.jwt.refresh_expires_in as string),
+  );
+  const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
+
+  await prisma.refreshToken.update({
+    where: { id: checkToken.id },
+    data: { token: newRefreshToken, expiresAt },
+  });
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    role: checkToken?.user.role,
+  };
+};
 export const AuthService = {
   signup,
   verifyEmail,
   signin,
   googleSignIn,
+  updateToken,
 };

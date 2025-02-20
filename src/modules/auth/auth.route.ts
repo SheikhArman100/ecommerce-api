@@ -23,7 +23,7 @@ router.get(
  AuthController.googleSignIn
 );
 
-// router.get('/token', AuthController.updateToken);
+router.get('/token', AuthController.updateToken);
 
     
 

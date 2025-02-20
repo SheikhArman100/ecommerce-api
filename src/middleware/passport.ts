@@ -8,6 +8,8 @@ import { prisma } from '../client';
 import config from '../config';
 import { jwtHelpers } from '../helpers/jwtHelpers';
 import { parseExpirationTime } from '../utils';
+import ApiError from '../errors/ApiError';
+import status from 'http-status';
 
 passport.use(
   new LocalStrategy(
@@ -21,17 +23,18 @@ passport.use(
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
-          return done(null, false, { message: 'Invalid email or password' });
+          throw new ApiError(status.NOT_FOUND, 'User does not exist');
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-          return done(null, false, { message: 'Invalid email or password' });
+          throw new ApiError(status.UNAUTHORIZED, 'Invalid email or pasword');
         }
 
         return done(null, user);
       } catch (error) {
+        console.log(error);
         return done(error);
       }
     },
@@ -51,13 +54,15 @@ passport.use(
       try {
         console.log(profile);
         const email = profile?.emails?.[0]?.value;
-        if (!email) return done(null, false, { message: 'No Google info' });
+        if (!email) {
+          throw new ApiError(status.NOT_FOUND, 'No Google info');
+        }
 
         let user = await prisma.user.findUnique({
           where: { email },
           include: { detail: true },
         });
-        let password
+        let password;
 
         if (!user) {
           password = nanoid(6);
@@ -72,7 +77,7 @@ passport.use(
               password: hashedPassword,
               isVerified: true,
               role: 'user',
-              phoneNumber: '', 
+              phoneNumber: '',
               detail: {
                 create: {
                   image: profile.photos?.[0]?.value || '',
@@ -102,11 +107,12 @@ passport.use(
             config.jwt.refresh_secret as Secret,
             parseExpirationTime(config.jwt.refresh_expires_in as string),
           );
-          return done(null, { user,password, accessToken, refreshToken });
+          return done(null, { user, password, accessToken, refreshToken });
         } else {
-          return done(null, false, { message: 'User creation failed' });
+          throw new ApiError(status.INTERNAL_SERVER_ERROR, 'Server error');
         }
       } catch (error) {
+        console.log(error);
         return done(error);
       }
     },

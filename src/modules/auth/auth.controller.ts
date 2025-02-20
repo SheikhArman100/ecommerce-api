@@ -41,6 +41,9 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
 });
 
 const signin = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) {
+        throw new ApiError(status.UNAUTHORIZED,"Signin failed")
+      }
     const { refreshToken, ...result } = await AuthService.signin(req.user as IUser);
     const cookieOptions = {
         secure: config.env === 'production',
@@ -79,6 +82,38 @@ const googleSignIn = catchAsync(async (req: Request, res: Response) => {
         data: result,
     });
 });
+const updateToken = catchAsync(async (req: Request, res: Response) => {
+    const cookies = req?.cookies?.[ENUM_COOKIE_NAME.REFRESH_TOKEN];
+  
+    if (!cookies) {
+      throw new ApiError(status.UNAUTHORIZED, 'Please sign in first');
+    }
+    
+    const { refreshToken, ...result } = await AuthService.updateToken(cookies);
+    const cookieOptions = {
+      secure: config.env === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 365,
+    };
+  
+    res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
+  
+    if (!result) {
+      res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, {
+        secure: config.env === 'production',
+        httpOnly: true,
+      });
+  
+      throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+    }
+  
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Token updated successfully',
+      data: result,
+    });
+  });
 
 
 
@@ -86,6 +121,6 @@ const googleSignIn = catchAsync(async (req: Request, res: Response) => {
 
 
 export const AuthController = {
-    signup,verifyEmail,signin,googleSignIn
+    signup,verifyEmail,signin,googleSignIn,updateToken
     
 };
