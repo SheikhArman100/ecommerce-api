@@ -23,6 +23,8 @@ router.get(
  AuthController.googleSignIn
 );
 
+// router.get('/token', AuthController.updateToken);
+
     
 
 export const authRoute = router;

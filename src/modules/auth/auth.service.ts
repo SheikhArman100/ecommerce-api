@@ -147,8 +147,6 @@ const signin = async (payload: IUser) => {
     parseExpirationTime(config.jwt.refresh_expires_in as string),
   );
   const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
-  console.log(new Date());
-  console.log(expiresAt);
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
@@ -165,7 +163,8 @@ const signin = async (payload: IUser) => {
 };
 
 const googleSignIn = async (payload: any) => {
-  const { user, accessToken,refreshToken } = payload as any;
+  const { user,password, accessToken,refreshToken } = payload as any;
+  
 
   // Store refresh token in DB
   const refreshExpiresIn = Number(
@@ -179,6 +178,27 @@ const googleSignIn = async (payload: any) => {
       expiresAt,
     },
   });
+
+  try {
+    await sendEmail(
+      user.email!,
+      `
+        <p>Hi, ${user.name}</p>
+        <p>Welcome to <strong>E-Commerce</strong>!</p>
+        <p>We're excited to have you on board. Your registration has been successfully completed. Below are your signin details:</p>
+        <p><strong>Email:</strong> ${user?.email}<br>
+        <strong>Password:</strong> ${password}</p>
+        
+        
+        <p>Thank you <br> E-Commerce</p>
+        `,
+      'Registration Completed Successfully',
+    );
+  } catch (error) {
+    console.error('Email sending failed:', error);
+  }
+
+
 
   return {
     accessToken,

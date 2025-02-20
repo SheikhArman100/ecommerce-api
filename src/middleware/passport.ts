@@ -1,12 +1,13 @@
-import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
-import { Strategy } from 'passport-google-oauth20';
-import { prisma } from '../client';
 import bcrypt from 'bcrypt';
+import { Secret } from 'jsonwebtoken';
+import { nanoid } from 'nanoid';
+import passport from 'passport';
+import { Strategy } from 'passport-google-oauth20';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { prisma } from '../client';
 import config from '../config';
 import { jwtHelpers } from '../helpers/jwtHelpers';
 import { parseExpirationTime } from '../utils';
-import { Secret } from 'jsonwebtoken';
 
 passport.use(
   new LocalStrategy(
@@ -48,6 +49,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log(profile);
         const email = profile?.emails?.[0]?.value;
         if (!email) return done(null, false, { message: 'No Google info' });
 
@@ -55,16 +57,22 @@ passport.use(
           where: { email },
           include: { detail: true },
         });
+        let password
 
         if (!user) {
+          password = nanoid(6);
+          const hashedPassword = await bcrypt.hash(
+            password as string,
+            Number(config.jwt.bcrypt_salt_rounds) || 10,
+          );
           user = await prisma.user.create({
             data: {
               name: profile.displayName,
               email,
-              password: '',
+              password: hashedPassword,
               isVerified: true,
               role: 'user',
-              phoneNumber: '', // Add a default or empty phone number
+              phoneNumber: '', 
               detail: {
                 create: {
                   image: profile.photos?.[0]?.value || '',
@@ -94,7 +102,7 @@ passport.use(
             config.jwt.refresh_secret as Secret,
             parseExpirationTime(config.jwt.refresh_expires_in as string),
           );
-          return done(null, { user, accessToken, refreshToken });
+          return done(null, { user,password, accessToken, refreshToken });
         } else {
           return done(null, false, { message: 'User creation failed' });
         }
