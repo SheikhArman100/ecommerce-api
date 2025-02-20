@@ -13,6 +13,16 @@ router.post('/signup', validateRequest(AuthValidation.SignupSchema), AuthControl
 router.put('/verify-email',validateRequest(AuthValidation.verifyEmailSchema),AuthController.verifyEmail)
 router.post('/signin',validateRequest(AuthValidation.SigninSchema), passport.authenticate('local', { session: false }),AuthController.signin)
 
+// Redirect to Google login page
+router.get("/google", passport.authenticate("google"));
+
+// Google callback route
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false }),
+ AuthController.googleSignIn
+);
+
     
 
 export const authRoute = router;

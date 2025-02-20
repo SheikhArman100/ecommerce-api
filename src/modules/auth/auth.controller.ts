@@ -58,9 +58,34 @@ const signin = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const googleSignIn = catchAsync(async (req: Request, res: Response) => {
+    if (!req.user) {
+        throw new ApiError(status.UNAUTHORIZED,"Google authentication failed")
+      }
+
+    const { refreshToken, ...result } = await AuthService.googleSignIn(req.user as IUser);
+    const cookieOptions = {
+        secure: config.env === 'production',
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+      };
+    
+      res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
+
+    sendResponse(res, {
+        statusCode: status.OK,
+        success:true,
+        message: 'Signin successful!',
+        data: result,
+    });
+});
+
+
+
+
 
 
 export const AuthController = {
-    signup,verifyEmail,signin
+    signup,verifyEmail,signin,googleSignIn
     
 };

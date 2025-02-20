@@ -51,7 +51,7 @@ const signup = async (payload: IUser) => {
     {
       id: newUser.id,
       email: newUser.email,
-      role:newUser.role
+      role: newUser.role,
     },
     config.jwt.verify_email_secret as Secret,
     parseExpirationTime(config.jwt.verify_email_expires_in as string),
@@ -78,15 +78,13 @@ const signup = async (payload: IUser) => {
     );
   } catch (error) {
     console.error('Email sending failed:', error);
-    // Don't throw an error; user should still be able to sign up
   }
   return {
-    id:newUser.id
-  }
-
+    id: newUser.id,
+  };
 };
 
-const verifyEmail = async (token:string) => {
+const verifyEmail = async (token: string) => {
   let verifiedUser = null;
 
   verifiedUser = jwtHelpers.verifyToken(
@@ -94,7 +92,9 @@ const verifyEmail = async (token:string) => {
     config.jwt.verify_email_secret as Secret,
   );
 
-  const user = await prisma.user.findUnique({where:{email:verifiedUser.email}})
+  const user = await prisma.user.findUnique({
+    where: { email: verifiedUser.email },
+  });
 
   if (!user) {
     throw new ApiError(status.NOT_FOUND, 'User not found!');
@@ -104,9 +104,8 @@ const verifyEmail = async (token:string) => {
     where: { email: verifiedUser.email },
     data: { isVerified: true },
   });
-  return updatedUser
-
-}
+  return updatedUser;
+};
 const signin = async (payload: IUser) => {
   const { email, password } = payload;
 
@@ -115,12 +114,10 @@ const signin = async (payload: IUser) => {
     where: { email },
   });
 
-  
   if (!user) {
     throw new ApiError(status.NOT_FOUND, "User doesn't exist.");
   }
 
-  
   if (!user.isVerified) {
     throw new ApiError(status.FORBIDDEN, 'Your account is not verified');
   }
@@ -146,10 +143,35 @@ const signin = async (payload: IUser) => {
   );
 
   // Store refresh token in DB
-const refreshExpiresIn = Number(parseExpirationTime(config.jwt.refresh_expires_in as string))
-const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
-console.log(new Date());
-console.log(expiresAt);
+  const refreshExpiresIn = Number(
+    parseExpirationTime(config.jwt.refresh_expires_in as string),
+  );
+  const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
+  console.log(new Date());
+  console.log(expiresAt);
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt,
+    },
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+    role: user.role,
+  };
+};
+
+const googleSignIn = async (payload: any) => {
+  const { user, accessToken,refreshToken } = payload as any;
+
+  // Store refresh token in DB
+  const refreshExpiresIn = Number(
+    parseExpirationTime(config.jwt.refresh_expires_in as string),
+  );
+  const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
@@ -167,5 +189,6 @@ console.log(expiresAt);
 export const AuthService = {
   signup,
   verifyEmail,
-  signin
+  signin,
+  googleSignIn,
 };

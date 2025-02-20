@@ -8,6 +8,7 @@ export default {
   database_url: process.env.DATABASE_URL,
   port: process.env.PORT,
   admin_client_url: process.env.ADMIN_CLIENT_URL,
+  backend_url:process.env.BACKEND_URL,
   jwt: {
     bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
     access_secret: process.env.JWT_ACCESS_SECRET,
@@ -23,4 +24,6 @@ export default {
   softograph_pass: process.env.SOFTOPGRAPH_PASS,
   rabbitMQ_url: process.env.RABBITMQ_URL,
   email_queue_name: process.env.EMAIL_QUEUE_NAME,
+  google_client_id: process.env.GOOGLE_CLIENT_ID,
+  google_client_secret: process.env.GOOGLE_CLIENT_SECRET
 };
