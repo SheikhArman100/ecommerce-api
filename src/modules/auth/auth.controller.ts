@@ -140,6 +140,32 @@ const signOut = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const checkUser = catchAsync(async (req: Request, res: Response) => {
+  const cookies = req?.cookies?.[ENUM_COOKIE_NAME.REFRESH_TOKEN];
+
+  if (!cookies) {
+    throw new ApiError(status.FORBIDDEN, 'Please sign in first');
+  }
+
+  const result = await AuthService.checkUser(cookies);
+
+  if (!result) {
+    res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, {
+      secure: config.env === 'production',
+      httpOnly: true,
+    });
+
+    throw new ApiError(status.FORBIDDEN, 'You are not authorized');
+  }
+
+  return sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Authorized User',
+    data: result,
+  });
+});
+
 export const AuthController = {
   signup,
   verifyEmail,
@@ -147,4 +173,5 @@ export const AuthController = {
   googleSignIn,
   updateToken,
   signOut,
+  checkUser
 };

@@ -8,7 +8,6 @@ import { jwtHelpers } from '../../helpers/jwtHelpers';
 import { sendEmail } from '../../helpers/nodeMailer';
 import { parseExpirationTime } from '../../utils';
 import { IUser } from '../user/user.interface';
-import { ENUM_USER_ROLE } from '../../enum/user';
 
 const signup = async (payload: IUser) => {
   const existingUser = await prisma.user.findFirst({
@@ -78,7 +77,7 @@ const signup = async (payload: IUser) => {
     );
   } catch (error) {
     console.error('Email sending failed:', error);
-    throw new ApiError(status.INTERNAL_SERVER_ERROR,"failed to send mail")
+    throw new ApiError(status.INTERNAL_SERVER_ERROR, 'failed to send mail');
   }
   return {
     id: newUser.id,
@@ -196,7 +195,7 @@ const googleSignIn = async (payload: any) => {
     );
   } catch (error) {
     console.error('Email sending failed:', error);
-    throw new ApiError(status.INTERNAL_SERVER_ERROR,"failed to send mail")
+    throw new ApiError(status.INTERNAL_SERVER_ERROR, 'failed to send mail');
   }
 
   return {
@@ -270,11 +269,48 @@ const signOut = async (refreshToken: string) => {
     where: { token: refreshToken },
   });
 };
+const checkUser = async (refreshToken: string) => {
+  const checkToken = await prisma.user.findFirst({
+    where: {
+      refreshTokens: {
+        some: {
+          token: refreshToken,
+        },
+      },
+    },
+    select:{
+      id:true,
+      email:true,
+      role:true,
+      isVerified:true
+    }
+    
+  });
+  
+
+  if (!checkToken) {
+    throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+  }
+
+  const verifiedUser = jwtHelpers.verifyToken(
+    refreshToken,
+    config.jwt.refresh_secret as Secret,
+  );
+
+ 
+
+  if (Number(verifiedUser.id) !== checkToken?.id) {
+    throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+  }
+
+  return checkToken;
+};
 export const AuthService = {
   signup,
   verifyEmail,
   signin,
   googleSignIn,
   updateToken,
-  signOut
+  signOut,
+  checkUser,
 };

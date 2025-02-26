@@ -26,6 +26,8 @@ router.get(
 router.get('/token', AuthController.updateToken);
 router.post('/signout', AuthController.signOut);
 
+router.get('/user', AuthController.checkUser);
+
     
 
 export const authRoute = router;

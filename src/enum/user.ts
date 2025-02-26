@@ -1,11 +1,10 @@
 export enum ENUM_USER_ROLE {
-    SUPER_ADMIN = 'super_admin',
     ADMIN = 'admin',
     USER="user"
   }
   
   export const RoleWiseUserValue = {
-    [ENUM_USER_ROLE.SUPER_ADMIN]: 100,
+    
     [ENUM_USER_ROLE.ADMIN]: 95,
     [ENUM_USER_ROLE.USER]: 90,
     
