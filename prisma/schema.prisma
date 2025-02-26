@@ -13,17 +13,23 @@ enum UserRole {
   super_admin
 }
 
+enum DiskType {
+  LOCAL
+  AWS
+  SHARED
+}
+
 model User {
-  id          Int     @id @default(autoincrement())
-  name        String
-  email       String  @unique
-  phoneNumber String  
-  password    String
-  isVerified  Boolean @default(false)
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  phoneNumber   String
+  password      String
+  isVerified    Boolean        @default(false)
   role          UserRole       @default(user)
   createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt  
-  refreshTokens RefreshToken[] 
+  updatedAt     DateTime       @updatedAt
+  refreshTokens RefreshToken[]
   detail        UserDetail?
 
   //indexing
@@ -42,8 +48,6 @@ model UserDetail {
   userId  Int    @unique
   user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-
-
   @@map("userDetails")
 }
 
@@ -59,4 +63,98 @@ model RefreshToken {
   @@index([userId])
   //rename database table name
   @@map("refreshTokens")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  //relations
+  categoryId Int?
+  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  flavors    ProductFlavor[]
+
+  @@map("products")
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  //relations
+  products Product[]
+
+  @@map("categories")
+}
+
+model Flavor {
+  id       Int             @id @default(autoincrement())
+  name     String          @unique
+  products ProductFlavor[]
+
+  @@map("flavors")
+}
+
+model Size {
+  id             Int                 @id @default(autoincrement())
+  name           String              @unique
+  productFlavors ProductFlavorSize[]
+
+  @@map("sizes")
+}
+
+model Image {
+  id           Int      @id @default(autoincrement())
+  diskType     DiskType
+  path         String
+  originalName String
+  modifiedName String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  //relations
+  productId Int
+  flavorId  Int
+
+  productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
+
+  @@unique([id, productId, flavorId])
+  @@map("images")
+}
+
+model ProductFlavor {
+  productId Int
+  flavorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  product Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  flavor  Flavor              @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+  images  Image[]
+  sizes   ProductFlavorSize[]
+
+  @@id([productId, flavorId])
+  @@map("productFlavors")
+}
+
+model ProductFlavorSize {
+  productId Int
+  flavorId  Int
+  sizeId    Int
+  stock     Int
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
+  size          Size          @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+
+  @@id([productId, flavorId, sizeId])
+  @@index([productId, flavorId])
+  @@map("product_flavor_sizes")
 }
