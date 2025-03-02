@@ -2,7 +2,9 @@
 //filter
 export const categoryFilterableFields = [
     'searchTerm',
-    'name'
+    'name',
+    'createdBy',
+    'updatedBy'
 ];
 
 //searchTerm

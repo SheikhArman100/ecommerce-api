@@ -7,4 +7,11 @@ const createCategorySchema = z.object({
       .min(3, { message: 'Name must be at least 3 characters long' }),
   }).strict(),
 });
-export const CategoryValidation = { createCategorySchema };
+const updateCategorySchema = z.object({
+  body: z.object({
+    name: z
+      .string()
+      .min(3, { message: 'Name must be at least 3 characters long' }),
+  }).strict(),
+});
+export const CategoryValidation = { createCategorySchema ,updateCategorySchema};

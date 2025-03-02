@@ -10,9 +10,9 @@ const router = express.Router();
 
 router
     .post('/create-category',auth(ENUM_USER_ROLE.ADMIN),validateRequest(CategoryValidation.createCategorySchema), CategoryController.createCategory)
-    .get('/', CategoryController.getAllCategories)
+    .get('/all-categories', CategoryController.getAllCategories)
     .get('/:id', CategoryController.getCategoryByID)
+    .patch('/:id',auth(ENUM_USER_ROLE.ADMIN),validateRequest(CategoryValidation.updateCategorySchema), CategoryController.updateCategory)
     .delete('/:id',auth(ENUM_USER_ROLE.ADMIN), CategoryController.deleteCategoryByID)
-    .patch('/:id',auth(ENUM_USER_ROLE.ADMIN), CategoryController.updateCategory);
 
 export const categoryRoute = router;

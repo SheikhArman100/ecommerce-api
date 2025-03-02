@@ -14,4 +14,6 @@ export type ICategory={
 export type ICategoryFilters = {
   searchTerm?: string;
   name?: string;
+  createdBy?: string;
+  updatedBy?: string;
 };
