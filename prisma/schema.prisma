@@ -19,25 +19,25 @@ enum DiskType {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  name          String
-  email         String         @unique
-  phoneNumber   String
-  password      String
-  isVerified    Boolean        @default(false)
-  role          UserRole       @default(user)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  phoneNumber String
+  password    String
+  isVerified  Boolean  @default(false)
+  role        UserRole @default(user)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   //relations
-  detail        UserDetail?
-  refreshTokens RefreshToken[]
-  createdCategories Category[] @relation("CategoryCreator")
-  updatedCategories Category[] @relation("CategoryUpdater")
-  createdFlavors Flavor[] @relation("FlavorCreator")
-  updatedFlavors Flavor[] @relation("FlavorUpdater")
-  createdSizes Size[] @relation("SizeCreator")
-  updatedSizes Size[] @relation("SizeUpdater")
+  detail            UserDetail?
+  refreshTokens     RefreshToken[]
+  createdCategories Category[]     @relation("CategoryCreator")
+  updatedCategories Category[]     @relation("CategoryUpdater")
+  createdFlavors    Flavor[]       @relation("FlavorCreator")
+  updatedFlavors    Flavor[]       @relation("FlavorUpdater")
+  createdSizes      Size[]         @relation("SizeCreator")
+  updatedSizes      Size[]         @relation("SizeUpdater")
 
   //indexing
   @@index([email])
@@ -88,30 +88,32 @@ model Product {
 }
 
 model Category {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
   createdBy Int
   updatedBy Int
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
   //relations
-  creator   User   @relation("CategoryCreator",fields: [createdBy], references: [id], onDelete: Cascade)
-  updater   User?   @relation("CategoryUpdater",fields: [updatedBy], references: [id], onDelete: Cascade)
-  products Product[]
+  creator   User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater   User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  products  Product[]
+
   @@map("categories")
 }
 
 model Flavor {
-  id       Int             @id @default(autoincrement())
-  name     String          @unique
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
+  color     String
   createdBy Int
   updatedBy Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime        @default(now())
+  updatedAt DateTime?       @updatedAt
   //relations
-  creator   User   @relation("FlavorCreator",fields: [createdBy], references: [id], onDelete: Cascade)
-  updater   User?   @relation("FlavorUpdater",fields: [updatedBy], references: [id], onDelete: Cascade)
-  products ProductFlavor[]
+  creator   User            @relation("FlavorCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater   User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  products  ProductFlavor[]
 
   @@map("flavors")
 }
@@ -119,13 +121,13 @@ model Flavor {
 model Size {
   id             Int                 @id @default(autoincrement())
   name           String              @unique
-  createdBy Int
-  updatedBy Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+  createdBy      Int
+  updatedBy      Int
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime?           @updatedAt
   //relations
-  creator   User   @relation("SizeCreator",fields: [createdBy], references: [id], onDelete: Cascade)
-  updater   User?   @relation("SizeUpdater",fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator        User                @relation("SizeCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater        User?               @relation("SizeUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
   productFlavors ProductFlavorSize[]
 
   @@map("sizes")
