@@ -2,16 +2,16 @@ import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
-import { IFlavor, IFlavorFilters } from './flavor.interface';
+import { ISize, ISizeFilters } from './size.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
-import { flavorSearchableFields } from './flavor.constant';
+import { sizeSearchableFields } from './size.constant';
 import { Prisma } from '@prisma/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
-const createFlavor = async (
+const createSize = async (
   adminInfo: UserInfoFromToken,
-  payload: Partial<IFlavor>,
+  payload: Partial<ISize>,
 ) => {
   const checkAdmin = await prisma.user.findUnique({
     where: { id: Number(adminInfo.id) },
@@ -19,10 +19,9 @@ const createFlavor = async (
   if (!checkAdmin) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
   }
-  const data = await prisma.flavor.create({
+  const data = await prisma.size.create({
     data: {
       name: payload.name as string,
-      color:payload.color as string,
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
       createdAt: new Date(),
@@ -32,19 +31,19 @@ const createFlavor = async (
   return data;
 };
 
-const getAllFlavors = async (
-  filters: IFlavorFilters,
+const getAllSizes = async (
+  filters: ISizeFilters,
   paginationOptions: IPaginationOptions,
 ) => {
   const { searchTerm, ...filtersData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
-  let whereConditions: Prisma.FlavorWhereInput = {};
+  let whereConditions: Prisma.SizeWhereInput = {};
 
   // Add search term condition if provided
   if (searchTerm) {
     whereConditions = {
-      OR: flavorSearchableFields.map(field => ({
+      OR: sizeSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
           // mode: 'insensitive',
@@ -63,9 +62,9 @@ const getAllFlavors = async (
     };
   }
 
-  const count = await prisma.flavor.count({ where: whereConditions });
+  const count = await prisma.size.count({ where: whereConditions });
 
-  const result = await prisma.flavor.findMany({
+  const result = await prisma.size.findMany({
     where: whereConditions,
     orderBy,
     skip,
@@ -86,8 +85,8 @@ const getAllFlavors = async (
   };
 };
 
-const getFlavorByID = async (id: string) => {
-  const data = await prisma.flavor.findUnique({
+const getSizeByID = async (id: string) => {
+  const data = await prisma.size.findUnique({
     where: {
       id: Number(id),
     },
@@ -98,15 +97,15 @@ const getFlavorByID = async (id: string) => {
   });
 
   if (!data) {
-    throw new ApiError(status.NOT_FOUND, 'Flavor not found');
+    throw new ApiError(status.NOT_FOUND, 'Size not found');
   }
 
   return data;
 };
 
-const updateFlavor = async (
+const updateSize = async (
   id: string,
-  payload: Partial<IFlavor>,
+  payload: Partial<ISize>,
   userInfo: UserInfoFromToken,
 ) => {
   const checkUser = await prisma.user.findUnique({
@@ -121,19 +120,18 @@ const updateFlavor = async (
       'You are not authorized to perform this action',
     );
   }
-  const checkFlavor = await prisma.flavor.findUnique({
+  const checkSize = await prisma.size.findUnique({
     where: { id: Number(id) },
   });
-  if (!checkFlavor) {
-    throw new ApiError(status.NOT_FOUND, 'Flavor not found');
+  if (!checkSize) {
+    throw new ApiError(status.NOT_FOUND, 'Size not found');
   }
-  const data = await prisma.flavor.update({
+  const data = await prisma.size.update({
     where: {
       id: Number(id),
     },
     data: {
-      ...(payload.name && { name: payload.name }),
-      ...(payload.color && { color: payload.color }),
+      name: payload.name as string,
       updatedBy: Number(checkUser.id),
       updatedAt: new Date(),
     },
@@ -142,7 +140,7 @@ const updateFlavor = async (
   return data;
 };
 
-const deleteFlavorByID = async (id:string,userInfo:UserInfoFromToken) => {
+const deleteSizeByID = async (id:string,userInfo:UserInfoFromToken) => {
   const checkUser = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
   });
@@ -155,13 +153,13 @@ const deleteFlavorByID = async (id:string,userInfo:UserInfoFromToken) => {
       'You are not authorized to perform this action',
     );
   }
-  const checkFlavor = await prisma.flavor.findUnique({
+  const checkSize = await prisma.size.findUnique({
     where: { id: Number(id) },
   });
-  if (!checkFlavor) {
-    throw new ApiError(status.NOT_FOUND, 'Flavor not found');
+  if (!checkSize) {
+    throw new ApiError(status.NOT_FOUND, 'Size not found');
   }
-  const data = await prisma.flavor.delete({
+  const data = await prisma.size.delete({
     where: {
       id: Number(id),
     },
@@ -171,10 +169,10 @@ const deleteFlavorByID = async (id:string,userInfo:UserInfoFromToken) => {
   
 };
 
-export const FlavorService = {
-  createFlavor,
-  getAllFlavors,
-  getFlavorByID,
-  updateFlavor,
-  deleteFlavorByID,
+export const SizeService = {
+  createSize,
+  getAllSizes,
+  getSizeByID,
+  updateSize,
+  deleteSizeByID,
 };

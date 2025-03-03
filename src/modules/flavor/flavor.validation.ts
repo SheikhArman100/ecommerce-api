@@ -17,11 +17,17 @@ const updateFlavorSchema = z.object({
     .object({
       name: z
         .string()
-        .min(3, { message: 'Name must be at least 3 characters long' }),
+        .min(3, { message: 'Name must be at least 3 characters long' })
+        .optional(),
       color: z
         .string()
-        .min(3, { message: 'Color must be at least 3 characters long' }),
+        .min(3, { message: 'Color must be at least 3 characters long' })
+        .optional()
     })
-    .strict(),
+    .strict()
+    .refine(
+      (data) => data.name !== undefined || data.color !== undefined,
+      { message: 'Either name or color is required' }
+    ),
 });
 export const FlavorValidation = { createFlavorSchema, updateFlavorSchema };
