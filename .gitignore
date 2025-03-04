@@ -7,3 +7,5 @@ docs
 uploads/users/images/*
 !uploads/users/images/.gitkeep
 
+uploads/product/images/*
+!uploads/product/images/.gitkeep

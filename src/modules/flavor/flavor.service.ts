@@ -19,6 +19,12 @@ const createFlavor = async (
   if (!checkAdmin) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
   }
+  if (checkAdmin.role !== ENUM_USER_ROLE.ADMIN) {
+    throw new ApiError(
+      status.UNAUTHORIZED,
+      'You are not authorized to perform this action',
+    );
+  }
   const data = await prisma.flavor.create({
     data: {
       name: payload.name as string,
