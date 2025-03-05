@@ -32,6 +32,8 @@ model User {
   //relations
   detail            UserDetail?
   refreshTokens     RefreshToken[]
+  createdProdducts  Product[]      @relation("ProductCreator")
+  updatedproducts   Product[]      @relation("ProductUpdater")
   createdCategories Category[]     @relation("CategoryCreator")
   updatedCategories Category[]     @relation("CategoryUpdater")
   createdFlavors    Flavor[]       @relation("FlavorCreator")
@@ -76,6 +78,8 @@ model Product {
   id          Int      @id @default(autoincrement())
   title       String   @unique
   description String   @db.Text
+  createdBy   Int
+  updatedBy   Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -83,6 +87,8 @@ model Product {
   categoryId Int?
   category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   flavors    ProductFlavor[]
+  creator    User            @relation("ProductCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater    User?           @relation("ProductUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
 
   @@map("products")
 }

@@ -11,111 +11,105 @@ const createProduct = async (
   payload: Partial<IProductBody>,
   multerImages?: IFile[],
 ): Promise<any> => {
+  //validate admin
   const checkAdmin = await prisma.user.findUnique({
     where: { id: Number(adminInfo.id) },
+    select: { role: true, id: true },
   });
   if (!checkAdmin) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
   }
   if (checkAdmin.role !== ENUM_USER_ROLE.ADMIN) {
     throw new ApiError(
-      status.UNAUTHORIZED,
+      status.FORBIDDEN,
       'You are not authorized to perform this action',
     );
   }
 
+  //validate payload
   const { title, description, categoryId, flavors } = payload;
 
-  if (!title || !description || !categoryId || !flavors) {
-    throw new ApiError(
-      status.BAD_REQUEST,
-      'Title or description or categoryId or flavors  is missing',
-    );
+  if (
+    !title ||
+    !description ||
+    !categoryId ||
+    !Array.isArray(flavors) ||
+    flavors.length === 0
+  ) {
+    throw new ApiError(status.BAD_REQUEST, 'Missing required product details');
   }
 
-  // Create Product
-  const newProduct = await prisma.product.create({
-    data: {
-      title: title,
-      description,
-      categoryId: Number(categoryId),
-    },
-  });
+  // Use transaction to ensure data consistency
+  return prisma.$transaction(
+    async tx => {
+      // Create Product
+      const newProduct = await tx.product.create({
+        data: {
+          title,
+          description,
+          categoryId: Number(categoryId),
+          createdBy:Number(checkAdmin.id),
+          updatedBy:Number(checkAdmin.id)
+        },
+      });
+      // Process flavors, sizes, and images in parallel
+      await Promise.all(
+        flavors.map(async (flavor, index) => {
+          // Create Flavor
+          const createdFlavor = await tx.productFlavor.create({
+            data: {
+              productId: newProduct.id,
+              flavorId: Number(flavor.flavorId),
+            },
+          });
 
-  if (!newProduct) {
-    throw new ApiError(
-      status.INTERNAL_SERVER_ERROR,
-      'Failed to create new product',
-    );
-  }
+          // Get flavor-specific images
+          const flavorImages = Array.isArray(multerImages)
+            ? multerImages.filter(
+                img => img.fieldname === `flavors[${index}][images]`,
+              )
+            : [];
 
-  // Process each flavor
-  for (let i = 0; i < flavors.length; i++) {
-    const flavor = flavors[i];
+          // Create images for this flavor
+          const imagePromises = flavorImages.map(img =>
+            tx.image.create({
+              data: {
+                productId: newProduct.id,
+                flavorId: createdFlavor.flavorId,
+                diskType: 'LOCAL',
+                path: img.path,
+                originalName: img.originalname,
+                modifiedName: img.filename,
+              },
+            }),
+          );
 
-    // Create Flavor Entry
-    const createdFlavor = await prisma.productFlavor.create({
-      data: {
-        productId: newProduct.id,
-        flavorId: Number(flavor.flavorId),
-      },
-    });
-    if (!createdFlavor) {
-      throw new ApiError(
-        status.INTERNAL_SERVER_ERROR,
-        'Failed to create new product flavor',
+          // Create sizes for this flavor
+          const sizePromises = flavor.sizes.map(size =>
+            tx.productFlavorSize.create({
+              data: {
+                productId: newProduct.id,
+                flavorId: createdFlavor.flavorId,
+                sizeId: Number(size.sizeId),
+                stock: Number(size.stock),
+                price: parseFloat(size.price.toString()),
+              },
+            }),
+          );
+
+          // Wait for all images and sizes to be created
+          await Promise.all([...imagePromises, ...sizePromises]);
+        }),
       );
-    }
 
-    // Get images from request files
-    const uploadedImages: { [key: string]: IFile[] } = Array.isArray(
-      multerImages,
-    )
-      ? {}
-      : multerImages || {};
-    const flavorImages = uploadedImages[`flavors[${i}][images]`] || [];
-
-    // Save each image for this flavor
-    for (let img of flavorImages) {
-      const productImage = await prisma.image.create({
-        data: {
-          productId: newProduct.id,
-          flavorId: createdFlavor.flavorId,
-          diskType: 'LOCAL',
-          path: img.path,
-          originalName: img.originalname,
-          modifiedName: img.filename,
-        },
-      });
-      if (!productImage) {
-        throw new ApiError(
-          status.INTERNAL_SERVER_ERROR,
-          'Failed to create new product image',
-        );
-      }
-    }
-    // Handle Sizes
-    for (let k = 0; k < flavor.sizes.length; k++) {
-      const size = flavor.sizes[k];
-
-      const productSize = await prisma.productFlavorSize.create({
-        data: {
-          productId: newProduct.id,
-          flavorId: createdFlavor.flavorId,
-          sizeId: Number(size.sizeId),
-          stock: Number(size.stock),
-          price: parseFloat(size.price.toString()),
-        },
-      });
-      if (!productSize) {
-        throw new ApiError(
-          status.INTERNAL_SERVER_ERROR,
-          'Failed to create new product size',
-        );
-      }
-    }
-  }
-  return newProduct
+      return newProduct;
+    },
+    {
+      // Configure transaction options
+      maxWait: 5000, 
+      timeout: 10000, 
+    },
+  );
 };
 export const ProductService = {
   createProduct,
