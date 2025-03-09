@@ -18,6 +18,12 @@ enum DiskType {
   SHARED
 }
 
+enum OrderStatus {
+  Pending
+  Shipped
+  Delivered
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   name        String
@@ -32,14 +38,19 @@ model User {
   //relations
   detail            UserDetail?
   refreshTokens     RefreshToken[]
-  createdProdducts  Product[]      @relation("ProductCreator")
-  updatedproducts   Product[]      @relation("ProductUpdater")
+  createdProducts   Product[]      @relation("ProductCreator")
+  updatedProducts   Product[]      @relation("ProductUpdater")
   createdCategories Category[]     @relation("CategoryCreator")
   updatedCategories Category[]     @relation("CategoryUpdater")
   createdFlavors    Flavor[]       @relation("FlavorCreator")
   updatedFlavors    Flavor[]       @relation("FlavorUpdater")
   createdSizes      Size[]         @relation("SizeCreator")
   updatedSizes      Size[]         @relation("SizeUpdater")
+
+  reviews   Review[]
+  wishlists WishList[]
+  cart      Cart?
+  orders    Order[]
 
   //indexing
   @@index([email])
@@ -50,7 +61,7 @@ model User {
 
 model UserDetail {
   id      Int    @id @default(autoincrement())
-  image   String
+  image   Image?
   address String
   city    String
   road    String
@@ -89,6 +100,10 @@ model Product {
   flavors    ProductFlavor[]
   creator    User            @relation("ProductCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   updater    User?           @relation("ProductUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  reviews    Review[]
+  wishlists  WishList[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@map("products")
 }
@@ -149,10 +164,12 @@ model Image {
   updatedAt    DateTime @updatedAt
 
   //relations
-  productId Int
-  flavorId  Int
+  productId    Int?
+  flavorId     Int?
+  userDetailId Int? @unique
 
-  productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
+  productFlavor ProductFlavor? @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
+  userDetail    UserDetail?    @relation(fields: [userDetailId], references: [id], onDelete: Cascade)
 
   @@unique([id, productId, flavorId])
   @@map("images")
@@ -186,8 +203,102 @@ model ProductFlavorSize {
   // Relations
   productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
   size          Size          @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
 
   @@id([productId, flavorId, sizeId])
   @@index([productId, flavorId])
   @@map("product_flavor_sizes")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @default(5)
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  productId Int
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model WishList {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  productId Int
+  flavorId  Int
+  sizeId    Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  cart              Cart              @relation(fields: [cartId], references: [id])
+  product           Product           @relation(fields: [productId], references: [id])
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
+
+  @@unique([cartId, productId, flavorId, sizeId])
+  @@map("cart_items")
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  status      OrderStatus @default(Pending)
+  totalAmount Float // Total cost of the order
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      Int
+
+  //relations
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  flavorId  Int
+  sizeId    Int
+  quantity  Int      @default(1)
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  order             Order             @relation(fields: [orderId], references: [id])
+  product           Product           @relation(fields: [productId], references: [id])
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
+
+  @@map("order_items")
 }
