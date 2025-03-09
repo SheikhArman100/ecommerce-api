@@ -9,8 +9,8 @@ import auth from '../../middleware/auth';
 const router = express.Router();
 
 router
-    .post('/create-flavor',auth(ENUM_USER_ROLE.ADMIN),validateRequest(FlavorValidation.createFlavorSchema), FlavorController.createFlavor)
-    .get('/all-flavors', FlavorController.getAllFlavors)
+    .post('/',auth(ENUM_USER_ROLE.ADMIN),validateRequest(FlavorValidation.createFlavorSchema), FlavorController.createFlavor)
+    .get('/', FlavorController.getAllFlavors)
     .get('/:id', FlavorController.getFlavorByID)
     .patch('/:id',auth(ENUM_USER_ROLE.ADMIN),validateRequest(FlavorValidation.updateFlavorSchema), FlavorController.updateFlavor)
     .delete('/:id',auth(ENUM_USER_ROLE.ADMIN), FlavorController.deleteFlavorByID)

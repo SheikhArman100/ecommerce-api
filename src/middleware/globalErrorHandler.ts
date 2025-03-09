@@ -24,23 +24,35 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
     errorMessages = simplifiedError.errorMessages;
-  } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    // Handle MySQL duplicate entry error
-    if (error.code === 'P2002') {
-      statusCode = 409; // Conflict status code
-      message = 'Duplicate entry error';
+  } else if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002'
+  ) {
+    statusCode = 400;
+    const target = error.meta?.target;
+    let fields: string[] = [];
 
-      const target = (error.meta?.target as string[]) || [];
-      errorMessages = target.map(field => ({
-        path: field,
-        message: `${field} already exists`,
-      }));
-    } else {
-      const simplifiedError = handleCastError(error);
-      statusCode = simplifiedError.statusCode;
-      message = simplifiedError.message;
-      errorMessages = simplifiedError.errorMessages;
+    if (Array.isArray(target)) {
+      fields = target;
+    } else if (typeof target === 'string') {
+      const parts = target.split('_');
+      if (parts.length > 1 && parts[parts.length - 1] === 'key') {
+        fields = parts.slice(1, -1);
+      }
+      if (fields.length === 0) {
+        fields = [target];
+      }
     }
+
+    if (fields.length === 0) {
+      fields = ['unknown'];
+    }
+
+    message = `Duplicate key error: ${fields.join(', ')} already exists.`;
+    errorMessages = fields.map(key => ({
+      path: key,
+      message: `${key} already exists.`,
+    }));
   } else if (error instanceof ZodError) {
     const simplifiedError = handleZodError(error);
     statusCode = simplifiedError.statusCode;

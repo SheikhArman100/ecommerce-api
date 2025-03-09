@@ -9,8 +9,8 @@ import auth from '../../middleware/auth';
 const router = express.Router();
 
 router
-    .post('/create-size',auth(ENUM_USER_ROLE.ADMIN),validateRequest(SizeValidation.createSizeSchema), SizeController.createSize)
-    .get('/all-sizes', SizeController.getAllSizes)
+    .post('/',auth(ENUM_USER_ROLE.ADMIN),validateRequest(SizeValidation.createSizeSchema), SizeController.createSize)
+    .get('/', SizeController.getAllSizes)
     .get('/:id', SizeController.getSizeByID)
     .patch('/:id',auth(ENUM_USER_ROLE.ADMIN),validateRequest(SizeValidation.updateSizeSchema), SizeController.updateSize)
     .delete('/:id',auth(ENUM_USER_ROLE.ADMIN), SizeController.deleteSizeByID)

@@ -10,12 +10,13 @@ const router = express.Router();
 
 
 router.post(
-    '/create-product',
+    '/',
     auth(ENUM_USER_ROLE.ADMIN),
     FileUploadHelper.uploadAny('product'),
     transformFormData,
     validateRequest(ProductValidation.createProductSchema),
     ProductController.createProduct
   );
+  router.get("/",ProductController.getAllProducts)
 
 export const productRoute = router;
