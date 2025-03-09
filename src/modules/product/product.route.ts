@@ -1,21 +1,21 @@
 import express from 'express';
-import auth from '../../middleware/auth';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import { FileUploadHelper } from '../../helpers/fileUploadHelpers';
+import auth from '../../middleware/auth';
+import transformFormData from '../../middleware/transformFormData';
 import validateRequest from '../../middleware/validateRequest';
-import jsonParse from '../../middleware/jsonParse';
-import { ProductValidation } from './product.validation';
 import { ProductController } from './product.controller';
+import { ProductValidation } from './product.validation';
 const router = express.Router();
 
 
 router.post(
     '/create-product',
     auth(ENUM_USER_ROLE.ADMIN),
-    FileUploadHelper.uploadMultiple('product', 'files', 10),
-    jsonParse,
+    FileUploadHelper.uploadAny('product'),
+    transformFormData,
     validateRequest(ProductValidation.createProductSchema),
     ProductController.createProduct
   );
 
-export const ProductReportRoutes = router;
+export const productRoute = router;

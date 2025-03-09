@@ -5,6 +5,7 @@ import { IFile } from '../../interfaces/common';
 import { UserInfoFromToken } from '../../types/common';
 import { IProductBody } from './product.interface';
 import { ENUM_USER_ROLE } from '../../enum/user';
+import { Prisma } from '@prisma/client';
 
 const createProduct = async (
   adminInfo: UserInfoFromToken,
@@ -41,7 +42,7 @@ const createProduct = async (
 
   // Use transaction to ensure data consistency
   return prisma.$transaction(
-    async tx => {
+    async (tx:Prisma.TransactionClient) => {
       // Create Product
       const newProduct = await tx.product.create({
         data: {
@@ -64,12 +65,14 @@ const createProduct = async (
           });
 
           // Get flavor-specific images
+          
           const flavorImages = Array.isArray(multerImages)
             ? multerImages.filter(
                 img => img.fieldname === `flavors[${index}][images]`,
               )
             : [];
 
+          
           // Create images for this flavor
           const imagePromises = flavorImages.map(img =>
             tx.image.create({

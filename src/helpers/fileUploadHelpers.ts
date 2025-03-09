@@ -39,7 +39,11 @@ const uploadSingle = (folder: string) =>
 const uploadMultiple = (folder: string, fieldName: string, maxCount: number) =>
   multer({ storage: storage(folder) }).array(fieldName, maxCount);
 
+const uploadAny = (folder: string) =>
+  multer({ storage: storage(folder) }).any();
+
 export const FileUploadHelper = {
   uploadSingle,
   uploadMultiple,
+  uploadAny
 };
