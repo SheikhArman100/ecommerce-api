@@ -43,8 +43,17 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
       data:result
     });
   })
+  const getSingleProductBySlug=catchAsync(async (req: Request, res: Response) => {
+    const result=await ProductService.getSingleProductBySlug(req.params.slug)
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Single product fetched successfully!',
+      data:result
+    });
+  })
 
   export const ProductController={
-    createProduct,getAllProducts,getSingleProduct
+    createProduct,getAllProducts,getSingleProduct,getSingleProductBySlug
 
   }

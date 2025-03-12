@@ -1,13 +1,13 @@
+import { Prisma } from '@prisma/client';
 import status from 'http-status';
 import { prisma } from '../../client';
+import { ENUM_USER_ROLE } from '../../enum/user';
 import ApiError from '../../errors/ApiError';
+import { calculatePagination } from '../../helpers/paginationHelper';
 import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { UserInfoFromToken } from '../../types/common';
-import { IProductBody, IProductFilters } from './product.interface';
-import { ENUM_USER_ROLE } from '../../enum/user';
-import { Prisma } from '@prisma/client';
-import { calculatePagination } from '../../helpers/paginationHelper';
 import { productSearchableFields } from './product.constant';
+import { IProductBody, IProductFilters } from './product.interface';
 
 const createProduct = async (
   adminInfo: UserInfoFromToken,
@@ -431,6 +431,7 @@ const getSingleProduct = async (productId: string) => {
     select: {
       id: true,
       title: true,
+      slug:true,
       description: true,
       createdAt: true,
       updatedAt: true,
@@ -477,75 +478,68 @@ const getSingleProduct = async (productId: string) => {
           role: true,
         },
       },
-      reviews: {
+    },
+  });
+  if (!checkProduct) {
+    throw new ApiError(status.NOT_FOUND, 'Product not found');
+  }
+
+  return checkProduct;
+};
+const getSingleProductBySlug = async (slug: string) => {
+  //checkProduct
+  const checkProduct = await prisma.product.findUnique({
+    where: {
+      slug:slug,
+    },
+    select: {
+      id: true,
+      title: true,
+      slug:true,
+      description: true,
+      createdAt: true,
+      updatedAt: true,
+      category: {
         select: {
-          rating: true,
-          comment: true,
-          updatedAt: true,
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
+          id: true,
+          name: true,
         },
       },
-      wishlists: {
+      flavors: {
         select: {
-          user: {
+          flavor: {
             select: {
+              id: true,
               name: true,
-              email: true,
             },
           },
-        },
-      },
-      cartItems: {
-        select: {
-          quantity: true,
-          productFlavorSize: {
+          images: true,
+          sizes: {
             select: {
-              productFlavor: {
-                select: {
-                  flavor: {
-                    select: {
-                      name: true,
-                      color: true,
-                    },
-                  },
-                },
-              },
               size: {
                 select: {
+                  id: true,
                   name: true,
                 },
               },
+              stock: true,
+              price: true,
             },
           },
         },
       },
-      orderItems: {
+      creator: {
         select: {
-          quantity: true,
-          productFlavorSize: {
-            select: {
-              productFlavor: {
-                select: {
-                  flavor: {
-                    select: {
-                      name: true,
-                      color: true,
-                    },
-                  },
-                },
-              },
-              size: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+      updater: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
         },
       },
     },
@@ -560,4 +554,5 @@ export const ProductService = {
   createProduct,
   getAllProducts,
   getSingleProduct,
+  getSingleProductBySlug
 };
