@@ -4,69 +4,77 @@ import status from 'http-status';
 import catchAsync from '../../shared/catchAsync';
 import { WishlistService } from './wishlist.service';
 import { UserInfoFromToken } from '../../types/common';
-
-
+import pick from '../../helpers/pick';
+import { paginationFields } from '../../constant';
+import { wishlistFilterableFields } from './wishlist.constant';
 
 const createWishlist = catchAsync(async (req: Request, res: Response) => {
-    const result = await WishlistService.createWishlist(req.body,req.user as UserInfoFromToken);
+  const result = await WishlistService.createWishlist(
+    req.body,
+    req.user as UserInfoFromToken,
+  );
 
-    sendResponse(res, {
-        success:true,
-        statusCode: status.OK,
-        message: 'Wishlist created successfully',
-        data: result,
-    });
-    
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Wishlist created successfully',
+    data: result,
+  });
 });
 
 const getAllWishlists = catchAsync(async (req: Request, res: Response) => {
-    const result = await WishlistService.getAllWishlists();
+  const filters = pick(req.query, wishlistFilterableFields);
+  const paginationOptions = pick(req.query, paginationFields);
+  const result = await WishlistService.getAllWishlists(
+    filters,
+    paginationOptions,
+  );
 
-    sendResponse(res, {
-        success:true,
-        statusCode: status.OK,
-        message: 'Wishlists are retrieved successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Wishlists are retrieved successfully',
+    data: result,
+  });
 });
 
 const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await WishlistService.getWishlistByID();
+  const result = await WishlistService.getWishlistByID(req.params.id);
 
-    sendResponse(res, {
-        success:true,
-        statusCode: status.OK,
-        message: 'Single Wishlist retrieved successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Single Wishlist retrieved successfully',
+    data: result,
+  });
 });
 
 const updateWishlist = catchAsync(async (req: Request, res: Response) => {
-    const result = await WishlistService.updateWishlist
+  const result = await WishlistService.updateWishlist;
 
-    sendResponse(res, {
-        success:true,
-        statusCode: status.OK,
-        message: 'Wishlist is updated successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Wishlist is updated successfully',
+    data: result,
+  });
 });
 
 const deleteWishlistByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await WishlistService.deleteWishlistByID();
+  const result = await WishlistService.deleteWishlistByID(req.params.id,req.user as UserInfoFromToken);
 
-    sendResponse(res, {
-        success:true,
-        statusCode: status.OK,
-        message: 'Wishlist is deleted successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Wishlist is deleted successfully',
+    data: result,
+  });
 });
 
 export const WishlistController = {
-    createWishlist,
-    getAllWishlists,
-    getWishlistByID,
-    updateWishlist,
-    deleteWishlistByID,
+  createWishlist,
+  getAllWishlists,
+  getWishlistByID,
+  updateWishlist,
+  deleteWishlistByID,
 };
