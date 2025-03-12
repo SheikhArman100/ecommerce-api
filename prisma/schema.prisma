@@ -88,6 +88,7 @@ model RefreshToken {
 model Product {
   id          Int      @id @default(autoincrement())
   title       String   @unique
+  slug        String   @unique
   description String   @db.Text
   createdBy   Int
   updatedBy   Int
@@ -220,8 +221,8 @@ model Review {
   userId    Int
   productId Int
 
-  user    User    @relation(fields: [userId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@map("reviews")
@@ -232,8 +233,9 @@ model WishList {
   userId    Int
   productId Int
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@map("wishlists")
@@ -244,7 +246,7 @@ model Cart {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   userId    Int        @unique
-  user      User       @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
 
   @@map("carts")
@@ -261,9 +263,9 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   //relations
-  cart              Cart              @relation(fields: [cartId], references: [id])
-  product           Product           @relation(fields: [productId], references: [id])
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
+  cart              Cart              @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Cascade)
 
   @@unique([cartId, productId, flavorId, sizeId])
   @@map("cart_items")
@@ -278,7 +280,7 @@ model Order {
   userId      Int
 
   //relations
-  user  User        @relation(fields: [userId], references: [id])
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items OrderItem[]
 
   @@map("orders")
@@ -296,9 +298,9 @@ model OrderItem {
   updatedAt DateTime @updatedAt
 
   //relations
-  order             Order             @relation(fields: [orderId], references: [id])
-  product           Product           @relation(fields: [productId], references: [id])
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
+  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Cascade)
 
   @@map("order_items")
 }

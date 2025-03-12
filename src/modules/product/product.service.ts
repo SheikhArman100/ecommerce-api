@@ -45,10 +45,20 @@ const createProduct = async (
   // Use transaction to ensure data consistency
   return prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
+      //check if categoryID exists
+      const checkCategory = await tx.category.findUnique({
+        where: { id: Number(categoryId) },
+        select: { id: true },
+      });
+      if (!checkCategory) {
+        throw new ApiError(status.NOT_FOUND, `Category not found`);
+      }
       // Create Product
+      const slug = title.replace(/\s+/g, '_');
       const newProduct = await tx.product.create({
         data: {
           title,
+          slug,
           description,
           categoryId: Number(categoryId),
           createdBy: Number(checkAdmin.id),
@@ -58,6 +68,15 @@ const createProduct = async (
       // Process flavors, sizes, and images in parallel
       await Promise.all(
         flavors.map(async (flavor, index) => {
+          //check if flavorId exists
+          const checkFlavor = await tx.flavor.findUnique({
+            where: { id: Number(flavor.flavorId) },
+            select: { id: true },
+          });
+          if (!checkFlavor) {
+            throw new ApiError(status.NOT_FOUND, `Flavor  not found`);
+          }
+
           // Create Flavor
           const createdFlavor = await tx.productFlavor.create({
             data: {
@@ -89,8 +108,17 @@ const createProduct = async (
           );
 
           // Create sizes for this flavor
-          const sizePromises = flavor.sizes.map(size =>
-            tx.productFlavorSize.create({
+          const sizePromises = flavor.sizes.map(async size => {
+            //check if sizeId exists
+            const checkSize = await tx.size.findUnique({
+              where: { id: Number(size.sizeId) },
+              select: { id: true },
+            });
+            if (!checkSize) {
+              throw new ApiError(status.NOT_FOUND, `Size not found`);
+            }
+
+            return tx.productFlavorSize.create({
               data: {
                 productId: newProduct.id,
                 flavorId: createdFlavor.flavorId,
@@ -98,8 +126,8 @@ const createProduct = async (
                 stock: Number(size.stock),
                 price: parseFloat(size.price.toString()),
               },
-            }),
-          );
+            });
+          });
 
           // Wait for all images and sizes to be created
           await Promise.all([...imagePromises, ...sizePromises]);
@@ -340,15 +368,15 @@ const getAllProducts = async (
       id: true,
       title: true,
       description: true,
-      createdBy:true,
-      creator:{
-        select:{
-          name:true,
-          email:true,
-          role:true
-        }
+      createdBy: true,
+      creator: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
+        },
       },
-      categoryId:true,
+      categoryId: true,
       category: {
         select: {
           name: true,
@@ -394,7 +422,142 @@ const getAllProducts = async (
     data: result,
   };
 };
+const getSingleProduct = async (productId: string) => {
+  //checkProduct
+  const checkProduct = await prisma.product.findUnique({
+    where: {
+      id: Number(productId),
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      createdAt: true,
+      updatedAt: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      flavors: {
+        select: {
+          flavor: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          images: true,
+          sizes: {
+            select: {
+              size: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              stock: true,
+              price: true,
+            },
+          },
+        },
+      },
+      creator: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+      updater: {
+        select: {
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+      reviews: {
+        select: {
+          rating: true,
+          comment: true,
+          updatedAt: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      wishlists: {
+        select: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      cartItems: {
+        select: {
+          quantity: true,
+          productFlavorSize: {
+            select: {
+              productFlavor: {
+                select: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+              size: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      orderItems: {
+        select: {
+          quantity: true,
+          productFlavorSize: {
+            select: {
+              productFlavor: {
+                select: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                    },
+                  },
+                },
+              },
+              size: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!checkProduct) {
+    throw new ApiError(status.NOT_FOUND, 'Product not found');
+  }
+
+  return checkProduct;
+};
 export const ProductService = {
   createProduct,
   getAllProducts,
+  getSingleProduct,
 };
