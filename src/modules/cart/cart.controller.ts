@@ -5,6 +5,9 @@ import sendResponse from '../../shared/sendResponse';
 import { CartService } from './cart.service';
 import catchAsync from '../../shared/catchAsync';
 import { UserInfoFromToken } from '../../types/common';
+import { cartFilterableFields } from './cart.constant';
+import { paginationFields } from '../../constant';
+import pick from '../../helpers/pick';
 
 
 
@@ -20,7 +23,10 @@ const createCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllCarts = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.getAllCarts();
+    const filters = pick(req.query, cartFilterableFields);
+  const paginationOptions = pick(req.query, paginationFields);
+    const result = await CartService.getAllCarts(filters,
+        paginationOptions);
 
     sendResponse(res, {
         success:true,
@@ -30,8 +36,8 @@ const getAllCarts = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const getCartByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.getCartByID();
+const getSingleCart = catchAsync(async (req: Request, res: Response) => {
+    const result = await CartService.getSingleCart(req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,
@@ -41,24 +47,24 @@ const getCartByID = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-const updateCart = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.updateCart();
+const updateCartItemByID = catchAsync(async (req: Request, res: Response) => {
+    const result = await CartService.updateCartItemByID(req.params.cartItemId, req.body, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Cart is updated successfully',
+        message: 'Cart Item is updated successfully',
         data: result,
     });
 });
 
-const deleteCartByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.deleteCartByID();
+const deleteCartItemByID = catchAsync(async (req: Request, res: Response) => {
+    const result = await CartService.deleteCartItemByID(req.params.cartItemId, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Cart is deleted successfully',
+        message: 'Cart Item is deleted successfully',
         data: result,
     });
 });
@@ -66,7 +72,7 @@ const deleteCartByID = catchAsync(async (req: Request, res: Response) => {
 export const CartController = {
     createCart,
     getAllCarts,
-    getCartByID,
-    updateCart,
-    deleteCartByID,
+    getSingleCart,
+    updateCartItemByID,
+    deleteCartItemByID,
 };

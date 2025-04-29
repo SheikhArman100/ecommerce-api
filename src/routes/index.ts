@@ -6,6 +6,7 @@ import { flavorRoute } from '../modules/flavor/flavor.route';
 import { sizeRoute } from '../modules/size/size.route';
 import { productRoute } from '../modules/product/product.route';
 import { WishlistRoute } from '../modules/wishlist/wishlist.route';
+import { cartRoute } from '../modules/cart/cart.route';
 
 const router = express.Router();
 
@@ -42,6 +43,9 @@ const moduleRoutes: Route[] = [
   {
     path:'/wishlist',
     route:WishlistRoute
+  },{
+    path:'/cart',
+    route:cartRoute
   }
 ];
 

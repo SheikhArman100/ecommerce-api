@@ -1,17 +1,19 @@
 import express from 'express';
-import { CategoryController } from '../category/category.controller';
+
 import validateRequest from '../../middleware/validateRequest';
 import auth from '../../middleware/auth';
-import { CartValidation } from './cartr.validation';
+import { CartValidation } from './cart.validation';
+import { CartController } from './cart.controller';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 
 
 const router = express.Router();
 
-router.post('/',auth(),validateRequest(CartValidation.createCartSchema), CategoryController.createCategory)
-router.get('/', CategoryController.getAllCategories)
-router.get('/:id', CategoryController.getCategoryByID)
-router.delete('/:id', CategoryController.deleteCategoryByID)
-router.patch('/:id', CategoryController.updateCategory);
+router.post('/',auth(),validateRequest(CartValidation.createCartSchema), CartController.createCart);
+router.get('/',auth(), CartController.getAllCarts);
+router.get('/single-cart',auth(), CartController.getSingleCart)
+router.delete('/:cartItemId',auth(), CartController.deleteCartItemByID)
+router.patch('/:cartItemId',auth(),validateRequest(CartValidation.updateCartItemSchema), CartController.updateCartItemByID);
 
-export const categoryRoute = router;
+export const cartRoute = router;
