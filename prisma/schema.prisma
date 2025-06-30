@@ -62,6 +62,7 @@ model User {
 model UserDetail {
   id      Int    @id @default(autoincrement())
   image   Image?
+  profileImage String?
   address String
   city    String
   road    String
