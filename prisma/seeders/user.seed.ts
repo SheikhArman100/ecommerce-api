@@ -9,16 +9,24 @@ export async function seedUsers() {
 
   const users = [
     {
-      name: 'Admin User',
-      email: 'admin@example.com',
+      name: 'Sheikh Arman',
+      email: 'sheikharman@softograph.com',
       phoneNumber: '+1234567890',
       password: defaultPassword,
       isVerified: true,
       role: UserRole.admin
     },
     {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
+      name: 'Amanullah Aman',
+      email: 'aman@softograph.com',
+      phoneNumber: '+1234567890',
+      password: defaultPassword,
+      isVerified: true,
+      role: UserRole.admin
+    },
+    {
+      name: 'Demo User',
+      email: 'demo@softograph.com',
       phoneNumber: '+1234567890',
       password: defaultPassword,
       isVerified: true,
@@ -30,67 +38,11 @@ export async function seedUsers() {
           road: 'Broadway'
         }
       }
-    },
-    {
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      phoneNumber: '+1234567891',
-      password: defaultPassword,
-      isVerified: true,
-      role: UserRole.user,
-      detail: {
-        create: {
-          address: '456 Oak Ave',
-          city: 'Los Angeles',
-          road: 'Sunset Blvd'
-        }
-      }
-    },
-    {
-      name: 'Mike Wilson',
-      email: 'mike.wilson@example.com',
-      phoneNumber: '+1234567892',
-      password: defaultPassword,
-      isVerified: true,
-      role: UserRole.admin,
-      detail: {
-        create: {
-          address: '789 Pine St',
-          city: 'Chicago',
-          road: 'Michigan Ave'
-        }
-      }
-    },
-    {
-      name: 'Sarah Brown',
-      email: 'sarah.brown@example.com',
-      phoneNumber: '+1234567893',
-      password: defaultPassword,
-      isVerified: true,
-      role: UserRole.user,
-      detail: {
-        create: {
-          address: '321 Elm St',
-          city: 'Houston',
-          road: 'Main St'
-        }
-      }
-    },
-    {
-      name: 'Alex Johnson',
-      email: 'alex.johnson@example.com',
-      phoneNumber: '+1234567894',
-      password: defaultPassword,
-      isVerified: true,
-      role: UserRole.user,
-      detail: {
-        create: {
-          address: '654 Maple Dr',
-          city: 'Phoenix',
-          road: 'Central Ave'
-        }
-      }
     }
+    
+    
+    
+    
   ];
 
   for (const user of users) {
