@@ -80,7 +80,7 @@ passport.use(
               phoneNumber: '',
               detail: {
                 create: {
-                  image: profile.photos?.[0]?.value || '',
+                  profileImage: profile.photos?.[0]?.value,
                   address: '',
                   city: '',
                   road: '',

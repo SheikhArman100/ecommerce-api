@@ -1,43 +1,104 @@
 import { Server } from 'http';
 
 import app from './app';
-import config from './config/index';
 import { prisma } from './client';
-
-
+import config from './config/index';
+import AppLogger from './logger/applogger'; // <-- Add this import
 
 let server: Server;
 
 /**
- * connect MySQL with Prisma and API
+ * Connect MySQL with Prisma and start API server
  */
-async function main() {
+async function main(): Promise<void> {
   try {
     // Connect to MySQL using Prisma
     await prisma.$connect();
-    console.log('Database is successfully connected');
+    AppLogger.info('✅ Database connected successfully');
+
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    AppLogger.info('✅ Database health check passed');
 
     server = app.listen(config.port, () => {
-      console.log(`Application listening on port ${config.port}`);
+      AppLogger.info(`🚀 Server running on port ${config.port}`);
+      AppLogger.info(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });
   } catch (error) {
-    console.log(`Failed to connect to database, ${error}`);
+    AppLogger.error('❌ Failed to start application:', { error });
+    await gracefulShutdown(1);
   }
+}
 
-  process.on('unhandledRejection', error => {
+/**
+ * Graceful shutdown handler
+ */
+async function gracefulShutdown(exitCode: number = 0): Promise<void> {
+  AppLogger.info('🔄 Starting graceful shutdown...');
+  
+  try {
     if (server) {
-      server.close(() => {
-        console.log(error);
-        process.exit(1);
+      await new Promise<void>((resolve) => {
+        server.close(() => {
+          AppLogger.info('✅ HTTP server closed');
+          resolve();
+        });
       });
-    } else {
-      process.exit(1);
     }
+
+    // Disconnect from database
+    await prisma.$disconnect();
+    AppLogger.info('✅ Database disconnected');
+    
+    AppLogger.info('✅ Graceful shutdown completed');
+    process.exit(exitCode);
+  } catch (error) {
+    AppLogger.error('❌ Error during shutdown:', { error });
+    process.exit(1);
+  }
+}
+
+/**
+ * Setup process event handlers
+ */
+function setupProcessHandlers(): void {
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason, promise) => {
+    AppLogger.error('❌ Unhandled Rejection at:', { promise, reason });
+    gracefulShutdown(1);
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    AppLogger.error('❌ Uncaught Exception:', { error });
+    gracefulShutdown(1);
+  });
+
+  // Handle SIGTERM (e.g., from Docker, Kubernetes)
+  process.on('SIGTERM', () => {
+    AppLogger.info('📨 SIGTERM received');
+    gracefulShutdown(0);
+  });
+
+  // Handle SIGINT (e.g., Ctrl+C)
+  process.on('SIGINT', () => {
+    AppLogger.info('📨 SIGINT received');
+    gracefulShutdown(0);
   });
 }
 
-const start = async (): Promise<void> => {
-  await main();
-};
+/**
+ * Start the application
+ */
+async function start(): Promise<void> {
+  try {
+    setupProcessHandlers();
+    await main();
+  } catch (error) {
+    AppLogger.error('❌ Error starting application:', { error });
+    process.exit(1);
+  }
+}
 
-start().catch(err => console.error('Error starting application:', err));
+// Start the application
+start();

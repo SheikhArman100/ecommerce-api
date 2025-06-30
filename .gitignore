@@ -9,3 +9,6 @@ uploads/users/images/*
 
 uploads/product/images/*
 !uploads/product/images/.gitkeep
+
+logs/*
+!logs/.gitkeep
