@@ -1,6 +1,8 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { prisma } from "../../src/client";
+import { UserRole } from "../../src/generated/enums";
 
-const prisma = new PrismaClient();
+
+
 
 export async function seedProducts() {
   // Find admin user

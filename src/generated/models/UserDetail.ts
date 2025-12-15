@@ -228,7 +228,7 @@ export type UserDetailWhereInput = {
   city?: Prisma.StringFilter<"UserDetail"> | string
   road?: Prisma.StringFilter<"UserDetail"> | string
   userId?: Prisma.IntFilter<"UserDetail"> | number
-  image?: Prisma.XOR<Prisma.ImageNullableScalarRelationFilter, Prisma.ImageWhereInput> | null
+  image?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
@@ -239,7 +239,7 @@ export type UserDetailOrderByWithRelationInput = {
   city?: Prisma.SortOrder
   road?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  image?: Prisma.ImageOrderByWithRelationInput
+  image?: Prisma.FileOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.UserDetailOrderByRelevanceInput
 }
@@ -254,7 +254,7 @@ export type UserDetailWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringFilter<"UserDetail"> | string
   city?: Prisma.StringFilter<"UserDetail"> | string
   road?: Prisma.StringFilter<"UserDetail"> | string
-  image?: Prisma.XOR<Prisma.ImageNullableScalarRelationFilter, Prisma.ImageWhereInput> | null
+  image?: Prisma.XOR<Prisma.FileNullableScalarRelationFilter, Prisma.FileWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId">
 
@@ -289,7 +289,7 @@ export type UserDetailCreateInput = {
   address: string
   city: string
   road: string
-  image?: Prisma.ImageCreateNestedOneWithoutUserDetailInput
+  image?: Prisma.FileCreateNestedOneWithoutUserDetailInput
   user: Prisma.UserCreateNestedOneWithoutDetailInput
 }
 
@@ -300,7 +300,7 @@ export type UserDetailUncheckedCreateInput = {
   city: string
   road: string
   userId: number
-  image?: Prisma.ImageUncheckedCreateNestedOneWithoutUserDetailInput
+  image?: Prisma.FileUncheckedCreateNestedOneWithoutUserDetailInput
 }
 
 export type UserDetailUpdateInput = {
@@ -308,7 +308,7 @@ export type UserDetailUpdateInput = {
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
   road?: Prisma.StringFieldUpdateOperationsInput | string
-  image?: Prisma.ImageUpdateOneWithoutUserDetailNestedInput
+  image?: Prisma.FileUpdateOneWithoutUserDetailNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutDetailNestedInput
 }
 
@@ -319,7 +319,7 @@ export type UserDetailUncheckedUpdateInput = {
   city?: Prisma.StringFieldUpdateOperationsInput | string
   road?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  image?: Prisma.ImageUncheckedUpdateOneWithoutUserDetailNestedInput
+  image?: Prisma.FileUncheckedUpdateOneWithoutUserDetailNestedInput
 }
 
 export type UserDetailCreateManyInput = {
@@ -452,7 +452,7 @@ export type UserDetailCreateWithoutUserInput = {
   address: string
   city: string
   road: string
-  image?: Prisma.ImageCreateNestedOneWithoutUserDetailInput
+  image?: Prisma.FileCreateNestedOneWithoutUserDetailInput
 }
 
 export type UserDetailUncheckedCreateWithoutUserInput = {
@@ -461,7 +461,7 @@ export type UserDetailUncheckedCreateWithoutUserInput = {
   address: string
   city: string
   road: string
-  image?: Prisma.ImageUncheckedCreateNestedOneWithoutUserDetailInput
+  image?: Prisma.FileUncheckedCreateNestedOneWithoutUserDetailInput
 }
 
 export type UserDetailCreateOrConnectWithoutUserInput = {
@@ -485,7 +485,7 @@ export type UserDetailUpdateWithoutUserInput = {
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
   road?: Prisma.StringFieldUpdateOperationsInput | string
-  image?: Prisma.ImageUpdateOneWithoutUserDetailNestedInput
+  image?: Prisma.FileUpdateOneWithoutUserDetailNestedInput
 }
 
 export type UserDetailUncheckedUpdateWithoutUserInput = {
@@ -494,7 +494,7 @@ export type UserDetailUncheckedUpdateWithoutUserInput = {
   address?: Prisma.StringFieldUpdateOperationsInput | string
   city?: Prisma.StringFieldUpdateOperationsInput | string
   road?: Prisma.StringFieldUpdateOperationsInput | string
-  image?: Prisma.ImageUncheckedUpdateOneWithoutUserDetailNestedInput
+  image?: Prisma.FileUncheckedUpdateOneWithoutUserDetailNestedInput
 }
 
 export type UserDetailCreateWithoutImageInput = {
@@ -580,7 +580,7 @@ export type UserDetailInclude<ExtArgs extends runtime.Types.Extensions.InternalA
 export type $UserDetailPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "UserDetail"
   objects: {
-    image: Prisma.$ImagePayload<ExtArgs> | null
+    image: Prisma.$FilePayload<ExtArgs> | null
     user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -930,7 +930,7 @@ readonly fields: UserDetailFieldRefs;
  */
 export interface Prisma__UserDetailClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  image<T extends Prisma.UserDetail$imageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDetail$imageArgs<ExtArgs>>): Prisma.Prisma__ImageClient<runtime.Types.Result.GetResult<Prisma.$ImagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  image<T extends Prisma.UserDetail$imageArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDetail$imageArgs<ExtArgs>>): Prisma.Prisma__FileClient<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1314,18 +1314,18 @@ export type UserDetailDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
  */
 export type UserDetail$imageArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Image
+   * Select specific fields to fetch from the File
    */
-  select?: Prisma.ImageSelect<ExtArgs> | null
+  select?: Prisma.FileSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Image
+   * Omit specific fields from the File
    */
-  omit?: Prisma.ImageOmit<ExtArgs> | null
+  omit?: Prisma.FileOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.ImageInclude<ExtArgs> | null
-  where?: Prisma.ImageWhereInput
+  include?: Prisma.FileInclude<ExtArgs> | null
+  where?: Prisma.FileWhereInput
 }
 
 /**

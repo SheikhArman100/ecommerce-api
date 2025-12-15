@@ -1,7 +1,9 @@
-import { PrismaClient, UserRole } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+import * as bcrypt from 'bcrypt';
+import { UserRole } from '../../src/generated/enums';
+import { prisma } from '../../src/client';
+
+
 
 export async function seedUsers() {
   const saltRounds = 10;

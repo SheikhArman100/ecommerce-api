@@ -1,54 +1,34 @@
-import status from 'http-status';
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
-import ApiError from '../errors/ApiError';
-import { UserInfoFromToken } from '../types/common';
 
-/**
- * create jwt token using user private details
- * @param payload
- * @param secret secret key that has been declared in .env
- * @param expireTime after this particular time,this will not br work
- * @returns
- */
+import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
+import ApiError from '../errors/ApiError';
+import { parseExpirationTime } from '../utils';
+import status from 'http-status';
+
 const createToken = (
   payload: Record<string, unknown>,
   secret: Secret,
-  expireTime: SignOptions['expiresIn'] = '1h',
+  expireTime: string,
 ): string => {
-  const options: SignOptions = {
-    expiresIn: expireTime,
-  };
-
-  try {
-    return jwt.sign(payload, secret, options);
-  } catch (error) {
-    console.log(error);
-    throw new ApiError(
-      status.INTERNAL_SERVER_ERROR,
-      'Error creating token',
-    );
-  }
+  
+  return jwt.sign(payload, secret, {
+    expiresIn: parseExpirationTime(expireTime),
+  });
 };
 
-/**
- * verify jwt token to verify user
- * @param token
- * @param secret secret key that has been declared in .env
- * @returns
- */
-const verifyToken = (token: string, secret: Secret): UserInfoFromToken => {
+const verifyToken = (token: string, secret: Secret): JwtPayload => {
   try {
-    const decoded = jwt.verify(token, secret) as UserInfoFromToken;
-    return decoded;
+    const isVerified = jwt.verify(token, secret);
+    return isVerified as any;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      throw new ApiError(status.UNAUTHORIZED, 'Token has expired');
+      throw new ApiError(status.FORBIDDEN, 'Token has expired');
     }
     if (error instanceof jwt.JsonWebTokenError) {
       throw new ApiError(status.UNAUTHORIZED, 'Invalid token');
     }
     throw new ApiError(status.UNAUTHORIZED, 'Token verification failed');
   }
+ 
 };
 
 export const jwtHelpers = {

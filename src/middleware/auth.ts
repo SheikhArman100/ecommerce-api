@@ -30,9 +30,15 @@ const auth =
       const authHeader: any =
         req.headers.authorization || req.headers.Authorization;
       if (!authHeader || !authHeader.startsWith('Bearer '))
-        throw new ApiError(status.FORBIDDEN, 'You are not authorized');
+        throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
 
       const token = authHeader.split(' ')[1];
+      if (!token || token==="null") {
+      throw new ApiError(
+        status.FORBIDDEN,
+        'Invalid token format'
+      );
+    }
 
       // verify token
       let verifiedUser = null;

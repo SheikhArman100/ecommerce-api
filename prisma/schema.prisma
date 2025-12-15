@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  
 }
 
 enum UserRole {
@@ -24,6 +23,12 @@ enum OrderStatus {
   Shipped
   Delivered
 }
+enum FileType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  OTHER
+}
 
 model User {
   id          Int      @id @default(autoincrement())
@@ -35,9 +40,18 @@ model User {
   role        UserRole @default(user)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  createdBy   Int?
+  updatedBy   Int?
 
-  //relations
-  detail            UserDetail?
+  // One-to-One Relations
+  detail UserDetail?
+  cart   Cart?
+
+  // Many-to-One Relations
+  creator User? @relation("UserCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater User? @relation("UserUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+
+  // One-to-Many Relations
   refreshTokens     RefreshToken[]
   createdProducts   Product[]      @relation("ProductCreator")
   updatedProducts   Product[]      @relation("ProductUpdater")
@@ -47,28 +61,34 @@ model User {
   updatedFlavors    Flavor[]       @relation("FlavorUpdater")
   createdSizes      Size[]         @relation("SizeCreator")
   updatedSizes      Size[]         @relation("SizeUpdater")
+  createdUsers      User[]         @relation("UserCreator")
+  updatedUsers      User[]         @relation("UserUpdater")
+  reviews           Review[]
+  wishlists         WishList[]
+  orders            Order[]
 
-  reviews   Review[]
-  wishlists WishList[]
-  cart      Cart?
-  orders    Order[]
-
-  //indexing
+  // Indexes
   @@index([email])
   @@index([phoneNumber])
-  //rename database table name
   @@map("users")
 }
 
 model UserDetail {
-  id      Int    @id @default(autoincrement())
-  image   Image?
+  id           Int     @id @default(autoincrement())
   profileImage String?
-  address String
-  city    String
-  road    String
-  userId  Int    @unique
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address      String
+  city         String
+  road         String
+  userId       Int     @unique
+
+  // One-to-One Relations
+  image File?
+
+  // Many-to-One Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // One-to-Many Relations
+  // (none)
 
   @@map("userDetails")
 }
@@ -77,13 +97,20 @@ model RefreshToken {
   id        Int      @id @default(autoincrement())
   token     String   @db.Text
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
 
-  //indexing
+  // One-to-One Relations
+  // (none)
+
+  // Many-to-One Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // One-to-Many Relations
+  // (none)
+
+  // Indexes
   @@index([userId])
-  //rename database table name
   @@map("refreshTokens")
 }
 
@@ -157,8 +184,9 @@ model Size {
   @@map("sizes")
 }
 
-model Image {
+model File {
   id           Int      @id @default(autoincrement())
+  type         FileType @default(IMAGE)
   diskType     DiskType
   path         String
   originalName String
@@ -187,7 +215,7 @@ model ProductFlavor {
   //relations
   product Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
   flavor  Flavor              @relation(fields: [flavorId], references: [id], onDelete: Cascade)
-  images  Image[]
+  images  File[]
   sizes   ProductFlavorSize[]
 
   @@id([productId, flavorId])

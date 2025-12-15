@@ -73,10 +73,10 @@ export type Flavor = Prisma.FlavorModel
  */
 export type Size = Prisma.SizeModel
 /**
- * Model Image
+ * Model File
  * 
  */
-export type Image = Prisma.ImageModel
+export type File = Prisma.FileModel
 /**
  * Model ProductFlavor
  * 

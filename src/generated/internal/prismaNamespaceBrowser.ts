@@ -58,7 +58,7 @@ export const ModelName = {
   Category: 'Category',
   Flavor: 'Flavor',
   Size: 'Size',
-  Image: 'Image',
+  File: 'File',
   ProductFlavor: 'ProductFlavor',
   ProductFlavorSize: 'ProductFlavorSize',
   Review: 'Review',
@@ -94,7 +94,9 @@ export const UserScalarFieldEnum = {
   isVerified: 'isVerified',
   role: 'role',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -175,8 +177,9 @@ export const SizeScalarFieldEnum = {
 export type SizeScalarFieldEnum = (typeof SizeScalarFieldEnum)[keyof typeof SizeScalarFieldEnum]
 
 
-export const ImageScalarFieldEnum = {
+export const FileScalarFieldEnum = {
   id: 'id',
+  type: 'type',
   diskType: 'diskType',
   path: 'path',
   originalName: 'originalName',
@@ -188,7 +191,7 @@ export const ImageScalarFieldEnum = {
   userDetailId: 'userDetailId'
 } as const
 
-export type ImageScalarFieldEnum = (typeof ImageScalarFieldEnum)[keyof typeof ImageScalarFieldEnum]
+export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
 
 
 export const ProductFlavorScalarFieldEnum = {
@@ -297,6 +300,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
 export const UserOrderByRelevanceFieldEnum = {
   name: 'name',
   email: 'email',
@@ -305,14 +316,6 @@ export const UserOrderByRelevanceFieldEnum = {
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 export const UserDetailOrderByRelevanceFieldEnum = {
@@ -363,13 +366,13 @@ export const SizeOrderByRelevanceFieldEnum = {
 export type SizeOrderByRelevanceFieldEnum = (typeof SizeOrderByRelevanceFieldEnum)[keyof typeof SizeOrderByRelevanceFieldEnum]
 
 
-export const ImageOrderByRelevanceFieldEnum = {
+export const FileOrderByRelevanceFieldEnum = {
   path: 'path',
   originalName: 'originalName',
   modifiedName: 'modifiedName'
 } as const
 
-export type ImageOrderByRelevanceFieldEnum = (typeof ImageOrderByRelevanceFieldEnum)[keyof typeof ImageOrderByRelevanceFieldEnum]
+export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnum)[keyof typeof FileOrderByRelevanceFieldEnum]
 
 
 export const ReviewOrderByRelevanceFieldEnum = {

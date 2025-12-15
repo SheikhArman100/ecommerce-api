@@ -214,7 +214,7 @@ export type ProductFlavorWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ProductFlavor"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   flavor?: Prisma.XOR<Prisma.FlavorScalarRelationFilter, Prisma.FlavorWhereInput>
-  images?: Prisma.ImageListRelationFilter
+  images?: Prisma.FileListRelationFilter
   sizes?: Prisma.ProductFlavorSizeListRelationFilter
 }
 
@@ -225,7 +225,7 @@ export type ProductFlavorOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   product?: Prisma.ProductOrderByWithRelationInput
   flavor?: Prisma.FlavorOrderByWithRelationInput
-  images?: Prisma.ImageOrderByRelationAggregateInput
+  images?: Prisma.FileOrderByRelationAggregateInput
   sizes?: Prisma.ProductFlavorSizeOrderByRelationAggregateInput
 }
 
@@ -240,7 +240,7 @@ export type ProductFlavorWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"ProductFlavor"> | Date | string
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
   flavor?: Prisma.XOR<Prisma.FlavorScalarRelationFilter, Prisma.FlavorWhereInput>
-  images?: Prisma.ImageListRelationFilter
+  images?: Prisma.FileListRelationFilter
   sizes?: Prisma.ProductFlavorSizeListRelationFilter
 }, "productId_flavorId">
 
@@ -271,7 +271,7 @@ export type ProductFlavorCreateInput = {
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutFlavorsInput
   flavor: Prisma.FlavorCreateNestedOneWithoutProductsInput
-  images?: Prisma.ImageCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -280,7 +280,7 @@ export type ProductFlavorUncheckedCreateInput = {
   flavorId: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  images?: Prisma.ImageUncheckedCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileUncheckedCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeUncheckedCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -289,7 +289,7 @@ export type ProductFlavorUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutFlavorsNestedInput
   flavor?: Prisma.FlavorUpdateOneRequiredWithoutProductsNestedInput
-  images?: Prisma.ImageUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -298,7 +298,7 @@ export type ProductFlavorUncheckedUpdateInput = {
   flavorId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  images?: Prisma.ImageUncheckedUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUncheckedUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUncheckedUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -495,7 +495,7 @@ export type ProductFlavorCreateWithoutProductInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   flavor: Prisma.FlavorCreateNestedOneWithoutProductsInput
-  images?: Prisma.ImageCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -503,7 +503,7 @@ export type ProductFlavorUncheckedCreateWithoutProductInput = {
   flavorId: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  images?: Prisma.ImageUncheckedCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileUncheckedCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeUncheckedCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -547,7 +547,7 @@ export type ProductFlavorCreateWithoutFlavorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutFlavorsInput
-  images?: Prisma.ImageCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -555,7 +555,7 @@ export type ProductFlavorUncheckedCreateWithoutFlavorInput = {
   productId: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  images?: Prisma.ImageUncheckedCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileUncheckedCreateNestedManyWithoutProductFlavorInput
   sizes?: Prisma.ProductFlavorSizeUncheckedCreateNestedManyWithoutProductFlavorInput
 }
 
@@ -638,7 +638,7 @@ export type ProductFlavorCreateWithoutSizesInput = {
   updatedAt?: Date | string
   product: Prisma.ProductCreateNestedOneWithoutFlavorsInput
   flavor: Prisma.FlavorCreateNestedOneWithoutProductsInput
-  images?: Prisma.ImageCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileCreateNestedManyWithoutProductFlavorInput
 }
 
 export type ProductFlavorUncheckedCreateWithoutSizesInput = {
@@ -646,7 +646,7 @@ export type ProductFlavorUncheckedCreateWithoutSizesInput = {
   flavorId: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  images?: Prisma.ImageUncheckedCreateNestedManyWithoutProductFlavorInput
+  images?: Prisma.FileUncheckedCreateNestedManyWithoutProductFlavorInput
 }
 
 export type ProductFlavorCreateOrConnectWithoutSizesInput = {
@@ -670,7 +670,7 @@ export type ProductFlavorUpdateWithoutSizesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutFlavorsNestedInput
   flavor?: Prisma.FlavorUpdateOneRequiredWithoutProductsNestedInput
-  images?: Prisma.ImageUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUpdateManyWithoutProductFlavorNestedInput
 }
 
 export type ProductFlavorUncheckedUpdateWithoutSizesInput = {
@@ -678,7 +678,7 @@ export type ProductFlavorUncheckedUpdateWithoutSizesInput = {
   flavorId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  images?: Prisma.ImageUncheckedUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUncheckedUpdateManyWithoutProductFlavorNestedInput
 }
 
 export type ProductFlavorCreateManyProductInput = {
@@ -691,7 +691,7 @@ export type ProductFlavorUpdateWithoutProductInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   flavor?: Prisma.FlavorUpdateOneRequiredWithoutProductsNestedInput
-  images?: Prisma.ImageUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -699,7 +699,7 @@ export type ProductFlavorUncheckedUpdateWithoutProductInput = {
   flavorId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  images?: Prisma.ImageUncheckedUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUncheckedUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUncheckedUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -719,7 +719,7 @@ export type ProductFlavorUpdateWithoutFlavorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   product?: Prisma.ProductUpdateOneRequiredWithoutFlavorsNestedInput
-  images?: Prisma.ImageUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -727,7 +727,7 @@ export type ProductFlavorUncheckedUpdateWithoutFlavorInput = {
   productId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  images?: Prisma.ImageUncheckedUpdateManyWithoutProductFlavorNestedInput
+  images?: Prisma.FileUncheckedUpdateManyWithoutProductFlavorNestedInput
   sizes?: Prisma.ProductFlavorSizeUncheckedUpdateManyWithoutProductFlavorNestedInput
 }
 
@@ -766,7 +766,7 @@ export type ProductFlavorCountOutputTypeDefaultArgs<ExtArgs extends runtime.Type
  * ProductFlavorCountOutputType without action
  */
 export type ProductFlavorCountOutputTypeCountImagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ImageWhereInput
+  where?: Prisma.FileWhereInput
 }
 
 /**
@@ -812,7 +812,7 @@ export type $ProductFlavorPayload<ExtArgs extends runtime.Types.Extensions.Inter
   objects: {
     product: Prisma.$ProductPayload<ExtArgs>
     flavor: Prisma.$FlavorPayload<ExtArgs>
-    images: Prisma.$ImagePayload<ExtArgs>[]
+    images: Prisma.$FilePayload<ExtArgs>[]
     sizes: Prisma.$ProductFlavorSizePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1162,7 +1162,7 @@ export interface Prisma__ProductFlavorClient<T, Null = never, ExtArgs extends ru
   readonly [Symbol.toStringTag]: "PrismaPromise"
   product<T extends Prisma.ProductDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductClient<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   flavor<T extends Prisma.FlavorDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.FlavorDefaultArgs<ExtArgs>>): Prisma.Prisma__FlavorClient<runtime.Types.Result.GetResult<Prisma.$FlavorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  images<T extends Prisma.ProductFlavor$imagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductFlavor$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  images<T extends Prisma.ProductFlavor$imagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductFlavor$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sizes<T extends Prisma.ProductFlavor$sizesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductFlavor$sizesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductFlavorSizePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1544,23 +1544,23 @@ export type ProductFlavorDeleteManyArgs<ExtArgs extends runtime.Types.Extensions
  */
 export type ProductFlavor$imagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Image
+   * Select specific fields to fetch from the File
    */
-  select?: Prisma.ImageSelect<ExtArgs> | null
+  select?: Prisma.FileSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Image
+   * Omit specific fields from the File
    */
-  omit?: Prisma.ImageOmit<ExtArgs> | null
+  omit?: Prisma.FileOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.ImageInclude<ExtArgs> | null
-  where?: Prisma.ImageWhereInput
-  orderBy?: Prisma.ImageOrderByWithRelationInput | Prisma.ImageOrderByWithRelationInput[]
-  cursor?: Prisma.ImageWhereUniqueInput
+  include?: Prisma.FileInclude<ExtArgs> | null
+  where?: Prisma.FileWhereInput
+  orderBy?: Prisma.FileOrderByWithRelationInput | Prisma.FileOrderByWithRelationInput[]
+  cursor?: Prisma.FileWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.ImageScalarFieldEnum | Prisma.ImageScalarFieldEnum[]
+  distinct?: Prisma.FileScalarFieldEnum | Prisma.FileScalarFieldEnum[]
 }
 
 /**
