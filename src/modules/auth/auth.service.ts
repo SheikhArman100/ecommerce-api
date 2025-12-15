@@ -6,7 +6,7 @@ import config from '../../config';
 import ApiError from '../../errors/ApiError';
 import { jwtHelpers } from '../../helpers/jwtHelpers';
 import { sendEmail } from '../../helpers/nodeMailer';
-import { parseExpirationTime } from '../../utils';
+import { parseExpirationTime } from '../../utils/index';
 import { IUser } from '../user/user.interface';
 
 const signup = async (payload: IUser) => {
@@ -53,7 +53,7 @@ const signup = async (payload: IUser) => {
       role: newUser.role,
     },
     config.jwt.verify_email_secret as Secret,
-    parseExpirationTime(config.jwt.verify_email_expires_in as string),
+    config.jwt.verify_email_expires_in as string,
   );
   // Send Email Verification Link
   try {
@@ -132,14 +132,14 @@ const signin = async (payload: IUser) => {
   const accessToken = jwtHelpers.createToken(
     { id: user.id, role: user.role, email: user.email },
     config.jwt.access_secret as Secret,
-    parseExpirationTime(config.jwt.access_expires_in as string),
+    config.jwt.access_expires_in as string,
   );
 
   // Generate Refresh Token
   const refreshToken = jwtHelpers.createToken(
     { id: user.id, role: user.role },
     config.jwt.refresh_secret as Secret,
-    parseExpirationTime(config.jwt.refresh_expires_in as string),
+    config.jwt.refresh_expires_in as string,
   );
 
   // Store refresh token in DB
@@ -232,7 +232,7 @@ const updateToken = async (refreshToken: string) => {
       email: checkToken.user.email,
     },
     config.jwt.access_secret as Secret,
-    parseExpirationTime(config.jwt.access_expires_in as string),
+    config.jwt.access_expires_in as string,
   );
 
   // Generate Refresh Token
@@ -243,7 +243,7 @@ const updateToken = async (refreshToken: string) => {
       email: checkToken.user.email,
     },
     config.jwt.refresh_secret as Secret,
-    parseExpirationTime(config.jwt.refresh_expires_in as string),
+    config.jwt.refresh_expires_in as string,
   );
 
   // Store refresh token in DB
