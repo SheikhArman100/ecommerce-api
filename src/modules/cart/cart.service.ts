@@ -5,7 +5,7 @@ import { UserInfoFromToken } from '../../types/common';
 import { ICart, ICartFilters, ICartItem } from './cart.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { cartSearchableFields } from './cart.constant';
 
 const createCart = async (

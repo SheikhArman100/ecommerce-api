@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+
 import { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import config from '../config';
@@ -7,6 +7,7 @@ import handleValidationError from '../errors/handleValidationError';
 import handleZodError from '../errors/handleZodError';
 import { IGenericErrorMessages } from '../interfaces/error';
 import ErrorLogger from '../logger/errorLogger';
+import { Prisma } from '../generated/client';
 
 
 

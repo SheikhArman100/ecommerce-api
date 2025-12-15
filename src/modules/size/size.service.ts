@@ -6,7 +6,7 @@ import { ISize, ISizeFilters } from './size.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { sizeSearchableFields } from './size.constant';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const createSize = async (

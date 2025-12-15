@@ -1,9 +1,10 @@
 import { Server } from 'http';
 
 import app from './app';
-import { prisma } from './client';
+
 import config from './config/index';
 import AppLogger from './logger/applogger'; // <-- Add this import
+import { prisma } from './client';
 
 let server: Server;
 

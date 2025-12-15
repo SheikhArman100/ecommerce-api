@@ -1,6 +1,7 @@
-import { Prisma } from '@prisma/client';
+
 import { IGenericErrorMessages } from '../interfaces/error';
 import { IGenericErrorResponse } from '../interfaces/common';
+import { Prisma } from '../generated/client';
 
 /**
  * Handles Prisma-specific errors, such as invalid IDs or constraint violations,

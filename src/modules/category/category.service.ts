@@ -6,7 +6,7 @@ import { ICategory, ICategoryFilters } from './category.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { categorySearchableFields } from './category.constant';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const createCategory = async (

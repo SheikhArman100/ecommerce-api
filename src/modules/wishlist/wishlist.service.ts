@@ -4,7 +4,7 @@ import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
 import { IWishlist, IWishlistFilters } from './wishlist.interface';
 import { IPaginationOptions } from '../../interfaces/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { wishlistSearchableFields } from './wishlist.constant';
 

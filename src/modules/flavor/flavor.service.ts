@@ -6,7 +6,7 @@ import { IFlavor, IFlavorFilters } from './flavor.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { flavorSearchableFields } from './flavor.constant';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const createFlavor = async (
