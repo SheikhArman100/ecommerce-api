@@ -12,7 +12,7 @@ const createCartSchema = z.object({
         message: 'Size id must be a valid number',
       }),
     quantity: z
-      .number({required_error: 'Quantity is required'})
+      .number()
       .int()
       .positive('Quantity must be a positive integer')
   }).strict(),
@@ -20,7 +20,7 @@ const createCartSchema = z.object({
 const updateCartItemSchema = z.object({
   body: z.object({
     quantity: z
-      .number({required_error: 'Quantity is required'})
+      .number()
       .int()
       .positive('Quantity must be a positive integer')
   }).strict(),

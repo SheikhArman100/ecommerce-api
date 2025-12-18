@@ -99,6 +99,7 @@ model RefreshToken {
   userId    Int
   createdAt DateTime @default(now())
   expiresAt DateTime
+  ipAddress String @default("0.0.0.0")
 
   // One-to-One Relations
   // (none)
@@ -203,7 +204,7 @@ model File {
   userDetail    UserDetail?    @relation(fields: [userDetailId], references: [id], onDelete: Cascade)
 
   @@unique([id, productId, flavorId])
-  @@map("images")
+  @@map("files")
 }
 
 model ProductFlavor {

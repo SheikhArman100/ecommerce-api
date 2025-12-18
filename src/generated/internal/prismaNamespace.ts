@@ -1548,7 +1548,8 @@ export const RefreshTokenScalarFieldEnum = {
   token: 'token',
   userId: 'userId',
   createdAt: 'createdAt',
-  expiresAt: 'expiresAt'
+  expiresAt: 'expiresAt',
+  ipAddress: 'ipAddress'
 } as const
 
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
@@ -1758,7 +1759,8 @@ export type UserDetailOrderByRelevanceFieldEnum = (typeof UserDetailOrderByRelev
 
 
 export const RefreshTokenOrderByRelevanceFieldEnum = {
-  token: 'token'
+  token: 'token',
+  ipAddress: 'ipAddress'
 } as const
 
 export type RefreshTokenOrderByRelevanceFieldEnum = (typeof RefreshTokenOrderByRelevanceFieldEnum)[keyof typeof RefreshTokenOrderByRelevanceFieldEnum]

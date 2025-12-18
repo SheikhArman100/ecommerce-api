@@ -95,7 +95,7 @@ const createProduct = async (
 
           // Create images for this flavor
           const imagePromises = flavorImages.map(img =>
-            tx.image.create({
+            tx.file.create({
               data: {
                 productId: newProduct.id,
                 flavorId: createdFlavor.flavorId,

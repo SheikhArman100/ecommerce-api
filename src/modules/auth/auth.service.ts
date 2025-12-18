@@ -8,18 +8,18 @@ import { jwtHelpers } from '../../helpers/jwtHelpers';
 import { sendEmail } from '../../helpers/nodeMailer';
 import { parseExpirationTime } from '../../utils/index';
 import { IUser } from '../user/user.interface';
+import { UserInfoFromToken } from '../../types/common';
+import { ICheckUserResponse } from './auth.interface';
 
 const signup = async (payload: IUser) => {
   const existingUser = await prisma.user.findFirst({
     where: {
-      OR: [{ email: payload.email }, { phoneNumber: payload.phoneNumber }],
+      email: payload.email,
     },
   });
+
   if (existingUser) {
-    throw new ApiError(
-      status.UNPROCESSABLE_ENTITY,
-      'Email or PhoneNumber already exists',
-    );
+    throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Email already exists');
   }
 
   // Hash the password
@@ -38,7 +38,7 @@ const signup = async (payload: IUser) => {
       email: payload.email,
       phoneNumber: payload.phoneNumber,
       password: hashedPassword,
-      ...(payload.role && { role: payload.role }),
+      role: 'user',
     },
   });
   if (!newUser) {
@@ -56,10 +56,9 @@ const signup = async (payload: IUser) => {
     config.jwt.verify_email_expires_in as string,
   );
   // Send Email Verification Link
-  try {
-    await sendEmail(
-      newUser.email,
-      `
+  sendEmail(
+    newUser.email,
+    `
       <div>
         <p>Hi, ${newUser.name}</p>
         <p>Welcome to E-Commerce! Please verify your email address by clicking the link below:</p>
@@ -73,12 +72,9 @@ const signup = async (payload: IUser) => {
         <p>Thank you, <br> E-Commerce</p>
       </div>
       `,
-      'Verify Your Email',
-    );
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    throw new ApiError(status.INTERNAL_SERVER_ERROR, 'failed to send mail');
-  }
+    'Verify Your Email',
+  );
+
   return {
     id: newUser.id,
   };
@@ -106,7 +102,57 @@ const verifyEmail = async (token: string) => {
   });
   return updatedUser;
 };
-const signin = async (payload: IUser) => {
+
+const resendVerification = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found!');
+  }
+
+  if (user.isVerified) {
+    throw new ApiError(status.BAD_REQUEST, 'Email is already verified.');
+  }
+
+  // Generate new verification token
+  const emailVerifyToken = jwtHelpers.createToken(
+    {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    },
+    config.jwt.verify_email_secret as Secret,
+    config.jwt.verify_email_expires_in as string,
+  );
+
+  // Send Email Verification Link
+  sendEmail(
+    user.email,
+    `
+    <div>
+      <p>Hi, ${user.name}</p>
+      <p>Please verify your email address by clicking the link below:</p>
+      <p>
+        <a href="${config.admin_client_url}/auth/verify-email?token=${emailVerifyToken}">
+          Verify Email
+        </a>
+      </p>
+      <p>This link will expire in 24 hours.</p>
+      <p>If you didn't request this, you can ignore this email.</p>
+      <p>Thank you!</p>
+    </div>
+    `,
+    'Verify Your Email',
+  );
+
+  return {
+    id: user.id,
+  };
+};
+
+const signin = async (payload: IUser, ipAddress: string) => {
   const { email, password } = payload;
 
   // Find user in database
@@ -151,6 +197,7 @@ const signin = async (payload: IUser) => {
     data: {
       token: refreshToken,
       userId: user.id,
+      ipAddress,
       expiresAt,
     },
   });
@@ -162,7 +209,7 @@ const signin = async (payload: IUser) => {
   };
 };
 
-const googleSignIn = async (payload: any) => {
+const googleSignIn = async (payload: any, ipAddress: string) => {
   const { user, password, accessToken, refreshToken } = payload as any;
 
   // Store refresh token in DB
@@ -174,6 +221,7 @@ const googleSignIn = async (payload: any) => {
     data: {
       token: refreshToken,
       userId: user.id,
+      ipAddress,
       expiresAt,
     },
   });
@@ -205,7 +253,7 @@ const googleSignIn = async (payload: any) => {
   };
 };
 
-const updateToken = async (refreshToken: string) => {
+const updateToken = async (refreshToken: string, ipAddress: string) => {
   const checkToken = await prisma.refreshToken.findFirst({
     where: { token: refreshToken },
     include: { user: true },
@@ -254,7 +302,7 @@ const updateToken = async (refreshToken: string) => {
 
   await prisma.refreshToken.update({
     where: { id: checkToken.id },
-    data: { token: newRefreshToken, expiresAt },
+    data: { token: newRefreshToken, ipAddress, expiresAt },
   });
 
   return {
@@ -278,15 +326,21 @@ const checkUser = async (refreshToken: string) => {
         },
       },
     },
-    select:{
-      id:true,
-      email:true,
-      role:true,
-      isVerified:true
-    }
-    
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isVerified: true,
+      detail:{
+        select:{
+          profileImage:true,
+          image:true
+        }
+      }
+      
+    },
   });
-  
 
   if (!checkToken) {
     throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
@@ -297,20 +351,139 @@ const checkUser = async (refreshToken: string) => {
     config.jwt.refresh_secret as Secret,
   );
 
- 
-
   if (Number(verifiedUser.id) !== checkToken?.id) {
     throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
   }
 
   return checkToken;
 };
+
+const forgetPassword = async (payload: { email: string }) => {
+  const findUser = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+
+  if (!findUser) {
+    throw new ApiError(status.NOT_FOUND, 'User not found.');
+  }
+
+  const forgetPasswordToken = jwtHelpers.createToken(
+    { id: findUser?.id?.toString(), email: findUser.email },
+    config.jwt.forget_password_secret as Secret,
+    config.jwt.forget_password_expires_in as string,
+  );
+
+  // Send Forget Password Link
+  sendEmail(
+    findUser.email,
+    `
+    <div>
+      <p>Hi, ${findUser.name} </p>
+      <p>We are from E-commerce team. We noticed that you've requested a password reset for your account. If you've forgotten your password, please follow the link below within the next 3 minutes to set a new one: </p>
+      <p>
+        <span style="color:#000;text-align:center;font-weight:900">Reset password link: </span> <a href=${config.admin_client_url}/auth/reset-password?token=${forgetPasswordToken}>Click Here</a>
+      </p>
+      <p>If you did not request a password reset, you can safely ignore this email.</p>
+      <p>Thank you <br> E-commerce</p>
+    </div>
+  `,
+    'Password change link',
+  );
+
+  return {
+    id: findUser.id,
+  };
+};
+
+const resetPassword = async (
+  token: string,
+  newPassword: string,
+  ipAddress: string,
+) => {
+  let verifiedUser = null;
+
+  verifiedUser = jwtHelpers.verifyToken(
+    token,
+    config.jwt.forget_password_secret as Secret,
+  );
+
+  const user = await prisma.user.findUnique({
+    where: { email: verifiedUser.email },
+  });
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found!');
+  }
+
+  // Hash the new password before saving
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    Number(config.jwt.bcrypt_salt_rounds) || 10,
+  );
+
+  const updatedUser = await prisma.user.update({
+    where: { email: verifiedUser.email },
+    data: {
+      password: hashedPassword,
+      updatedBy: user.id,
+    },
+  });
+
+  return { id: updatedUser.id };
+};
+
+const changePassword = async (
+  userInfo: UserInfoFromToken,
+  payload: { oldPassword: string; newPassword: string },
+  ipAddress: string,
+) => {
+  const { oldPassword, newPassword } = payload;
+
+  // Find user by ID
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+    select: { id: true, password: true },
+  });
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User does not exist');
+  }
+
+  // Verify old password
+  const isOldPasswordValid = await compare(oldPassword, user.password);
+  if (!isOldPasswordValid) {
+    throw new ApiError(status.FORBIDDEN, 'Old Password is incorrect');
+  }
+
+  // Hash new password
+  const hashedNewPassword = await bcrypt.hash(
+    newPassword,
+    Number(config.jwt.bcrypt_salt_rounds) || 10,
+  );
+
+  // Update user
+  const updatedUser = await prisma.user.update({
+    where: { id: Number(userInfo.id) },
+    data: {
+      password: hashedNewPassword,
+      updatedBy: Number(userInfo.id),
+    },
+    select: { id: true },
+  });
+
+  return { id: updatedUser.id };
+};
+
 export const AuthService = {
   signup,
   verifyEmail,
+  resendVerification,
   signin,
   googleSignIn,
   updateToken,
   signOut,
   checkUser,
+  forgetPassword,
+  resetPassword,
+  changePassword,
 };

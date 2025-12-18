@@ -98,14 +98,14 @@ passport.use(
           const accessToken = jwtHelpers.createToken(
             { id: user.id, role: user.role, email: user.email },
             config.jwt.access_secret as Secret,
-            parseExpirationTime(config.jwt.access_expires_in as string),
+            config.jwt.access_expires_in || '15m',
           );
 
           // Generate Refresh Token
           const refreshToken = jwtHelpers.createToken(
             { id: user.id, role: user.role },
             config.jwt.refresh_secret as Secret,
-            parseExpirationTime(config.jwt.refresh_expires_in as string),
+            config.jwt.refresh_expires_in || '7d',
           );
           return done(null, { user, password, accessToken, refreshToken });
         } else {

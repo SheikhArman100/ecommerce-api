@@ -121,7 +121,7 @@ const globalErrorHandler: ErrorRequestHandler = (error, req, res, next) => {
     errorMessages = simplifiedError.errorMessages;
     
     ErrorLogger.error('Zod validation error', {
-      error: error.errors,
+      error: error.issues,
       simplifiedError,
       requestContext,
     });

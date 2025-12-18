@@ -12,3 +12,5 @@ uploads/product/images/*
 
 logs/*
 !logs/.gitkeep
+
+memory-bank

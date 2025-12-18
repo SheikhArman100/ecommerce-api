@@ -8,6 +8,7 @@ import ApiError from '../../errors/ApiError';
 import { IUser } from '../user/user.interface';
 import config from '../../config';
 import { ENUM_COOKIE_NAME } from '../../enum/user';
+import { UserInfoFromToken } from '../../types/common';
 
 const signup = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.signup(req.body);
@@ -37,12 +38,30 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const resendVerification = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(status.BAD_REQUEST, 'Email is required');
+  }
+
+  const result = await AuthService.resendVerification(email);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Verification email sent successfully',
+    data: result,
+  });
+});
+
 const signin = catchAsync(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ApiError(status.UNAUTHORIZED, 'Signin failed');
   }
   const { refreshToken, ...result } = await AuthService.signin(
     req.user as IUser,
+    req.ip as string,
   );
   const cookieOptions = {
     secure: config.env === 'production',
@@ -67,6 +86,7 @@ const googleSignIn = catchAsync(async (req: Request, res: Response) => {
 
   const { refreshToken, ...result } = await AuthService.googleSignIn(
     req.user as IUser,
+    req.ip as string,
   );
   const cookieOptions = {
     secure: config.env === 'production',
@@ -90,7 +110,7 @@ const updateToken = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(status.UNAUTHORIZED, 'Please sign in first');
   }
 
-  const { refreshToken, ...result } = await AuthService.updateToken(cookies);
+  const { refreshToken, ...result } = await AuthService.updateToken(cookies, req.ip as string);
   const cookieOptions = {
     secure: config.env === 'production',
     httpOnly: true,
@@ -166,12 +186,57 @@ const checkUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const forgetPassword = catchAsync(async (req: Request, res: Response) => {
+  const result=await AuthService.forgetPassword(req.body);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Email sent successfully.',
+    data: result
+  
+  });
+});
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const { newPassword } = req.body;
+  const { token } = req.query;
+
+  if (!token || typeof token !== 'string')
+    throw new ApiError(status.NOT_FOUND, 'Token not found');
+const result=  await AuthService.resetPassword(token, newPassword,req.ip as string);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Password changed successfully',
+    data: result
+  });
+});
+
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const userInfo = req?.user;
+
+  const result=await AuthService.changePassword(userInfo as UserInfoFromToken, req.body,req.ip as string);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Password changed successfully.',
+    data: result,
+  });
+});
+
+
 export const AuthController = {
   signup,
   verifyEmail,
+  resendVerification,
   signin,
   googleSignIn,
   updateToken,
   signOut,
-  checkUser
+  checkUser,
+  forgetPassword, 
+  resetPassword,
+  changePassword,
 };
