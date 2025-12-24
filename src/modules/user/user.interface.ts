@@ -26,6 +26,7 @@ export interface IUpdateUserPayload {
     name?: string;
     phoneNumber?: string;
     role?: ENUM_USER_ROLE;
+    isActive?: boolean;
 }
 
 export interface IUserFilters {
@@ -33,4 +34,5 @@ export interface IUserFilters {
     role?: string;
     email?: string;
     isVerified?: string;
+    isActive?: string;
 }

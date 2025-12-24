@@ -335,7 +335,14 @@ const checkUser = async (refreshToken: string) => {
       detail:{
         select:{
           profileImage:true,
-          image:true
+          image:{
+            select:{
+              path: true,
+              originalName: true,
+              modifiedName: true,
+              type: true
+            }
+          }
         }
       }
       

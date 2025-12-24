@@ -9,7 +9,7 @@ import { userFilterableFields } from './user.constant';
 import { paginationFields } from '../../constant';
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.createUser(req.user as UserInfoFromToken, req.body);
+    const result = await UserService.createUser(req.user as UserInfoFromToken, req.body,req.file);
 
     sendResponse(res, {
         statusCode: status.CREATED,
@@ -46,7 +46,7 @@ const getUserByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.updateUser(req.params.id, req.body, req.user as UserInfoFromToken);
+    const result = await UserService.updateUser(req.params.id, req.body, req.user as UserInfoFromToken,req.file);
 
     sendResponse(res, {
         statusCode: status.OK,
@@ -79,7 +79,7 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.updateMyProfile(req.user as UserInfoFromToken, req.body);
+    const result = await UserService.updateMyProfile(req.user as UserInfoFromToken, req.body,req.file);
 
     sendResponse(res, {
         statusCode: status.OK,

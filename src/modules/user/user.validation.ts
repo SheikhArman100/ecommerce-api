@@ -39,6 +39,9 @@ const updateUserSchema = z.object({
     role: z
       .enum([ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER])
       .optional(),
+    isActive: z
+      .boolean({ message: 'isActive must be a boolean value' })
+      .optional(),
   }).strict(),
 });
 

@@ -2,8 +2,13 @@ import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
-import { IUser, ICreateUserPayload, IUpdateUserPayload, IUserFilters } from './user.interface';
-import { IPaginationOptions } from '../../interfaces/common';
+import {
+  IUser,
+  ICreateUserPayload,
+  IUpdateUserPayload,
+  IUserFilters,
+} from './user.interface';
+import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { userSearchableFields } from './user.constant';
 import { Prisma } from '../../generated/client';
@@ -13,6 +18,7 @@ import bcrypt from 'bcrypt';
 const createUser = async (
   adminInfo: UserInfoFromToken,
   payload: ICreateUserPayload,
+  multerFile?: IFile,
 ) => {
   const checkAdmin = await prisma.user.findUnique({
     where: { id: Number(adminInfo.id) },
@@ -47,6 +53,7 @@ const createUser = async (
       email: payload.email,
       phoneNumber: payload.phoneNumber,
       password: hashedPassword,
+      isVerified: true,
       role: payload.role || ENUM_USER_ROLE.USER,
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
@@ -61,6 +68,29 @@ const createUser = async (
       createdAt: true,
     },
   });
+
+  if (!data) {
+    throw new ApiError(status.BAD_REQUEST, 'Failed to create user');
+  }
+
+  if (multerFile) {
+    await prisma.userDetail.create({
+      data: {
+        userId: data.id,
+        address: '',
+        city: '',
+        road: '',
+        image: {
+          create: {
+            diskType: 'LOCAL',
+            path: `user/images/${multerFile.filename}`,
+            originalName: multerFile.originalname,
+            modifiedName: multerFile.filename,
+          },
+        },
+      },
+    });
+  }
 
   return data;
 };
@@ -91,9 +121,13 @@ const getAllUsers = async (
     whereConditions = {
       ...whereConditions,
       AND: Object.entries(filtersData).map(([field, value]) => ({
-        [field]: (field.toLowerCase().endsWith('id') || field === 'id')
-          ? Number(value)  
-          : (typeof value === 'string' && (value === 'true' || value === 'false') ? value === 'true' : value), 
+        [field]:
+          field.toLowerCase().endsWith('id') || field === 'id'
+            ? Number(value)
+            : typeof value === 'string' &&
+                (value === 'true' || value === 'false')
+              ? value === 'true'
+              : value,
       })),
     };
   }
@@ -112,6 +146,7 @@ const getAllUsers = async (
       phoneNumber: true,
       role: true,
       isVerified: true,
+      isActive: true,
       createdAt: true,
       updatedAt: true,
       creator: {
@@ -159,6 +194,14 @@ const getUserByID = async (id: string) => {
           address: true,
           city: true,
           road: true,
+          image: {
+            select: {
+              path: true,
+              originalName: true,
+              modifiedName: true,
+              type: true
+            }
+          }
         },
       },
       creator: {
@@ -187,6 +230,7 @@ const updateUser = async (
   id: string,
   payload: IUpdateUserPayload,
   adminInfo: UserInfoFromToken,
+  multerFile?: IFile,
 ) => {
   const checkAdmin = await prisma.user.findUnique({
     where: { id: Number(adminInfo.id) },
@@ -213,7 +257,10 @@ const updateUser = async (
       id: Number(id),
     },
     data: {
-      ...payload,
+      ...payload.name && { name: payload.name },
+      ...payload.phoneNumber && { phoneNumber: payload.phoneNumber },
+      ...payload.role && { role: payload.role },
+      ...typeof payload.isActive === 'boolean' && { isActive: payload.isActive },
       updatedBy: Number(checkAdmin.id),
       updatedAt: new Date(),
     },
@@ -227,6 +274,48 @@ const updateUser = async (
       updatedAt: true,
     },
   });
+
+  // Handle profile image update
+  if (multerFile) {
+    const existingDetail = await prisma.userDetail.findUnique({
+      where: { userId: Number(id) },
+    });
+
+    if (existingDetail) {
+      // Update existing UserDetail with new image
+      await prisma.userDetail.update({
+        where: { userId: Number(id) },
+        data: {
+          image: {
+            create: {
+              diskType: 'LOCAL',
+              path: `user/images/${multerFile.filename}`,
+              originalName: multerFile.originalname,
+              modifiedName: multerFile.filename,
+            },
+          },
+        },
+      });
+    } else {
+      // Create new UserDetail with image
+      await prisma.userDetail.create({
+        data: {
+          userId: Number(id),
+          address: '',
+          city: '',
+          road: '',
+          image: {
+            create: {
+              diskType: 'LOCAL',
+              path: `user/images/${multerFile.filename}`,
+              originalName: multerFile.originalname,
+              modifiedName: multerFile.filename,
+            },
+          },
+        },
+      });
+    }
+  }
 
   return data;
 };
@@ -291,6 +380,14 @@ const getMyProfile = async (userInfo: UserInfoFromToken) => {
           address: true,
           city: true,
           road: true,
+          image: {
+            select: {
+              path: true,
+              originalName: true,
+              modifiedName: true,
+              type: true
+            }
+          }
         },
       },
     },
@@ -306,6 +403,7 @@ const getMyProfile = async (userInfo: UserInfoFromToken) => {
 const updateMyProfile = async (
   userInfo: UserInfoFromToken,
   payload: Partial<Pick<IUser, 'name' | 'phoneNumber'>>,
+  multerFile?: IFile,
 ) => {
   const checkUser = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
@@ -333,6 +431,48 @@ const updateMyProfile = async (
       updatedAt: true,
     },
   });
+
+  // Handle profile image update
+  if (multerFile) {
+    const existingDetail = await prisma.userDetail.findUnique({
+      where: { userId: Number(userInfo.id) },
+    });
+
+    if (existingDetail) {
+      // Update existing UserDetail with new image
+      await prisma.userDetail.update({
+        where: { userId: Number(userInfo.id) },
+        data: {
+          image: {
+            create: {
+              diskType: 'LOCAL',
+              path: `user/images/${multerFile.filename}`,
+              originalName: multerFile.originalname,
+              modifiedName: multerFile.filename,
+            },
+          },
+        },
+      });
+    } else {
+      // Create new UserDetail with image
+      await prisma.userDetail.create({
+        data: {
+          userId: Number(userInfo.id),
+          address: '',
+          city: '',
+          road: '',
+          image: {
+            create: {
+              diskType: 'LOCAL',
+              path: `user/images/${multerFile.filename}`,
+              originalName: multerFile.originalname,
+              modifiedName: multerFile.filename,
+            },
+          },
+        },
+      });
+    }
+  }
 
   return data;
 };

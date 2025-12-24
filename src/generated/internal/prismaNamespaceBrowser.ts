@@ -92,6 +92,7 @@ export const UserScalarFieldEnum = {
   phoneNumber: 'phoneNumber',
   password: 'password',
   isVerified: 'isVerified',
+  isActive: 'isActive',
   role: 'role',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
