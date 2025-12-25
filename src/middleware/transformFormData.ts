@@ -42,7 +42,16 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
             }
           } else {
             // Set the value at the final part
-            current[part] = req.body[key];
+            let value = req.body[key];
+
+            // Convert string "true"/"false" to boolean
+            if (value === "true") {
+              value = true;
+            } else if (value === "false") {
+              value = false;
+            }
+
+            current[part] = value;
           }
         }
       }

@@ -149,6 +149,22 @@ const getAllUsers = async (
       isActive: true,
       createdAt: true,
       updatedAt: true,
+      detail: {
+        select: {
+          profileImage: true,
+          address: true,
+          city: true,
+          road: true,
+          image: {
+            select: {
+              path: true,
+              originalName: true,
+              modifiedName: true,
+              type: true
+            }
+          }
+        },
+      },
       creator: {
         select: {
           name: true,
@@ -186,6 +202,7 @@ const getUserByID = async (id: string) => {
       phoneNumber: true,
       role: true,
       isVerified: true,
+      isActive: true, 
       createdAt: true,
       updatedAt: true,
       detail: {
