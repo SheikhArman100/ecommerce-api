@@ -1,3 +1,10 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `image` on the `categories` table. All the data in the column will be lost.
+  - A unique constraint covering the columns `[categoryId]` on the table `files` will be added. If there are existing duplicate values, this will fail.
+
+*/
 -- DropForeignKey
 ALTER TABLE `cart_items` DROP FOREIGN KEY `cart_items_productId_fkey`;
 
@@ -40,6 +47,15 @@ DROP INDEX `productFlavors_flavorId_fkey` ON `productflavors`;
 -- DropIndex
 DROP INDEX `products_categoryId_fkey` ON `products`;
 
+-- AlterTable
+ALTER TABLE `categories` DROP COLUMN `image`;
+
+-- AlterTable
+ALTER TABLE `files` ADD COLUMN `categoryId` INTEGER NULL;
+
+-- CreateIndex
+CREATE UNIQUE INDEX `files_categoryId_key` ON `files`(`categoryId`);
+
 -- AddForeignKey
 ALTER TABLE `users` ADD CONSTRAINT `users_updatedBy_fkey` FOREIGN KEY (`updatedBy`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -48,6 +64,9 @@ ALTER TABLE `products` ADD CONSTRAINT `products_categoryId_fkey` FOREIGN KEY (`c
 
 -- AddForeignKey
 ALTER TABLE `sizes` ADD CONSTRAINT `sizes_createdBy_fkey` FOREIGN KEY (`createdBy`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `files` ADD CONSTRAINT `files_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `categories`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `productFlavors` ADD CONSTRAINT `productFlavors_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `products`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

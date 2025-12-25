@@ -145,7 +145,7 @@ model Category {
   name         String    @unique
   slug         String?   @unique  // SEO-friendly URL
   description  String?            // Category description
-  image        String?            // Category icon/image URL
+  image        File?            // Category icon/image URL
   isActive     Boolean   @default(true)   // Enable/disable categories
   displayOrder Int       @default(0)     // Sort order in navigation
 
@@ -210,9 +210,11 @@ model File {
   productId    Int?
   flavorId     Int?
   userDetailId Int? @unique
+  categoryId   Int? @unique
 
   productFlavor ProductFlavor? @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
   userDetail    UserDetail?    @relation(fields: [userDetailId], references: [id], onDelete: Cascade)
+  category      Category?      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([id, productId, flavorId])
   @@map("files")
