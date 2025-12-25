@@ -128,7 +128,7 @@ model Product {
 
   //relations
   categoryId Int?
-  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   flavors    ProductFlavor[]
   creator    User            @relation("ProductCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   updater    User?           @relation("ProductUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
@@ -141,17 +141,27 @@ model Product {
 }
 
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
-  createdBy Int
-  updatedBy Int
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-  //relations
-  creator   User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater   User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
-  products  Product[]
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+  slug         String?   @unique  // SEO-friendly URL
+  description  String?            // Category description
+  image        String?            // Category icon/image URL
+  isActive     Boolean   @default(true)   // Enable/disable categories
+  displayOrder Int       @default(0)     // Sort order in navigation
 
+  createdBy    Int
+  updatedBy    Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+
+  // Relations
+  creator      User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater      User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  products     Product[]
+
+  // Indexes for performance
+  @@index([isActive])
+  @@index([displayOrder])
   @@map("categories")
 }
 
@@ -215,8 +225,8 @@ model ProductFlavor {
   updatedAt DateTime @updatedAt
 
   //relations
-  product Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
-  flavor  Flavor              @relation(fields: [flavorId], references: [id], onDelete: Cascade)
+  product Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  flavor  Flavor              @relation(fields: [flavorId], references: [id], onDelete: Restrict)
   images  File[]
   sizes   ProductFlavorSize[]
 
@@ -234,8 +244,8 @@ model ProductFlavorSize {
   updatedAt DateTime @updatedAt
 
   // Relations
-  productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
-  size          Size          @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+  productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Restrict)
+  size          Size          @relation(fields: [sizeId], references: [id], onDelete: Restrict)
   cartItems     CartItem[]
   orderItems    OrderItem[]
 
@@ -297,7 +307,7 @@ model CartItem {
   //relations
   cart              Cart              @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Cascade)
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
 
   @@unique([cartId, productId, flavorId, sizeId])
   @@map("cart_items")
@@ -332,7 +342,7 @@ model OrderItem {
   //relations
   order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Cascade)
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
 
   @@map("order_items")
 }
