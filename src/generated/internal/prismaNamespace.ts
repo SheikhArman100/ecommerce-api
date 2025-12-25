@@ -1574,6 +1574,10 @@ export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeo
 export const CategoryScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  slug: 'slug',
+  description: 'description',
+  isActive: 'isActive',
+  displayOrder: 'displayOrder',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',
@@ -1619,7 +1623,8 @@ export const FileScalarFieldEnum = {
   updatedAt: 'updatedAt',
   productId: 'productId',
   flavorId: 'flavorId',
-  userDetailId: 'userDetailId'
+  userDetailId: 'userDetailId',
+  categoryId: 'categoryId'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
@@ -1777,7 +1782,9 @@ export type ProductOrderByRelevanceFieldEnum = (typeof ProductOrderByRelevanceFi
 
 
 export const CategoryOrderByRelevanceFieldEnum = {
-  name: 'name'
+  name: 'name',
+  slug: 'slug',
+  description: 'description'
 } as const
 
 export type CategoryOrderByRelevanceFieldEnum = (typeof CategoryOrderByRelevanceFieldEnum)[keyof typeof CategoryOrderByRelevanceFieldEnum]

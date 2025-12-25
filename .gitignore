@@ -10,6 +10,9 @@ uploads/user/images/*
 uploads/product/images/*
 !uploads/product/images/.gitkeep
 
+uploads/category/images/*   
+!uploads/category/images/.gitkeep       
+
 logs/*
 !logs/.gitkeep
 

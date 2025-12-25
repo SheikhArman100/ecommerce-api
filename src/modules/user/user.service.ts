@@ -14,6 +14,9 @@ import { userSearchableFields } from './user.constant';
 import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import bcrypt from 'bcrypt';
+import fs from 'fs';
+import path from 'path';
+import ErrorLogger from '../../logger/errorLogger';
 
 const createUser = async (
   adminInfo: UserInfoFromToken,
@@ -296,10 +299,33 @@ const updateUser = async (
   if (multerFile) {
     const existingDetail = await prisma.userDetail.findUnique({
       where: { userId: Number(id) },
+      include: { image: true },
     });
 
-    if (existingDetail) {
-      // Update existing UserDetail with new image
+    if (existingDetail && existingDetail.image) {
+      // Delete old image file from folder
+      const oldImagePath = path.join(process.cwd(), 'uploads', existingDetail.image.path);
+      try {
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      } catch (error) {
+        // Log error but don't fail the update
+        console.error('Error deleting old user image:', error);
+        ErrorLogger.error(`Error deleting old user image: ${error}`);
+      }
+
+      // Update existing image record
+      await prisma.file.update({
+        where: { id: existingDetail.image.id },
+        data: {
+          path: `user/images/${multerFile.filename}`,
+          originalName: multerFile.originalname,
+          modifiedName: multerFile.filename,
+        },
+      });
+    } else if (existingDetail) {
+      // Create new image record for existing user detail
       await prisma.userDetail.update({
         where: { userId: Number(id) },
         data: {
@@ -463,6 +489,7 @@ const updateMyProfile = async (
   if (hasDetailFields) {
     const existingDetail = await prisma.userDetail.findUnique({
       where: { userId: Number(userInfo.id) },
+      include: { image: true },
     });
 
     const detailUpdateData: any = {};
@@ -471,14 +498,39 @@ const updateMyProfile = async (
     if (road !== undefined) detailUpdateData.road = road;
 
     if (multerFile) {
-      detailUpdateData.image = {
-        create: {
-          diskType: 'LOCAL',
-          path: `user/images/${multerFile.filename}`,
-          originalName: multerFile.originalname,
-          modifiedName: multerFile.filename,
-        },
-      };
+      if (existingDetail && existingDetail.image) {
+        // Delete old image file from folder
+        const oldImagePath = path.join(process.cwd(), 'uploads', existingDetail.image.path);
+        try {
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+          }
+        } catch (error) {
+          // Log error but don't fail the update
+          console.error('Error deleting old profile image:', error);
+          ErrorLogger.error(`Error deleting old profile image: ${error}`);
+        }
+
+        // Update existing image record
+        await prisma.file.update({
+          where: { id: existingDetail.image.id },
+          data: {
+            path: `user/images/${multerFile.filename}`,
+            originalName: multerFile.originalname,
+            modifiedName: multerFile.filename,
+          },
+        });
+      } else {
+        // Create new image record
+        detailUpdateData.image = {
+          create: {
+            diskType: 'LOCAL',
+            path: `user/images/${multerFile.filename}`,
+            originalName: multerFile.originalname,
+            modifiedName: multerFile.filename,
+          },
+        };
+      }
     }
 
     if (existingDetail) {

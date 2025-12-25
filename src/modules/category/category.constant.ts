@@ -3,6 +3,8 @@
 export const categoryFilterableFields = [
     'searchTerm',
     'name',
+    'isActive',
+    'displayOrder',
     'createdBy',
     'updatedBy'
 ];

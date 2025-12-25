@@ -49,6 +49,15 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
               value = true;
             } else if (value === "false") {
               value = false;
+            } else if (!isNaN(Number(value)) && value !== "" && !isNaN(parseFloat(value))) {
+              // Convert numeric strings to numbers
+              const numValue = Number(value);
+              // Check if it's an integer or float
+              if (Number.isInteger(numValue)) {
+                value = numValue;
+              } else {
+                value = parseFloat(value);
+              }
             }
 
             current[part] = value;

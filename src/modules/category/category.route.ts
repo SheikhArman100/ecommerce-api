@@ -4,15 +4,30 @@ import validateRequest from '../../middleware/validateRequest';
 import { CategoryValidation } from './category.validation';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import auth from '../../middleware/auth';
-
+import { FileUploadHelper } from '../../helpers/fileUploadHelpers';
+import transformFormData from '../../middleware/transformFormData';
 
 const router = express.Router();
 
 router
-    .post('/',auth(ENUM_USER_ROLE.ADMIN),validateRequest(CategoryValidation.createCategorySchema), CategoryController.createCategory)
+    .post(
+        '/',
+        auth(ENUM_USER_ROLE.ADMIN),
+        FileUploadHelper.uploadSingle('category'),
+        transformFormData,
+        validateRequest(CategoryValidation.createCategorySchema),
+        CategoryController.createCategory
+    )
     .get('/', CategoryController.getAllCategories)
     .get('/:id', CategoryController.getCategoryByID)
-    .patch('/:id',auth(ENUM_USER_ROLE.ADMIN),validateRequest(CategoryValidation.updateCategorySchema), CategoryController.updateCategory)
-    .delete('/:id',auth(ENUM_USER_ROLE.ADMIN), CategoryController.deleteCategoryByID)
+    .patch(
+        '/:id',
+        auth(ENUM_USER_ROLE.ADMIN),
+        FileUploadHelper.uploadSingle('category'),
+        transformFormData,
+        validateRequest(CategoryValidation.updateCategorySchema),
+        CategoryController.updateCategory
+    )
+    .delete('/:id', auth(ENUM_USER_ROLE.ADMIN), CategoryController.deleteCategoryByID);
 
 export const categoryRoute = router;

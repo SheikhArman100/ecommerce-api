@@ -9,7 +9,7 @@ import { categoryFilterableFields } from './category.constant';
 import { paginationFields } from '../../constant';
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {
-  const result = await CategoryService.createCategory(req.user as UserInfoFromToken, req.body);
+  const result = await CategoryService.createCategory(req.user as UserInfoFromToken, req.body, req.file);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -49,7 +49,7 @@ const getCategoryByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCategory = catchAsync(async (req: Request, res: Response) => {
-  const result = await CategoryService.updateCategory(req.params.id, req.body,req.user as UserInfoFromToken);
+  const result = await CategoryService.updateCategory(req.params.id, req.body, req.user as UserInfoFromToken, req.file);
 
   sendResponse(res, {
     statusCode: status.OK,
