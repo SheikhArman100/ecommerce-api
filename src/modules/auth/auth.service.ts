@@ -168,6 +168,10 @@ const signin = async (payload: IUser, ipAddress: string) => {
     throw new ApiError(status.FORBIDDEN, 'Your account is not verified');
   }
 
+  if(!user.isActive){
+    throw new ApiError(status.FORBIDDEN, 'Your account has been deactivated. Please contact support.');
+    }
+
   // Verify password using bcrypt
   const isPasswordValid = compare(password, user.password);
   if (!isPasswordValid) {
@@ -332,6 +336,7 @@ const checkUser = async (refreshToken: string) => {
       email: true,
       role: true,
       isVerified: true,
+      isActive: true, 
       detail:{
         select:{
           profileImage:true,

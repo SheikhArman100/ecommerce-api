@@ -372,6 +372,7 @@ const getMyProfile = async (userInfo: UserInfoFromToken) => {
       phoneNumber: true,
       role: true,
       isVerified: true,
+      isActive: true,
       createdAt: true,
       updatedAt: true,
       detail: {
@@ -402,7 +403,11 @@ const getMyProfile = async (userInfo: UserInfoFromToken) => {
 
 const updateMyProfile = async (
   userInfo: UserInfoFromToken,
-  payload: Partial<Pick<IUser, 'name' | 'phoneNumber'>>,
+  payload: Partial<Pick<IUser, 'name' | 'phoneNumber'>> & {
+    address?: string;
+    city?: string;
+    road?: string;
+  },
   multerFile?: IFile,
 ) => {
   const checkUser = await prisma.user.findUnique({
@@ -412,12 +417,15 @@ const updateMyProfile = async (
     throw new ApiError(status.NOT_FOUND, 'User not found');
   }
 
+  // Separate User and UserDetail fields
+  const { address, city, road, ...userFields } = payload;
+
   const data = await prisma.user.update({
     where: {
       id: Number(userInfo.id),
     },
     data: {
-      ...payload,
+      ...userFields,
       updatedBy: Number(userInfo.id),
       updatedAt: new Date(),
     },
@@ -432,43 +440,45 @@ const updateMyProfile = async (
     },
   });
 
-  // Handle profile image update
-  if (multerFile) {
+  // Handle UserDetail updates (address, city, road, and/or image)
+  const hasDetailFields = address !== undefined || city !== undefined || road !== undefined || multerFile;
+
+  if (hasDetailFields) {
     const existingDetail = await prisma.userDetail.findUnique({
       where: { userId: Number(userInfo.id) },
     });
 
+    const detailUpdateData: any = {};
+    if (address !== undefined) detailUpdateData.address = address;
+    if (city !== undefined) detailUpdateData.city = city;
+    if (road !== undefined) detailUpdateData.road = road;
+
+    if (multerFile) {
+      detailUpdateData.image = {
+        create: {
+          diskType: 'LOCAL',
+          path: `user/images/${multerFile.filename}`,
+          originalName: multerFile.originalname,
+          modifiedName: multerFile.filename,
+        },
+      };
+    }
+
     if (existingDetail) {
-      // Update existing UserDetail with new image
+      // Update existing UserDetail
       await prisma.userDetail.update({
         where: { userId: Number(userInfo.id) },
-        data: {
-          image: {
-            create: {
-              diskType: 'LOCAL',
-              path: `user/images/${multerFile.filename}`,
-              originalName: multerFile.originalname,
-              modifiedName: multerFile.filename,
-            },
-          },
-        },
+        data: detailUpdateData,
       });
     } else {
-      // Create new UserDetail with image
+      // Create new UserDetail with default empty values for missing fields
       await prisma.userDetail.create({
         data: {
           userId: Number(userInfo.id),
-          address: '',
-          city: '',
-          road: '',
-          image: {
-            create: {
-              diskType: 'LOCAL',
-              path: `user/images/${multerFile.filename}`,
-              originalName: multerFile.originalname,
-              modifiedName: multerFile.filename,
-            },
-          },
+          address: address || '',
+          city: city || '',
+          road: road || '',
+          ...detailUpdateData,
         },
       });
     }
