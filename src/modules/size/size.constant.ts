@@ -3,6 +3,7 @@
 export const sizeFilterableFields = [
     'searchTerm',
     'name',
+    'isActive',
     'createdBy',
     'updatedBy'
 ];

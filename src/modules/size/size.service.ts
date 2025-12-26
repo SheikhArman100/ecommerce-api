@@ -28,6 +28,8 @@ const createSize = async (
   const data = await prisma.size.create({
     data: {
       name: payload.name as string,
+      description: payload.description,
+      isActive: payload.isActive ?? true,
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
       createdAt: new Date(),
@@ -63,7 +65,13 @@ const getAllSizes = async (
     whereConditions = {
       ...whereConditions,
       AND: Object.entries(filtersData).map(([field, value]) => ({
-        [field]: value,
+        [field]:
+          field.toLowerCase().endsWith('id') || field === 'id'
+            ? Number(value)
+            : typeof value === 'string' &&
+                (value === 'true' || value === 'false')
+              ? value === 'true'
+              : value,
       })),
     };
   }
@@ -137,7 +145,9 @@ const updateSize = async (
       id: Number(id),
     },
     data: {
-      name: payload.name as string,
+      ...(payload.name && { name: payload.name }),
+      ...(payload.description !== undefined && { description: payload.description }),
+      ...(payload.isActive !== undefined && { isActive: payload.isActive }),
       updatedBy: Number(checkUser.id),
       updatedAt: new Date(),
     },
