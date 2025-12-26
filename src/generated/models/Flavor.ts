@@ -42,6 +42,8 @@ export type FlavorMinAggregateOutputType = {
   id: number | null
   name: string | null
   color: string | null
+  description: string | null
+  isActive: boolean | null
   createdBy: number | null
   updatedBy: number | null
   createdAt: Date | null
@@ -52,6 +54,8 @@ export type FlavorMaxAggregateOutputType = {
   id: number | null
   name: string | null
   color: string | null
+  description: string | null
+  isActive: boolean | null
   createdBy: number | null
   updatedBy: number | null
   createdAt: Date | null
@@ -62,6 +66,8 @@ export type FlavorCountAggregateOutputType = {
   id: number
   name: number
   color: number
+  description: number
+  isActive: number
   createdBy: number
   updatedBy: number
   createdAt: number
@@ -86,6 +92,8 @@ export type FlavorMinAggregateInputType = {
   id?: true
   name?: true
   color?: true
+  description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -96,6 +104,8 @@ export type FlavorMaxAggregateInputType = {
   id?: true
   name?: true
   color?: true
+  description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -106,6 +116,8 @@ export type FlavorCountAggregateInputType = {
   id?: true
   name?: true
   color?: true
+  description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -203,6 +215,8 @@ export type FlavorGroupByOutputType = {
   id: number
   name: string
   color: string
+  description: string | null
+  isActive: boolean
   createdBy: number
   updatedBy: number
   createdAt: Date
@@ -236,6 +250,8 @@ export type FlavorWhereInput = {
   id?: Prisma.IntFilter<"Flavor"> | number
   name?: Prisma.StringFilter<"Flavor"> | string
   color?: Prisma.StringFilter<"Flavor"> | string
+  description?: Prisma.StringNullableFilter<"Flavor"> | string | null
+  isActive?: Prisma.BoolFilter<"Flavor"> | boolean
   createdBy?: Prisma.IntFilter<"Flavor"> | number
   updatedBy?: Prisma.IntFilter<"Flavor"> | number
   createdAt?: Prisma.DateTimeFilter<"Flavor"> | Date | string
@@ -249,6 +265,8 @@ export type FlavorOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -266,6 +284,8 @@ export type FlavorWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FlavorWhereInput[]
   NOT?: Prisma.FlavorWhereInput | Prisma.FlavorWhereInput[]
   color?: Prisma.StringFilter<"Flavor"> | string
+  description?: Prisma.StringNullableFilter<"Flavor"> | string | null
+  isActive?: Prisma.BoolFilter<"Flavor"> | boolean
   createdBy?: Prisma.IntFilter<"Flavor"> | number
   updatedBy?: Prisma.IntFilter<"Flavor"> | number
   createdAt?: Prisma.DateTimeFilter<"Flavor"> | Date | string
@@ -279,6 +299,8 @@ export type FlavorOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  description?: Prisma.SortOrderInput | Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -297,6 +319,8 @@ export type FlavorScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Flavor"> | number
   name?: Prisma.StringWithAggregatesFilter<"Flavor"> | string
   color?: Prisma.StringWithAggregatesFilter<"Flavor"> | string
+  description?: Prisma.StringNullableWithAggregatesFilter<"Flavor"> | string | null
+  isActive?: Prisma.BoolWithAggregatesFilter<"Flavor"> | boolean
   createdBy?: Prisma.IntWithAggregatesFilter<"Flavor"> | number
   updatedBy?: Prisma.IntWithAggregatesFilter<"Flavor"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Flavor"> | Date | string
@@ -306,6 +330,8 @@ export type FlavorScalarWhereWithAggregatesInput = {
 export type FlavorCreateInput = {
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string | null
   creator: Prisma.UserCreateNestedOneWithoutCreatedFlavorsInput
@@ -317,6 +343,8 @@ export type FlavorUncheckedCreateInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -327,6 +355,8 @@ export type FlavorUncheckedCreateInput = {
 export type FlavorUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creator?: Prisma.UserUpdateOneRequiredWithoutCreatedFlavorsNestedInput
@@ -338,6 +368,8 @@ export type FlavorUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -349,6 +381,8 @@ export type FlavorCreateManyInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -358,6 +392,8 @@ export type FlavorCreateManyInput = {
 export type FlavorUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -366,6 +402,8 @@ export type FlavorUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -392,6 +430,8 @@ export type FlavorCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -408,6 +448,8 @@ export type FlavorMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -418,6 +460,8 @@ export type FlavorMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   color?: Prisma.SortOrder
+  description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -536,6 +580,8 @@ export type FlavorUpdateOneRequiredWithoutProductsNestedInput = {
 export type FlavorCreateWithoutCreatorInput = {
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string | null
   updater?: Prisma.UserCreateNestedOneWithoutUpdatedFlavorsInput
@@ -546,6 +592,8 @@ export type FlavorUncheckedCreateWithoutCreatorInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   updatedBy: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
@@ -565,6 +613,8 @@ export type FlavorCreateManyCreatorInputEnvelope = {
 export type FlavorCreateWithoutUpdaterInput = {
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string | null
   creator: Prisma.UserCreateNestedOneWithoutCreatedFlavorsInput
@@ -575,6 +625,8 @@ export type FlavorUncheckedCreateWithoutUpdaterInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdBy: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
@@ -614,6 +666,8 @@ export type FlavorScalarWhereInput = {
   id?: Prisma.IntFilter<"Flavor"> | number
   name?: Prisma.StringFilter<"Flavor"> | string
   color?: Prisma.StringFilter<"Flavor"> | string
+  description?: Prisma.StringNullableFilter<"Flavor"> | string | null
+  isActive?: Prisma.BoolFilter<"Flavor"> | boolean
   createdBy?: Prisma.IntFilter<"Flavor"> | number
   updatedBy?: Prisma.IntFilter<"Flavor"> | number
   createdAt?: Prisma.DateTimeFilter<"Flavor"> | Date | string
@@ -639,6 +693,8 @@ export type FlavorUpdateManyWithWhereWithoutUpdaterInput = {
 export type FlavorCreateWithoutProductsInput = {
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string | null
   creator: Prisma.UserCreateNestedOneWithoutCreatedFlavorsInput
@@ -649,6 +705,8 @@ export type FlavorUncheckedCreateWithoutProductsInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -674,6 +732,8 @@ export type FlavorUpdateToOneWithWhereWithoutProductsInput = {
 export type FlavorUpdateWithoutProductsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creator?: Prisma.UserUpdateOneRequiredWithoutCreatedFlavorsNestedInput
@@ -684,6 +744,8 @@ export type FlavorUncheckedUpdateWithoutProductsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -694,6 +756,8 @@ export type FlavorCreateManyCreatorInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   updatedBy: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
@@ -703,6 +767,8 @@ export type FlavorCreateManyUpdaterInput = {
   id?: number
   name: string
   color: string
+  description?: string | null
+  isActive?: boolean
   createdBy: number
   createdAt?: Date | string
   updatedAt?: Date | string | null
@@ -711,6 +777,8 @@ export type FlavorCreateManyUpdaterInput = {
 export type FlavorUpdateWithoutCreatorInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updater?: Prisma.UserUpdateOneWithoutUpdatedFlavorsNestedInput
@@ -721,6 +789,8 @@ export type FlavorUncheckedUpdateWithoutCreatorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -731,6 +801,8 @@ export type FlavorUncheckedUpdateManyWithoutCreatorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -739,6 +811,8 @@ export type FlavorUncheckedUpdateManyWithoutCreatorInput = {
 export type FlavorUpdateWithoutUpdaterInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   creator?: Prisma.UserUpdateOneRequiredWithoutCreatedFlavorsNestedInput
@@ -749,6 +823,8 @@ export type FlavorUncheckedUpdateWithoutUpdaterInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -759,6 +835,8 @@ export type FlavorUncheckedUpdateManyWithoutUpdaterInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   color?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -799,6 +877,8 @@ export type FlavorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   id?: boolean
   name?: boolean
   color?: boolean
+  description?: boolean
+  isActive?: boolean
   createdBy?: boolean
   updatedBy?: boolean
   createdAt?: boolean
@@ -815,13 +895,15 @@ export type FlavorSelectScalar = {
   id?: boolean
   name?: boolean
   color?: boolean
+  description?: boolean
+  isActive?: boolean
   createdBy?: boolean
   updatedBy?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FlavorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "color" | "createdBy" | "updatedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["flavor"]>
+export type FlavorOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "color" | "description" | "isActive" | "createdBy" | "updatedBy" | "createdAt" | "updatedAt", ExtArgs["result"]["flavor"]>
 export type FlavorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
@@ -840,6 +922,8 @@ export type $FlavorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: number
     name: string
     color: string
+    description: string | null
+    isActive: boolean
     createdBy: number
     updatedBy: number
     createdAt: Date
@@ -1219,6 +1303,8 @@ export interface FlavorFieldRefs {
   readonly id: Prisma.FieldRef<"Flavor", 'Int'>
   readonly name: Prisma.FieldRef<"Flavor", 'String'>
   readonly color: Prisma.FieldRef<"Flavor", 'String'>
+  readonly description: Prisma.FieldRef<"Flavor", 'String'>
+  readonly isActive: Prisma.FieldRef<"Flavor", 'Boolean'>
   readonly createdBy: Prisma.FieldRef<"Flavor", 'Int'>
   readonly updatedBy: Prisma.FieldRef<"Flavor", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Flavor", 'DateTime'>

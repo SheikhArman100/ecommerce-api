@@ -166,24 +166,29 @@ model Category {
 }
 
 model Flavor {
-  id        Int             @id @default(autoincrement())
-  name      String          @unique
-  color     String
-  createdBy Int
-  updatedBy Int
-  createdAt DateTime        @default(now())
-  updatedAt DateTime?       @updatedAt
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  color       String
+  description String?
+  isActive    Boolean         @default(true)
+  createdBy   Int
+  updatedBy   Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime?       @updatedAt
   //relations
   creator   User            @relation("FlavorCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   updater   User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
   products  ProductFlavor[]
 
+  @@index([isActive])
   @@map("flavors")
 }
 
 model Size {
   id             Int                 @id @default(autoincrement())
   name           String              @unique
+  description    String?
+  isActive       Boolean             @default(true)
   createdBy      Int
   updatedBy      Int
   createdAt      DateTime            @default(now())
@@ -193,6 +198,7 @@ model Size {
   updater        User?               @relation("SizeUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
   productFlavors ProductFlavorSize[]
 
+  @@index([isActive])
   @@map("sizes")
 }
 

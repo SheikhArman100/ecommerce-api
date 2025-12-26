@@ -14,6 +14,7 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
     if (!req.body || Object.keys(req.body).length === 0) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'No form data found!');
     }
+    console.log("Req Body before transform",req.body);           
 
     const result: Record<string, any> = {};
 
@@ -49,8 +50,11 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
               value = true;
             } else if (value === "false") {
               value = false;
-            } else if (!isNaN(Number(value)) && value !== "" && !isNaN(parseFloat(value))) {
-              // Convert numeric strings to numbers
+            } else if (value !== "" && !isNaN(Number(value)) && !isNaN(parseFloat(value)) &&
+                       !value.includes('+') && !value.includes('-') && !value.includes(' ') &&
+                       value.length <= 2) {
+              // Convert numeric strings to numbers (extremely conservative)
+              // Only convert very short numeric strings (1-2 digits) for things like displayOrder, quantity
               const numValue = Number(value);
               // Check if it's an integer or float
               if (Number.isInteger(numValue)) {
@@ -68,7 +72,7 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
 
     // Replace req.body with the nested structure
     req.body = result;
-    console.log("Body",req.body);
+    console.log("req body after transform",req.body);
     next();
   } catch (error) {
     next(error);

@@ -4,6 +4,7 @@ export const flavorFilterableFields = [
     'searchTerm',
     'name',
     'color',
+    'isActive',
     'createdBy',
     'updatedBy'
 ];

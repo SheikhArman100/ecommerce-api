@@ -162,6 +162,8 @@ export const FlavorScalarFieldEnum = {
   id: 'id',
   name: 'name',
   color: 'color',
+  description: 'description',
+  isActive: 'isActive',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',
@@ -174,6 +176,8 @@ export type FlavorScalarFieldEnum = (typeof FlavorScalarFieldEnum)[keyof typeof 
 export const SizeScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  description: 'description',
+  isActive: 'isActive',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',
@@ -363,14 +367,16 @@ export type CategoryOrderByRelevanceFieldEnum = (typeof CategoryOrderByRelevance
 
 export const FlavorOrderByRelevanceFieldEnum = {
   name: 'name',
-  color: 'color'
+  color: 'color',
+  description: 'description'
 } as const
 
 export type FlavorOrderByRelevanceFieldEnum = (typeof FlavorOrderByRelevanceFieldEnum)[keyof typeof FlavorOrderByRelevanceFieldEnum]
 
 
 export const SizeOrderByRelevanceFieldEnum = {
-  name: 'name'
+  name: 'name',
+  description: 'description'
 } as const
 
 export type SizeOrderByRelevanceFieldEnum = (typeof SizeOrderByRelevanceFieldEnum)[keyof typeof SizeOrderByRelevanceFieldEnum]

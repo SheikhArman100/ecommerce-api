@@ -28,7 +28,9 @@ const createFlavor = async (
   const data = await prisma.flavor.create({
     data: {
       name: payload.name as string,
-      color:payload.color as string,
+      color: payload.color as string,
+      description: payload.description,
+      isActive: payload.isActive ?? true,
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
       createdAt: new Date(),
@@ -64,7 +66,13 @@ const getAllFlavors = async (
     whereConditions = {
       ...whereConditions,
       AND: Object.entries(filtersData).map(([field, value]) => ({
-        [field]: value,
+        [field]:
+          field.toLowerCase().endsWith('id') || field === 'id'
+            ? Number(value)
+            : typeof value === 'string' &&
+                (value === 'true' || value === 'false')
+              ? value === 'true'
+              : value,
       })),
     };
   }
@@ -140,6 +148,8 @@ const updateFlavor = async (
     data: {
       ...(payload.name && { name: payload.name }),
       ...(payload.color && { color: payload.color }),
+      ...(payload.description !== undefined && { description: payload.description }),
+      ...(payload.isActive !== undefined && { isActive: payload.isActive }),
       updatedBy: Number(checkUser.id),
       updatedAt: new Date(),
     },
