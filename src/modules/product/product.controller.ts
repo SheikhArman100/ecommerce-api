@@ -30,7 +30,8 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
       statusCode: status.OK,
       success: true,
       message: 'All products fetched successfully!',
-      data:result
+      data: result.data,
+      meta: result.meta,
     });
   });
 
@@ -53,7 +54,39 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
     });
   })
 
-  export const ProductController={
-    createProduct,getAllProducts,getSingleProduct,getSingleProductBySlug
+  const updateProduct = catchAsync(async (req: Request, res: Response) => {
+    const result = await ProductService.updateProduct(
+      req.params.productId,
+      req.body,
+      req.user as UserInfoFromToken,
+      req.files as any,
+    );
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Product updated successfully.',
+      data: result,
+    });
+  });
 
-  }
+  const deleteProduct = catchAsync(async (req: Request, res: Response) => {
+    const result = await ProductService.deleteProduct(
+      req.params.productId,
+      req.user as UserInfoFromToken,
+    );
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Product deleted successfully.',
+      data: result,
+    });
+  });
+
+  export const ProductController = {
+    createProduct,
+    getAllProducts,
+    getSingleProduct,
+    getSingleProductBySlug,
+    updateProduct,
+    deleteProduct,
+  };

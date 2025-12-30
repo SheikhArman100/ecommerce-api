@@ -45,6 +45,15 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
             // Set the value at the final part
             let value = req.body[key];
 
+            // Try to parse as JSON first (handles JSON strings like flavors array)
+            try {
+              if (typeof value === 'string' && (value.startsWith('[') || value.startsWith('{'))) {
+                value = JSON.parse(value);
+              }
+            } catch (e) {
+              // If JSON parsing fails, keep original value
+            }
+
             // Convert string "true"/"false" to boolean
             if (value === "true") {
               value = true;

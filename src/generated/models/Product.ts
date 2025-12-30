@@ -45,6 +45,7 @@ export type ProductMinAggregateOutputType = {
   title: string | null
   slug: string | null
   description: string | null
+  isActive: boolean | null
   createdBy: number | null
   updatedBy: number | null
   createdAt: Date | null
@@ -57,6 +58,7 @@ export type ProductMaxAggregateOutputType = {
   title: string | null
   slug: string | null
   description: string | null
+  isActive: boolean | null
   createdBy: number | null
   updatedBy: number | null
   createdAt: Date | null
@@ -69,6 +71,7 @@ export type ProductCountAggregateOutputType = {
   title: number
   slug: number
   description: number
+  isActive: number
   createdBy: number
   updatedBy: number
   createdAt: number
@@ -97,6 +100,7 @@ export type ProductMinAggregateInputType = {
   title?: true
   slug?: true
   description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -109,6 +113,7 @@ export type ProductMaxAggregateInputType = {
   title?: true
   slug?: true
   description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -121,6 +126,7 @@ export type ProductCountAggregateInputType = {
   title?: true
   slug?: true
   description?: true
+  isActive?: true
   createdBy?: true
   updatedBy?: true
   createdAt?: true
@@ -220,6 +226,7 @@ export type ProductGroupByOutputType = {
   title: string
   slug: string
   description: string
+  isActive: boolean
   createdBy: number
   updatedBy: number
   createdAt: Date
@@ -255,6 +262,7 @@ export type ProductWhereInput = {
   title?: Prisma.StringFilter<"Product"> | string
   slug?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringFilter<"Product"> | string
+  isActive?: Prisma.BoolFilter<"Product"> | boolean
   createdBy?: Prisma.IntFilter<"Product"> | number
   updatedBy?: Prisma.IntFilter<"Product"> | number
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -275,6 +283,7 @@ export type ProductOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -299,6 +308,7 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ProductWhereInput[]
   NOT?: Prisma.ProductWhereInput | Prisma.ProductWhereInput[]
   description?: Prisma.StringFilter<"Product"> | string
+  isActive?: Prisma.BoolFilter<"Product"> | boolean
   createdBy?: Prisma.IntFilter<"Product"> | number
   updatedBy?: Prisma.IntFilter<"Product"> | number
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -319,6 +329,7 @@ export type ProductOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -339,6 +350,7 @@ export type ProductScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Product"> | string
   slug?: Prisma.StringWithAggregatesFilter<"Product"> | string
   description?: Prisma.StringWithAggregatesFilter<"Product"> | string
+  isActive?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   createdBy?: Prisma.IntWithAggregatesFilter<"Product"> | number
   updatedBy?: Prisma.IntWithAggregatesFilter<"Product"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Product"> | Date | string
@@ -350,6 +362,7 @@ export type ProductCreateInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -367,6 +380,7 @@ export type ProductUncheckedCreateInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -383,6 +397,7 @@ export type ProductUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -400,6 +415,7 @@ export type ProductUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -417,6 +433,7 @@ export type ProductCreateManyInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -428,6 +445,7 @@ export type ProductUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -437,6 +455,7 @@ export type ProductUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -465,6 +484,7 @@ export type ProductCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -484,6 +504,7 @@ export type ProductMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -496,6 +517,7 @@ export type ProductMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  isActive?: Prisma.SortOrder
   createdBy?: Prisma.SortOrder
   updatedBy?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -715,6 +737,7 @@ export type ProductCreateWithoutCreatorInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -731,6 +754,7 @@ export type ProductUncheckedCreateWithoutCreatorInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   updatedBy: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -756,6 +780,7 @@ export type ProductCreateWithoutUpdaterInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -772,6 +797,7 @@ export type ProductUncheckedCreateWithoutUpdaterInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -817,6 +843,7 @@ export type ProductScalarWhereInput = {
   title?: Prisma.StringFilter<"Product"> | string
   slug?: Prisma.StringFilter<"Product"> | string
   description?: Prisma.StringFilter<"Product"> | string
+  isActive?: Prisma.BoolFilter<"Product"> | boolean
   createdBy?: Prisma.IntFilter<"Product"> | number
   updatedBy?: Prisma.IntFilter<"Product"> | number
   createdAt?: Prisma.DateTimeFilter<"Product"> | Date | string
@@ -844,6 +871,7 @@ export type ProductCreateWithoutCategoryInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   flavors?: Prisma.ProductFlavorCreateNestedManyWithoutProductInput
@@ -860,6 +888,7 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -901,6 +930,7 @@ export type ProductCreateWithoutFlavorsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -917,6 +947,7 @@ export type ProductUncheckedCreateWithoutFlavorsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -948,6 +979,7 @@ export type ProductUpdateWithoutFlavorsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -964,6 +996,7 @@ export type ProductUncheckedUpdateWithoutFlavorsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -979,6 +1012,7 @@ export type ProductCreateWithoutReviewsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -995,6 +1029,7 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -1026,6 +1061,7 @@ export type ProductUpdateWithoutReviewsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1042,6 +1078,7 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1057,6 +1094,7 @@ export type ProductCreateWithoutWishlistsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1073,6 +1111,7 @@ export type ProductUncheckedCreateWithoutWishlistsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -1104,6 +1143,7 @@ export type ProductUpdateWithoutWishlistsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1120,6 +1160,7 @@ export type ProductUncheckedUpdateWithoutWishlistsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1135,6 +1176,7 @@ export type ProductCreateWithoutCartItemsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1151,6 +1193,7 @@ export type ProductUncheckedCreateWithoutCartItemsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -1182,6 +1225,7 @@ export type ProductUpdateWithoutCartItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1198,6 +1242,7 @@ export type ProductUncheckedUpdateWithoutCartItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1213,6 +1258,7 @@ export type ProductCreateWithoutOrderItemsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   category?: Prisma.CategoryCreateNestedOneWithoutProductsInput
@@ -1229,6 +1275,7 @@ export type ProductUncheckedCreateWithoutOrderItemsInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -1260,6 +1307,7 @@ export type ProductUpdateWithoutOrderItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1276,6 +1324,7 @@ export type ProductUncheckedUpdateWithoutOrderItemsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1292,6 +1341,7 @@ export type ProductCreateManyCreatorInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   updatedBy: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1303,6 +1353,7 @@ export type ProductCreateManyUpdaterInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1313,6 +1364,7 @@ export type ProductUpdateWithoutCreatorInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1329,6 +1381,7 @@ export type ProductUncheckedUpdateWithoutCreatorInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1345,6 +1398,7 @@ export type ProductUncheckedUpdateManyWithoutCreatorInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1355,6 +1409,7 @@ export type ProductUpdateWithoutUpdaterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   category?: Prisma.CategoryUpdateOneWithoutProductsNestedInput
@@ -1371,6 +1426,7 @@ export type ProductUncheckedUpdateWithoutUpdaterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1387,6 +1443,7 @@ export type ProductUncheckedUpdateManyWithoutUpdaterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1398,6 +1455,7 @@ export type ProductCreateManyCategoryInput = {
   title: string
   slug: string
   description: string
+  isActive?: boolean
   createdBy: number
   updatedBy: number
   createdAt?: Date | string
@@ -1408,6 +1466,7 @@ export type ProductUpdateWithoutCategoryInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   flavors?: Prisma.ProductFlavorUpdateManyWithoutProductNestedInput
@@ -1424,6 +1483,7 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1440,6 +1500,7 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdBy?: Prisma.IntFieldUpdateOperationsInput | number
   updatedBy?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1518,6 +1579,7 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   title?: boolean
   slug?: boolean
   description?: boolean
+  isActive?: boolean
   createdBy?: boolean
   updatedBy?: boolean
   createdAt?: boolean
@@ -1541,6 +1603,7 @@ export type ProductSelectScalar = {
   title?: boolean
   slug?: boolean
   description?: boolean
+  isActive?: boolean
   createdBy?: boolean
   updatedBy?: boolean
   createdAt?: boolean
@@ -1548,7 +1611,7 @@ export type ProductSelectScalar = {
   categoryId?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "description" | "createdBy" | "updatedBy" | "createdAt" | "updatedAt" | "categoryId", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "description" | "isActive" | "createdBy" | "updatedBy" | "createdAt" | "updatedAt" | "categoryId", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
   flavors?: boolean | Prisma.Product$flavorsArgs<ExtArgs>
@@ -1578,6 +1641,7 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     title: string
     slug: string
     description: string
+    isActive: boolean
     createdBy: number
     updatedBy: number
     createdAt: Date
@@ -1964,6 +2028,7 @@ export interface ProductFieldRefs {
   readonly title: Prisma.FieldRef<"Product", 'String'>
   readonly slug: Prisma.FieldRef<"Product", 'String'>
   readonly description: Prisma.FieldRef<"Product", 'String'>
+  readonly isActive: Prisma.FieldRef<"Product", 'Boolean'>
   readonly createdBy: Prisma.FieldRef<"Product", 'Int'>
   readonly updatedBy: Prisma.FieldRef<"Product", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Product", 'DateTime'>

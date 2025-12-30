@@ -2,6 +2,7 @@
 export const productFilterableFields = [
   'searchTerm',
   'title',
+  'isActive',
   'createdBy',
   'categoryId',
   'categoryName',

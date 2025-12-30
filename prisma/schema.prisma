@@ -121,6 +121,7 @@ model Product {
   title       String   @unique
   slug        String   @unique
   description String   @db.Text
+  isActive    Boolean  @default(true)
   createdBy   Int
   updatedBy   Int
   createdAt   DateTime @default(now())
@@ -137,6 +138,8 @@ model Product {
   cartItems  CartItem[]
   orderItems OrderItem[]
 
+  // Indexes
+  @@index([isActive])
   @@map("products")
 }
 
@@ -243,21 +246,24 @@ model ProductFlavor {
 }
 
 model ProductFlavorSize {
-  productId Int
-  flavorId  Int
-  sizeId    Int
-  stock     Int
-  price     Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             Int  @id @default(autoincrement()) // Auto-increment primary key
+  productId      Int
+  flavorId       Int
+  sizeId         Int?                               // Optional for quantity products
+  stock          Int
+  price          Float
+  soldByQuantity Boolean @default(false)           // Flag for quantity-based products
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   productFlavor ProductFlavor @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Restrict)
-  size          Size          @relation(fields: [sizeId], references: [id], onDelete: Restrict)
+  size          Size?         @relation(fields: [sizeId], references: [id], onDelete: Restrict)
   cartItems     CartItem[]
   orderItems    OrderItem[]
 
-  @@id([productId, flavorId, sizeId])
+  // Unique constraint for size-based products (allows null sizeId for quantity)
+  @@unique([productId, flavorId, sizeId])
   @@index([productId, flavorId])
   @@map("product_flavor_sizes")
 }

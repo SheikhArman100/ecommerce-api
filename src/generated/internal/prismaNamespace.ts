@@ -1561,6 +1561,7 @@ export const ProductScalarFieldEnum = {
   title: 'title',
   slug: 'slug',
   description: 'description',
+  isActive: 'isActive',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',
@@ -1645,11 +1646,13 @@ export type ProductFlavorScalarFieldEnum = (typeof ProductFlavorScalarFieldEnum)
 
 
 export const ProductFlavorSizeScalarFieldEnum = {
+  id: 'id',
   productId: 'productId',
   flavorId: 'flavorId',
   sizeId: 'sizeId',
   stock: 'stock',
   price: 'price',
+  soldByQuantity: 'soldByQuantity',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
