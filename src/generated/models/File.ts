@@ -32,6 +32,7 @@ export type FileAvgAggregateOutputType = {
   flavorId: number | null
   userDetailId: number | null
   categoryId: number | null
+  reviewId: number | null
 }
 
 export type FileSumAggregateOutputType = {
@@ -40,6 +41,7 @@ export type FileSumAggregateOutputType = {
   flavorId: number | null
   userDetailId: number | null
   categoryId: number | null
+  reviewId: number | null
 }
 
 export type FileMinAggregateOutputType = {
@@ -55,6 +57,7 @@ export type FileMinAggregateOutputType = {
   flavorId: number | null
   userDetailId: number | null
   categoryId: number | null
+  reviewId: number | null
 }
 
 export type FileMaxAggregateOutputType = {
@@ -70,6 +73,7 @@ export type FileMaxAggregateOutputType = {
   flavorId: number | null
   userDetailId: number | null
   categoryId: number | null
+  reviewId: number | null
 }
 
 export type FileCountAggregateOutputType = {
@@ -85,6 +89,7 @@ export type FileCountAggregateOutputType = {
   flavorId: number
   userDetailId: number
   categoryId: number
+  reviewId: number
   _all: number
 }
 
@@ -95,6 +100,7 @@ export type FileAvgAggregateInputType = {
   flavorId?: true
   userDetailId?: true
   categoryId?: true
+  reviewId?: true
 }
 
 export type FileSumAggregateInputType = {
@@ -103,6 +109,7 @@ export type FileSumAggregateInputType = {
   flavorId?: true
   userDetailId?: true
   categoryId?: true
+  reviewId?: true
 }
 
 export type FileMinAggregateInputType = {
@@ -118,6 +125,7 @@ export type FileMinAggregateInputType = {
   flavorId?: true
   userDetailId?: true
   categoryId?: true
+  reviewId?: true
 }
 
 export type FileMaxAggregateInputType = {
@@ -133,6 +141,7 @@ export type FileMaxAggregateInputType = {
   flavorId?: true
   userDetailId?: true
   categoryId?: true
+  reviewId?: true
 }
 
 export type FileCountAggregateInputType = {
@@ -148,6 +157,7 @@ export type FileCountAggregateInputType = {
   flavorId?: true
   userDetailId?: true
   categoryId?: true
+  reviewId?: true
   _all?: true
 }
 
@@ -250,6 +260,7 @@ export type FileGroupByOutputType = {
   flavorId: number | null
   userDetailId: number | null
   categoryId: number | null
+  reviewId: number | null
   _count: FileCountAggregateOutputType | null
   _avg: FileAvgAggregateOutputType | null
   _sum: FileSumAggregateOutputType | null
@@ -288,9 +299,11 @@ export type FileWhereInput = {
   flavorId?: Prisma.IntNullableFilter<"File"> | number | null
   userDetailId?: Prisma.IntNullableFilter<"File"> | number | null
   categoryId?: Prisma.IntNullableFilter<"File"> | number | null
+  reviewId?: Prisma.IntNullableFilter<"File"> | number | null
   productFlavor?: Prisma.XOR<Prisma.ProductFlavorNullableScalarRelationFilter, Prisma.ProductFlavorWhereInput> | null
   userDetail?: Prisma.XOR<Prisma.UserDetailNullableScalarRelationFilter, Prisma.UserDetailWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
+  review?: Prisma.XOR<Prisma.ReviewNullableScalarRelationFilter, Prisma.ReviewWhereInput> | null
 }
 
 export type FileOrderByWithRelationInput = {
@@ -306,9 +319,11 @@ export type FileOrderByWithRelationInput = {
   flavorId?: Prisma.SortOrderInput | Prisma.SortOrder
   userDetailId?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  reviewId?: Prisma.SortOrderInput | Prisma.SortOrder
   productFlavor?: Prisma.ProductFlavorOrderByWithRelationInput
   userDetail?: Prisma.UserDetailOrderByWithRelationInput
   category?: Prisma.CategoryOrderByWithRelationInput
+  review?: Prisma.ReviewOrderByWithRelationInput
   _relevance?: Prisma.FileOrderByRelevanceInput
 }
 
@@ -329,9 +344,11 @@ export type FileWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"File"> | Date | string
   productId?: Prisma.IntNullableFilter<"File"> | number | null
   flavorId?: Prisma.IntNullableFilter<"File"> | number | null
+  reviewId?: Prisma.IntNullableFilter<"File"> | number | null
   productFlavor?: Prisma.XOR<Prisma.ProductFlavorNullableScalarRelationFilter, Prisma.ProductFlavorWhereInput> | null
   userDetail?: Prisma.XOR<Prisma.UserDetailNullableScalarRelationFilter, Prisma.UserDetailWhereInput> | null
   category?: Prisma.XOR<Prisma.CategoryNullableScalarRelationFilter, Prisma.CategoryWhereInput> | null
+  review?: Prisma.XOR<Prisma.ReviewNullableScalarRelationFilter, Prisma.ReviewWhereInput> | null
 }, "id" | "userDetailId" | "categoryId" | "id_productId_flavorId">
 
 export type FileOrderByWithAggregationInput = {
@@ -347,6 +364,7 @@ export type FileOrderByWithAggregationInput = {
   flavorId?: Prisma.SortOrderInput | Prisma.SortOrder
   userDetailId?: Prisma.SortOrderInput | Prisma.SortOrder
   categoryId?: Prisma.SortOrderInput | Prisma.SortOrder
+  reviewId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.FileCountOrderByAggregateInput
   _avg?: Prisma.FileAvgOrderByAggregateInput
   _max?: Prisma.FileMaxOrderByAggregateInput
@@ -370,6 +388,7 @@ export type FileScalarWhereWithAggregatesInput = {
   flavorId?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
   userDetailId?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
   categoryId?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
+  reviewId?: Prisma.IntNullableWithAggregatesFilter<"File"> | number | null
 }
 
 export type FileCreateInput = {
@@ -383,6 +402,7 @@ export type FileCreateInput = {
   productFlavor?: Prisma.ProductFlavorCreateNestedOneWithoutImagesInput
   userDetail?: Prisma.UserDetailCreateNestedOneWithoutImageInput
   category?: Prisma.CategoryCreateNestedOneWithoutImageInput
+  review?: Prisma.ReviewCreateNestedOneWithoutImagesInput
 }
 
 export type FileUncheckedCreateInput = {
@@ -398,6 +418,7 @@ export type FileUncheckedCreateInput = {
   flavorId?: number | null
   userDetailId?: number | null
   categoryId?: number | null
+  reviewId?: number | null
 }
 
 export type FileUpdateInput = {
@@ -411,6 +432,7 @@ export type FileUpdateInput = {
   productFlavor?: Prisma.ProductFlavorUpdateOneWithoutImagesNestedInput
   userDetail?: Prisma.UserDetailUpdateOneWithoutImageNestedInput
   category?: Prisma.CategoryUpdateOneWithoutImageNestedInput
+  review?: Prisma.ReviewUpdateOneWithoutImagesNestedInput
 }
 
 export type FileUncheckedUpdateInput = {
@@ -426,6 +448,7 @@ export type FileUncheckedUpdateInput = {
   flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FileCreateManyInput = {
@@ -441,6 +464,7 @@ export type FileCreateManyInput = {
   flavorId?: number | null
   userDetailId?: number | null
   categoryId?: number | null
+  reviewId?: number | null
 }
 
 export type FileUpdateManyMutationInput = {
@@ -466,6 +490,7 @@ export type FileUncheckedUpdateManyInput = {
   flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FileNullableScalarRelationFilter = {
@@ -498,6 +523,7 @@ export type FileCountOrderByAggregateInput = {
   flavorId?: Prisma.SortOrder
   userDetailId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  reviewId?: Prisma.SortOrder
 }
 
 export type FileAvgOrderByAggregateInput = {
@@ -506,6 +532,7 @@ export type FileAvgOrderByAggregateInput = {
   flavorId?: Prisma.SortOrder
   userDetailId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  reviewId?: Prisma.SortOrder
 }
 
 export type FileMaxOrderByAggregateInput = {
@@ -521,6 +548,7 @@ export type FileMaxOrderByAggregateInput = {
   flavorId?: Prisma.SortOrder
   userDetailId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  reviewId?: Prisma.SortOrder
 }
 
 export type FileMinOrderByAggregateInput = {
@@ -536,6 +564,7 @@ export type FileMinOrderByAggregateInput = {
   flavorId?: Prisma.SortOrder
   userDetailId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  reviewId?: Prisma.SortOrder
 }
 
 export type FileSumOrderByAggregateInput = {
@@ -544,6 +573,7 @@ export type FileSumOrderByAggregateInput = {
   flavorId?: Prisma.SortOrder
   userDetailId?: Prisma.SortOrder
   categoryId?: Prisma.SortOrder
+  reviewId?: Prisma.SortOrder
 }
 
 export type FileListRelationFilter = {
@@ -670,6 +700,48 @@ export type FileUncheckedUpdateManyWithoutProductFlavorNestedInput = {
   deleteMany?: Prisma.FileScalarWhereInput | Prisma.FileScalarWhereInput[]
 }
 
+export type FileCreateNestedManyWithoutReviewInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput> | Prisma.FileCreateWithoutReviewInput[] | Prisma.FileUncheckedCreateWithoutReviewInput[]
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutReviewInput | Prisma.FileCreateOrConnectWithoutReviewInput[]
+  createMany?: Prisma.FileCreateManyReviewInputEnvelope
+  connect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+}
+
+export type FileUncheckedCreateNestedManyWithoutReviewInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput> | Prisma.FileCreateWithoutReviewInput[] | Prisma.FileUncheckedCreateWithoutReviewInput[]
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutReviewInput | Prisma.FileCreateOrConnectWithoutReviewInput[]
+  createMany?: Prisma.FileCreateManyReviewInputEnvelope
+  connect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+}
+
+export type FileUpdateManyWithoutReviewNestedInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput> | Prisma.FileCreateWithoutReviewInput[] | Prisma.FileUncheckedCreateWithoutReviewInput[]
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutReviewInput | Prisma.FileCreateOrConnectWithoutReviewInput[]
+  upsert?: Prisma.FileUpsertWithWhereUniqueWithoutReviewInput | Prisma.FileUpsertWithWhereUniqueWithoutReviewInput[]
+  createMany?: Prisma.FileCreateManyReviewInputEnvelope
+  set?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  disconnect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  delete?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  connect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  update?: Prisma.FileUpdateWithWhereUniqueWithoutReviewInput | Prisma.FileUpdateWithWhereUniqueWithoutReviewInput[]
+  updateMany?: Prisma.FileUpdateManyWithWhereWithoutReviewInput | Prisma.FileUpdateManyWithWhereWithoutReviewInput[]
+  deleteMany?: Prisma.FileScalarWhereInput | Prisma.FileScalarWhereInput[]
+}
+
+export type FileUncheckedUpdateManyWithoutReviewNestedInput = {
+  create?: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput> | Prisma.FileCreateWithoutReviewInput[] | Prisma.FileUncheckedCreateWithoutReviewInput[]
+  connectOrCreate?: Prisma.FileCreateOrConnectWithoutReviewInput | Prisma.FileCreateOrConnectWithoutReviewInput[]
+  upsert?: Prisma.FileUpsertWithWhereUniqueWithoutReviewInput | Prisma.FileUpsertWithWhereUniqueWithoutReviewInput[]
+  createMany?: Prisma.FileCreateManyReviewInputEnvelope
+  set?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  disconnect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  delete?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  connect?: Prisma.FileWhereUniqueInput | Prisma.FileWhereUniqueInput[]
+  update?: Prisma.FileUpdateWithWhereUniqueWithoutReviewInput | Prisma.FileUpdateWithWhereUniqueWithoutReviewInput[]
+  updateMany?: Prisma.FileUpdateManyWithWhereWithoutReviewInput | Prisma.FileUpdateManyWithWhereWithoutReviewInput[]
+  deleteMany?: Prisma.FileScalarWhereInput | Prisma.FileScalarWhereInput[]
+}
+
 export type FileCreateWithoutUserDetailInput = {
   type?: $Enums.FileType
   diskType: $Enums.DiskType
@@ -680,6 +752,7 @@ export type FileCreateWithoutUserDetailInput = {
   updatedAt?: Date | string
   productFlavor?: Prisma.ProductFlavorCreateNestedOneWithoutImagesInput
   category?: Prisma.CategoryCreateNestedOneWithoutImageInput
+  review?: Prisma.ReviewCreateNestedOneWithoutImagesInput
 }
 
 export type FileUncheckedCreateWithoutUserDetailInput = {
@@ -694,6 +767,7 @@ export type FileUncheckedCreateWithoutUserDetailInput = {
   productId?: number | null
   flavorId?: number | null
   categoryId?: number | null
+  reviewId?: number | null
 }
 
 export type FileCreateOrConnectWithoutUserDetailInput = {
@@ -722,6 +796,7 @@ export type FileUpdateWithoutUserDetailInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   productFlavor?: Prisma.ProductFlavorUpdateOneWithoutImagesNestedInput
   category?: Prisma.CategoryUpdateOneWithoutImageNestedInput
+  review?: Prisma.ReviewUpdateOneWithoutImagesNestedInput
 }
 
 export type FileUncheckedUpdateWithoutUserDetailInput = {
@@ -736,6 +811,7 @@ export type FileUncheckedUpdateWithoutUserDetailInput = {
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FileCreateWithoutCategoryInput = {
@@ -748,6 +824,7 @@ export type FileCreateWithoutCategoryInput = {
   updatedAt?: Date | string
   productFlavor?: Prisma.ProductFlavorCreateNestedOneWithoutImagesInput
   userDetail?: Prisma.UserDetailCreateNestedOneWithoutImageInput
+  review?: Prisma.ReviewCreateNestedOneWithoutImagesInput
 }
 
 export type FileUncheckedCreateWithoutCategoryInput = {
@@ -762,6 +839,7 @@ export type FileUncheckedCreateWithoutCategoryInput = {
   productId?: number | null
   flavorId?: number | null
   userDetailId?: number | null
+  reviewId?: number | null
 }
 
 export type FileCreateOrConnectWithoutCategoryInput = {
@@ -790,6 +868,7 @@ export type FileUpdateWithoutCategoryInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   productFlavor?: Prisma.ProductFlavorUpdateOneWithoutImagesNestedInput
   userDetail?: Prisma.UserDetailUpdateOneWithoutImageNestedInput
+  review?: Prisma.ReviewUpdateOneWithoutImagesNestedInput
 }
 
 export type FileUncheckedUpdateWithoutCategoryInput = {
@@ -804,6 +883,7 @@ export type FileUncheckedUpdateWithoutCategoryInput = {
   productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FileCreateWithoutProductFlavorInput = {
@@ -816,6 +896,7 @@ export type FileCreateWithoutProductFlavorInput = {
   updatedAt?: Date | string
   userDetail?: Prisma.UserDetailCreateNestedOneWithoutImageInput
   category?: Prisma.CategoryCreateNestedOneWithoutImageInput
+  review?: Prisma.ReviewCreateNestedOneWithoutImagesInput
 }
 
 export type FileUncheckedCreateWithoutProductFlavorInput = {
@@ -829,6 +910,7 @@ export type FileUncheckedCreateWithoutProductFlavorInput = {
   updatedAt?: Date | string
   userDetailId?: number | null
   categoryId?: number | null
+  reviewId?: number | null
 }
 
 export type FileCreateOrConnectWithoutProductFlavorInput = {
@@ -873,6 +955,61 @@ export type FileScalarWhereInput = {
   flavorId?: Prisma.IntNullableFilter<"File"> | number | null
   userDetailId?: Prisma.IntNullableFilter<"File"> | number | null
   categoryId?: Prisma.IntNullableFilter<"File"> | number | null
+  reviewId?: Prisma.IntNullableFilter<"File"> | number | null
+}
+
+export type FileCreateWithoutReviewInput = {
+  type?: $Enums.FileType
+  diskType: $Enums.DiskType
+  path: string
+  originalName: string
+  modifiedName: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  productFlavor?: Prisma.ProductFlavorCreateNestedOneWithoutImagesInput
+  userDetail?: Prisma.UserDetailCreateNestedOneWithoutImageInput
+  category?: Prisma.CategoryCreateNestedOneWithoutImageInput
+}
+
+export type FileUncheckedCreateWithoutReviewInput = {
+  id?: number
+  type?: $Enums.FileType
+  diskType: $Enums.DiskType
+  path: string
+  originalName: string
+  modifiedName: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  productId?: number | null
+  flavorId?: number | null
+  userDetailId?: number | null
+  categoryId?: number | null
+}
+
+export type FileCreateOrConnectWithoutReviewInput = {
+  where: Prisma.FileWhereUniqueInput
+  create: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput>
+}
+
+export type FileCreateManyReviewInputEnvelope = {
+  data: Prisma.FileCreateManyReviewInput | Prisma.FileCreateManyReviewInput[]
+  skipDuplicates?: boolean
+}
+
+export type FileUpsertWithWhereUniqueWithoutReviewInput = {
+  where: Prisma.FileWhereUniqueInput
+  update: Prisma.XOR<Prisma.FileUpdateWithoutReviewInput, Prisma.FileUncheckedUpdateWithoutReviewInput>
+  create: Prisma.XOR<Prisma.FileCreateWithoutReviewInput, Prisma.FileUncheckedCreateWithoutReviewInput>
+}
+
+export type FileUpdateWithWhereUniqueWithoutReviewInput = {
+  where: Prisma.FileWhereUniqueInput
+  data: Prisma.XOR<Prisma.FileUpdateWithoutReviewInput, Prisma.FileUncheckedUpdateWithoutReviewInput>
+}
+
+export type FileUpdateManyWithWhereWithoutReviewInput = {
+  where: Prisma.FileScalarWhereInput
+  data: Prisma.XOR<Prisma.FileUpdateManyMutationInput, Prisma.FileUncheckedUpdateManyWithoutReviewInput>
 }
 
 export type FileCreateManyProductFlavorInput = {
@@ -886,6 +1023,7 @@ export type FileCreateManyProductFlavorInput = {
   updatedAt?: Date | string
   userDetailId?: number | null
   categoryId?: number | null
+  reviewId?: number | null
 }
 
 export type FileUpdateWithoutProductFlavorInput = {
@@ -898,6 +1036,7 @@ export type FileUpdateWithoutProductFlavorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userDetail?: Prisma.UserDetailUpdateOneWithoutImageNestedInput
   category?: Prisma.CategoryUpdateOneWithoutImageNestedInput
+  review?: Prisma.ReviewUpdateOneWithoutImagesNestedInput
 }
 
 export type FileUncheckedUpdateWithoutProductFlavorInput = {
@@ -911,6 +1050,7 @@ export type FileUncheckedUpdateWithoutProductFlavorInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type FileUncheckedUpdateManyWithoutProductFlavorInput = {
@@ -922,6 +1062,65 @@ export type FileUncheckedUpdateManyWithoutProductFlavorInput = {
   modifiedName?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  reviewId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type FileCreateManyReviewInput = {
+  id?: number
+  type?: $Enums.FileType
+  diskType: $Enums.DiskType
+  path: string
+  originalName: string
+  modifiedName: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  productId?: number | null
+  flavorId?: number | null
+  userDetailId?: number | null
+  categoryId?: number | null
+}
+
+export type FileUpdateWithoutReviewInput = {
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
+  diskType?: Prisma.EnumDiskTypeFieldUpdateOperationsInput | $Enums.DiskType
+  path?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  modifiedName?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  productFlavor?: Prisma.ProductFlavorUpdateOneWithoutImagesNestedInput
+  userDetail?: Prisma.UserDetailUpdateOneWithoutImageNestedInput
+  category?: Prisma.CategoryUpdateOneWithoutImageNestedInput
+}
+
+export type FileUncheckedUpdateWithoutReviewInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
+  diskType?: Prisma.EnumDiskTypeFieldUpdateOperationsInput | $Enums.DiskType
+  path?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  modifiedName?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+}
+
+export type FileUncheckedUpdateManyWithoutReviewInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumFileTypeFieldUpdateOperationsInput | $Enums.FileType
+  diskType?: Prisma.EnumDiskTypeFieldUpdateOperationsInput | $Enums.DiskType
+  path?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  modifiedName?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  productId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  flavorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   userDetailId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   categoryId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
@@ -941,9 +1140,11 @@ export type FileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   flavorId?: boolean
   userDetailId?: boolean
   categoryId?: boolean
+  reviewId?: boolean
   productFlavor?: boolean | Prisma.File$productFlavorArgs<ExtArgs>
   userDetail?: boolean | Prisma.File$userDetailArgs<ExtArgs>
   category?: boolean | Prisma.File$categoryArgs<ExtArgs>
+  review?: boolean | Prisma.File$reviewArgs<ExtArgs>
 }, ExtArgs["result"]["file"]>
 
 
@@ -961,13 +1162,15 @@ export type FileSelectScalar = {
   flavorId?: boolean
   userDetailId?: boolean
   categoryId?: boolean
+  reviewId?: boolean
 }
 
-export type FileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "diskType" | "path" | "originalName" | "modifiedName" | "createdAt" | "updatedAt" | "productId" | "flavorId" | "userDetailId" | "categoryId", ExtArgs["result"]["file"]>
+export type FileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "diskType" | "path" | "originalName" | "modifiedName" | "createdAt" | "updatedAt" | "productId" | "flavorId" | "userDetailId" | "categoryId" | "reviewId", ExtArgs["result"]["file"]>
 export type FileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   productFlavor?: boolean | Prisma.File$productFlavorArgs<ExtArgs>
   userDetail?: boolean | Prisma.File$userDetailArgs<ExtArgs>
   category?: boolean | Prisma.File$categoryArgs<ExtArgs>
+  review?: boolean | Prisma.File$reviewArgs<ExtArgs>
 }
 
 export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -976,6 +1179,7 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     productFlavor: Prisma.$ProductFlavorPayload<ExtArgs> | null
     userDetail: Prisma.$UserDetailPayload<ExtArgs> | null
     category: Prisma.$CategoryPayload<ExtArgs> | null
+    review: Prisma.$ReviewPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -990,6 +1194,7 @@ export type $FilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     flavorId: number | null
     userDetailId: number | null
     categoryId: number | null
+    reviewId: number | null
   }, ExtArgs["result"]["file"]>
   composites: {}
 }
@@ -1333,6 +1538,7 @@ export interface Prisma__FileClient<T, Null = never, ExtArgs extends runtime.Typ
   productFlavor<T extends Prisma.File$productFlavorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$productFlavorArgs<ExtArgs>>): Prisma.Prisma__ProductFlavorClient<runtime.Types.Result.GetResult<Prisma.$ProductFlavorPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   userDetail<T extends Prisma.File$userDetailArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$userDetailArgs<ExtArgs>>): Prisma.Prisma__UserDetailClient<runtime.Types.Result.GetResult<Prisma.$UserDetailPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   category<T extends Prisma.File$categoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$categoryArgs<ExtArgs>>): Prisma.Prisma__CategoryClient<runtime.Types.Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  review<T extends Prisma.File$reviewArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.File$reviewArgs<ExtArgs>>): Prisma.Prisma__ReviewClient<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1374,6 +1580,7 @@ export interface FileFieldRefs {
   readonly flavorId: Prisma.FieldRef<"File", 'Int'>
   readonly userDetailId: Prisma.FieldRef<"File", 'Int'>
   readonly categoryId: Prisma.FieldRef<"File", 'Int'>
+  readonly reviewId: Prisma.FieldRef<"File", 'Int'>
 }
     
 
@@ -1771,6 +1978,25 @@ export type File$categoryArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.CategoryInclude<ExtArgs> | null
   where?: Prisma.CategoryWhereInput
+}
+
+/**
+ * File.review
+ */
+export type File$reviewArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Review
+   */
+  select?: Prisma.ReviewSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Review
+   */
+  omit?: Prisma.ReviewOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReviewInclude<ExtArgs> | null
+  where?: Prisma.ReviewWhereInput
 }
 
 /**

@@ -23,6 +23,7 @@ enum OrderStatus {
   Shipped
   Delivered
 }
+
 enum FileType {
   IMAGE
   VIDEO
@@ -100,7 +101,7 @@ model RefreshToken {
   userId    Int
   createdAt DateTime @default(now())
   expiresAt DateTime
-  ipAddress String @default("0.0.0.0")
+  ipAddress String   @default("0.0.0.0")
 
   // One-to-One Relations
   // (none)
@@ -144,23 +145,23 @@ model Product {
 }
 
 model Category {
-  id           Int       @id @default(autoincrement())
-  name         String    @unique
-  slug         String?   @unique  // SEO-friendly URL
-  description  String?            // Category description
-  image        File?            // Category icon/image URL
-  isActive     Boolean   @default(true)   // Enable/disable categories
-  displayOrder Int       @default(0)     // Sort order in navigation
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  slug         String? @unique // SEO-friendly URL
+  description  String? // Category description
+  image        File? // Category icon/image URL
+  isActive     Boolean @default(true) // Enable/disable categories
+  displayOrder Int     @default(0) // Sort order in navigation
 
-  createdBy    Int
-  updatedBy    Int?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  createdBy Int
+  updatedBy Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 
   // Relations
-  creator      User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater      User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
-  products     Product[]
+  creator  User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater  User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  products Product[]
 
   // Indexes for performance
   @@index([isActive])
@@ -179,9 +180,9 @@ model Flavor {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime?       @updatedAt
   //relations
-  creator   User            @relation("FlavorCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater   User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
-  products  ProductFlavor[]
+  creator     User            @relation("FlavorCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  updater     User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  products    ProductFlavor[]
 
   @@index([isActive])
   @@map("flavors")
@@ -220,12 +221,15 @@ model File {
   flavorId     Int?
   userDetailId Int? @unique
   categoryId   Int? @unique
+  reviewId     Int?
 
   productFlavor ProductFlavor? @relation(fields: [productId, flavorId], references: [productId, flavorId], onDelete: Cascade)
   userDetail    UserDetail?    @relation(fields: [userDetailId], references: [id], onDelete: Cascade)
   category      Category?      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  review        Review?        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
 
   @@unique([id, productId, flavorId])
+  @@index([reviewId])
   @@map("files")
 }
 
@@ -246,13 +250,13 @@ model ProductFlavor {
 }
 
 model ProductFlavorSize {
-  id             Int  @id @default(autoincrement()) // Auto-increment primary key
+  id             Int      @id @default(autoincrement()) // Auto-increment primary key
   productId      Int
   flavorId       Int
-  sizeId         Int?                               // Optional for quantity products
+  sizeId         Int? // Optional for quantity products
   stock          Int
   price          Float
-  soldByQuantity Boolean @default(false)           // Flag for quantity-based products
+  soldByQuantity Boolean  @default(false) // Flag for quantity-based products
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -272,15 +276,22 @@ model Review {
   id        Int      @id @default(autoincrement())
   rating    Int      @default(5)
   comment   String
+  isHide    Boolean  @default(false) // Admin can hide inappropriate reviews
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    Int
   productId Int
+  orderId   Int // Links review to specific successful order
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  images  File[] // Review images
 
-  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+  @@index([orderId])
+  @@index([isHide])
   @@map("reviews")
 }
 
@@ -336,8 +347,9 @@ model Order {
   userId      Int
 
   //relations
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items OrderItem[]
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items   OrderItem[]
+  reviews Review[] // Reviews for this order
 
   @@map("orders")
 }

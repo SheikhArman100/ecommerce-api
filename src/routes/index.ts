@@ -7,6 +7,7 @@ import { sizeRoute } from '../modules/size/size.route';
 import { productRoute } from '../modules/product/product.route';
 import { WishlistRoute } from '../modules/wishlist/wishlist.route';
 import { cartRoute } from '../modules/cart/cart.route';
+import { reviewRoute } from '../modules/review/review.route';
 
 const router = express.Router();
 
@@ -43,10 +44,15 @@ const moduleRoutes: Route[] = [
   {
     path:'/wishlist',
     route:WishlistRoute
-  },{
+  },
+  {
     path:'/cart',
     route:cartRoute
-  }
+  },
+  {
+    path: '/review',
+    route: reviewRoute,
+  },
 ];
 
 moduleRoutes.forEach(route => router.use(route.path, route.route));

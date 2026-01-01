@@ -200,7 +200,8 @@ export const FileScalarFieldEnum = {
   productId: 'productId',
   flavorId: 'flavorId',
   userDetailId: 'userDetailId',
-  categoryId: 'categoryId'
+  categoryId: 'categoryId',
+  reviewId: 'reviewId'
 } as const
 
 export type FileScalarFieldEnum = (typeof FileScalarFieldEnum)[keyof typeof FileScalarFieldEnum]
@@ -235,10 +236,12 @@ export const ReviewScalarFieldEnum = {
   id: 'id',
   rating: 'rating',
   comment: 'comment',
+  isHide: 'isHide',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId',
-  productId: 'productId'
+  productId: 'productId',
+  orderId: 'orderId'
 } as const
 
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
