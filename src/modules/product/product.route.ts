@@ -29,7 +29,7 @@ router.patch(
   auth(ENUM_USER_ROLE.ADMIN),
   FileUploadHelper.uploadAny('product'),
   transformFormData,
-  validateRequest(ProductValidation.updateProductSchema),
+  validateRequest(ProductValidation.updateProductSchemaNew),
   ProductController.updateProduct
 );
 

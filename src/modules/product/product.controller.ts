@@ -7,6 +7,7 @@ import { ProductService } from "./product.service";
 import pick from "../../helpers/pick";
 import { paginationFields } from "../../constant";
 import { productFilterableFields } from "./product.constant";
+import { IUpdateProductInterface } from "./product.interface";
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
     const result=await ProductService.createProduct(

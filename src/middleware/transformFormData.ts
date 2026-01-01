@@ -54,24 +54,28 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
               // If JSON parsing fails, keep original value
             }
 
-            // Convert string "true"/"false" to boolean
-            if (value === "true") {
-              value = true;
-            } else if (value === "false") {
-              value = false;
-            } else if (value !== "" && !isNaN(Number(value)) && !isNaN(parseFloat(value)) &&
-                       !value.includes('+') && !value.includes('-') && !value.includes(' ') &&
-                       value.length <= 2) {
-              // Convert numeric strings to numbers (extremely conservative)
-              // Only convert very short numeric strings (1-2 digits) for things like displayOrder, quantity
-              const numValue = Number(value);
-              // Check if it's an integer or float
-              if (Number.isInteger(numValue)) {
-                value = numValue;
-              } else {
-                value = parseFloat(value);
+            // Only process string values for conversion
+            if (typeof value === 'string') {
+              // Convert string "true"/"false" to boolean
+              if (value === "true") {
+                value = true;
+              } else if (value === "false") {
+                value = false;
+              } else if (value !== "" && !isNaN(Number(value)) && !isNaN(parseFloat(value)) &&
+                         !value.includes('+') && !value.includes('-') && !value.includes(' ') &&
+                         value.length <= 2) {
+                // Convert numeric strings to numbers (extremely conservative)
+                // Only convert very short numeric strings (1-2 digits) for things like displayOrder, quantity
+                const numValue = Number(value);
+                // Check if it's an integer or float
+                if (Number.isInteger(numValue)) {
+                  value = numValue;
+                } else {
+                  value = parseFloat(value);
+                }
               }
             }
+            // If value is not a string (e.g., object from multer), leave it as-is
 
             current[part] = value;
           }
@@ -79,9 +83,83 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
       }
     }
 
-    // Replace req.body with the nested structure
-    req.body = result;
-    console.log("req body after transform",req.body);
+    // Convert objects with numeric keys to arrays for simple arrays
+    const convertNumericKeysToArray = (obj: any): any => {
+      if (typeof obj === 'object' && obj !== null) {
+        // Check if object has only numeric keys
+        const keys = Object.keys(obj);
+        const isNumericArray = keys.length > 0 && keys.every(key => !isNaN(Number(key)));
+
+        if (isNumericArray) {
+          // Convert to array
+          const arr: any[] = [];
+          keys.sort((a, b) => Number(a) - Number(b)).forEach(key => {
+            arr[Number(key)] = convertNumericKeysToArray(obj[key]);
+          });
+          return arr;
+        } else {
+          // For non-array objects, recursively process but don't convert single values
+          const result: any = {};
+          for (const key in obj) {
+            const value = obj[key];
+            // If it's already an array, keep it as array
+            if (Array.isArray(value)) {
+              result[key] = value;
+            } else {
+              result[key] = convertNumericKeysToArray(value);
+            }
+          }
+          return result;
+        }
+      }
+      return obj;
+    };
+
+    // Apply array conversion
+    req.body = convertNumericKeysToArray(result);
+    console.log("req body after convertNumericKeysToArray", JSON.stringify(req.body, null, 2));
+
+    // Special handling for removeFlavors - ensure it's always an array
+    if (req.body.removeFlavors !== undefined) {
+      if (!Array.isArray(req.body.removeFlavors)) {
+        req.body.removeFlavors = [req.body.removeFlavors];
+      }
+    }
+
+    // Special handling for nested image remove arrays
+    const ensureNestedArrays = (obj: any): any => {
+      if (typeof obj === 'object' && obj !== null) {
+        if (Array.isArray(obj)) {
+          return obj.map(ensureNestedArrays);
+        }
+
+        const result: any = {};
+        for (const key in obj) {
+          if (key === 'remove' && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+            // Convert remove objects to arrays
+            const removeObj = obj[key];
+            if (typeof removeObj === 'object' && removeObj !== null) {
+              const keys = Object.keys(removeObj);
+              const isNumeric = keys.length > 0 && keys.every(k => !isNaN(Number(k)));
+              if (isNumeric) {
+                result[key] = keys.sort((a, b) => Number(a) - Number(b)).map(k => removeObj[k]);
+              } else {
+                result[key] = removeObj;
+              }
+            } else {
+              result[key] = removeObj;
+            }
+          } else {
+            result[key] = ensureNestedArrays(obj[key]);
+          }
+        }
+        return result;
+      }
+      return obj;
+    };
+
+    req.body = ensureNestedArrays(req.body);
+    console.log("req body after nested array fix", JSON.stringify(req.body, null, 2));
     next();
   } catch (error) {
     next(error);
