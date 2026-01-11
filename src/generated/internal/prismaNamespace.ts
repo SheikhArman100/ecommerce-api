@@ -1665,7 +1665,9 @@ export const ReviewScalarFieldEnum = {
   id: 'id',
   rating: 'rating',
   comment: 'comment',
-  isHide: 'isHide',
+  isHidden: 'isHidden',
+  adminNote: 'adminNote',
+  ipAddress: 'ipAddress',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   userId: 'userId',
@@ -1827,7 +1829,9 @@ export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnu
 
 
 export const ReviewOrderByRelevanceFieldEnum = {
-  comment: 'comment'
+  comment: 'comment',
+  adminNote: 'adminNote',
+  ipAddress: 'ipAddress'
 } as const
 
 export type ReviewOrderByRelevanceFieldEnum = (typeof ReviewOrderByRelevanceFieldEnum)[keyof typeof ReviewOrderByRelevanceFieldEnum]

@@ -276,22 +276,25 @@ model Review {
   id        Int      @id @default(autoincrement())
   rating    Int      @default(5)
   comment   String
-  isHide    Boolean  @default(false) // Admin can hide inappropriate reviews
+  isHidden  Boolean  @default(false) // Admin can hide inappropriate reviews
+  adminNote String?  // Internal note for hide reason
+  ipAddress String   // Client IP at creation
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId    Int
   productId Int
-  orderId   Int // Links review to specific successful order
+  orderId   Int
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   images  File[] // Review images
 
+  @@unique([productId, orderId])
   @@index([userId])
   @@index([productId])
   @@index([orderId])
-  @@index([isHide])
+  @@index([isHidden])
   @@map("reviews")
 }
 

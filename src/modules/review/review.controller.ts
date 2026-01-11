@@ -9,7 +9,8 @@ import { reviewFilterableFields } from './review.constant';
 import { paginationFields } from '../../constant';
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.createReview(req.user as UserInfoFromToken, req.body, req.files as Express.Multer.File[]);
+  const clientIP = req.ip || req.connection.remoteAddress || '0.0.0.0';
+  const result = await ReviewService.createReview(req.user as UserInfoFromToken, req.body, req.files as Express.Multer.File[], clientIP);
 
   sendResponse(res, {
     statusCode: status.CREATED,
@@ -56,8 +57,8 @@ const updateReview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const deleteReviewByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.deleteReviewByID(req.params.id, req.user as UserInfoFromToken);
+const deleteReview = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.deleteReview(req.params.id, req.user as UserInfoFromToken);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -72,5 +73,5 @@ export const ReviewController = {
   getAllReviews,
   getReviewByID,
   updateReview,
-  deleteReviewByID,
+  deleteReview,
 };

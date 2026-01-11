@@ -4,6 +4,7 @@ import ApiError from '../../errors/ApiError';
 import fs from 'fs';
 import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
+import status from 'http-status';
 
 /**
  * Validates that a flavor exists in the database
@@ -107,6 +108,7 @@ export const createFlavorImages = async (
   flavorId: number,
   images: IFile[]
 ) => {
+  console.log('Creating flavor images:', images);
   if (!images || images.length === 0) return [];
 
   return Promise.all(
@@ -333,4 +335,141 @@ export const handleImageOperationsForUpdate = async (
   if (imageOperations.add && imageOperations.add.length > 0) {
     await createFlavorImages(tx, productId, flavorId, imageOperations.add);
   }
+};
+
+export const handleFlavorRemovals = async (
+  tx: Prisma.TransactionClient,
+  productId: number,
+  flavorIds: string[],
+) => {
+  await Promise.all(
+    flavorIds.map(async (flavorId) => {
+      // Get images for cleanup before deletion
+      const flavorImages = await tx.file.findMany({
+        where: {
+          productId,
+          flavorId: Number(flavorId),
+        },
+      });
+
+      // Delete in reverse order to maintain foreign key constraints
+      await tx.productFlavorSize.deleteMany({
+        where: {
+          productId,
+          flavorId: Number(flavorId),
+        },
+      });
+
+      await tx.file.deleteMany({
+        where: {
+          productId,
+          flavorId: Number(flavorId),
+        },
+      });
+
+      await tx.productFlavor.deleteMany({
+        where: {
+          productId,
+          flavorId: Number(flavorId),
+        },
+      });
+
+      // Clean up image files from filesystem
+      deleteImageFiles(flavorImages);
+    })
+  );
+};
+
+export const handleFlavorAdditions = async (
+  tx: Prisma.TransactionClient,
+  productId: number,
+  flavorsToAdd: any[],
+  multerImages?: IFile[],
+) => {
+  await Promise.all(
+    flavorsToAdd.map(async (flavor, index) => {
+      // Validate flavor exists
+      await validateFlavorExists(tx, Number(flavor.flavorId));
+
+      // Create ProductFlavor
+      const createdFlavor = await tx.productFlavor.create({
+        data: {
+          productId,
+          flavorId: Number(flavor.flavorId),
+        },
+      });
+
+      // Create sizes and images using utility functions
+      await createFlavorSizes(tx, productId, createdFlavor.flavorId, flavor.sizes, flavor.soldByQuantity, flavor.stock, flavor.price);
+
+      // Handle image uploads
+      if (flavor.images && Array.isArray(multerImages)) {
+        const flavorImages = filterImagesByFieldname(multerImages, `flavors[add][${index}][images]`);
+        await createFlavorImages(tx, productId, createdFlavor.flavorId, flavorImages);
+      }
+    })
+  );
+};
+
+export const handleFlavorUpdates = async (
+  tx: Prisma.TransactionClient,
+  productId: number,
+  flavorsToUpdate: any[],
+  multerImages?: IFile[],
+) => {
+  await Promise.all(
+    flavorsToUpdate.map(async (flavor, index) => {
+      // Find existing ProductFlavor by productId and flavorId
+      const existingProductFlavor = await tx.productFlavor.findFirst({
+        where: {
+          productId: Number(productId),
+          flavorId: Number(flavor.flavorId),
+        },
+        include: { images: true, sizes: true },
+      });
+
+      if (!existingProductFlavor) {
+        throw new ApiError(status.NOT_FOUND, `Product flavor not found`);
+      }
+
+      // Update basic flavor info
+      const updateData: any = {};
+      if (flavor.soldByQuantity !== undefined) updateData.soldByQuantity = flavor.soldByQuantity;
+
+      if (Object.keys(updateData).length > 0) {
+        await tx.productFlavor.update({
+          where: {
+            productId_flavorId: {
+              productId: Number(productId),
+              flavorId: existingProductFlavor.flavorId,
+            },
+          },
+          data: updateData,
+        });
+      }
+
+      // Handle size operations
+      if (flavor.sizes) {
+        await handleSizeOperationsForUpdate(tx, productId, existingProductFlavor.flavorId, flavor.sizes);
+      }
+
+      // Handle quantity-based updates
+      if (flavor.soldByQuantity && (flavor.stock !== undefined || flavor.price !== undefined)) {
+        await handleQuantityBasedFlavorUpdate(tx, productId, existingProductFlavor.flavorId, flavor.stock, flavor.price);
+      }
+
+      // Handle image operations
+      if (flavor.images) {
+        // Filter images for this specific flavor update
+        const filteredImages = multerImages?.filter((img) =>
+          img.fieldname === `flavors[update][${index}][images][add]`
+        ) || [];
+
+        await handleImageOperationsForUpdate(tx, productId, existingProductFlavor.flavorId, {
+          add: filteredImages,
+          remove: flavor.images.remove || [],
+        });
+      }
+    })
+  );
 };

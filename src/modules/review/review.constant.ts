@@ -2,7 +2,7 @@
 export const reviewFilterableFields = [
     'searchTerm',
     'rating',
-    'isHide',
+    'isHidden',
     'userId',
     'productId',
     'orderId'

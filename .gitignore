@@ -13,6 +13,9 @@ uploads/product/images/*
 uploads/category/images/*   
 !uploads/category/images/.gitkeep       
 
+uploads/review/images/*
+!uploads/review/images/.gitkeep
+
 logs/*
 !logs/.gitkeep
 

@@ -38,13 +38,17 @@ const updateReviewSchema = z.object({
         .min(10, { message: 'Comment must be at least 10 characters long' })
         .max(500, { message: 'Comment must be at most 500 characters long' })
         .optional(),
-      isHide: z
+      isHidden: z
         .boolean()
+        .optional(), // Only admin can update this
+      adminNote: z
+        .string()
+        .max(500, { message: 'Admin note must be at most 500 characters long' })
         .optional(), // Only admin can update this
     })
     .strict()
     .refine(
-      (data) => data.rating !== undefined || data.comment !== undefined || data.isHide !== undefined,
+      (data) => data.rating !== undefined || data.comment !== undefined || data.isHidden !== undefined || data.adminNote !== undefined,
       { message: 'At least one field is required for update' }
     ),
 });

@@ -2,7 +2,9 @@ export type IReview = {
     id: number;
     rating: number;
     comment: string;
-    isHide: boolean;
+    isHidden: boolean;
+    adminNote?: string;
+    ipAddress: string;
     createdAt: Date;
     updatedAt: Date;
     userId: number;
@@ -13,7 +15,7 @@ export type IReview = {
 export type IReviewFilters = {
     searchTerm?: string;
     rating?: string;
-    isHide?: string;
+    isHidden?: string;
     userId?: string;
     productId?: string;
     orderId?: string;
@@ -29,5 +31,6 @@ export type ICreateReviewPayload = {
 export type IUpdateReviewPayload = {
     rating?: number;
     comment?: string;
-    isHide?: boolean; // Only for admin
+    isHidden?: boolean; // Only for admin
+    adminNote?: string; // Only for admin
 }

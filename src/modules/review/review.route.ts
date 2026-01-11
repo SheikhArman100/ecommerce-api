@@ -28,6 +28,6 @@ router
     validateRequest(ReviewValidation.updateReviewSchema),
     ReviewController.updateReview
   )
-  .delete('/:id', auth(ENUM_USER_ROLE.ADMIN), ReviewController.deleteReviewByID);
+  .delete('/:id', auth(ENUM_USER_ROLE.ADMIN), ReviewController.deleteReview);
 
 export const reviewRoute = router;

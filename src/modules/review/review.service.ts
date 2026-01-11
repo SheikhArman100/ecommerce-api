@@ -6,13 +6,14 @@ import { IReview, IReviewFilters, ICreateReviewPayload, IUpdateReviewPayload } f
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { reviewSearchableFields } from './review.constant';
-import { Prisma } from '../../generated/client';
+import { Prisma, FileType, DiskType } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 const createReview = async (
   userInfo: UserInfoFromToken,
   payload: ICreateReviewPayload,
   multerFiles?: Express.Multer.File[],
+  clientIP?: string,
 ) => {
   const user = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
@@ -70,10 +71,25 @@ const createReview = async (
       userId: user.id,
       productId: payload.productId,
       orderId: payload.orderId,
+      ipAddress: clientIP || '0.0.0.0',
     },
     include: {
-      user: true,
-      product: true,
+      user: {
+        include: {
+          detail: true, // Include user details for profile image
+        },
+      },
+      product: {
+        include: {
+          category: true, // Include product category
+          flavors: {
+            include: {
+              flavor: true,
+              sizes: true,
+            },
+          },
+        },
+      },
       order: true,
       images: true,
     }
@@ -81,8 +97,20 @@ const createReview = async (
 
   // Handle file uploads if provided
   if (multerFiles && multerFiles.length > 0) {
-    // This would be handled by file upload middleware
-    // Files would be linked to review via reviewId
+    const filePromises = multerFiles.map(async (file) => {
+      return await prisma.file.create({
+        data: {
+          type: FileType.IMAGE,
+          diskType: DiskType.LOCAL, // or AWS based on config
+          path: `review/images/${file.filename}`,
+          originalName: file.originalname,
+          modifiedName: file.filename,
+          reviewId: review.id,
+        },
+      });
+    });
+
+    await Promise.all(filePromises);
   }
 
   return review;
@@ -95,14 +123,11 @@ const getAllReviews = async (
   const { searchTerm, ...filtersData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
-  let whereConditions: Prisma.ReviewWhereInput = {
-    isHide: false, // Don't show hidden reviews by default
-  };
+  let whereConditions: Prisma.ReviewWhereInput = {};
 
   // Add search term condition if provided
   if (searchTerm) {
     whereConditions = {
-      ...whereConditions,
       OR: reviewSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
@@ -112,19 +137,17 @@ const getAllReviews = async (
   }
 
   // Add other filter conditions
-  if (Object.keys(filtersData).length) {
+   if (Object.keys(filtersData).length) {
     whereConditions = {
       ...whereConditions,
       AND: Object.entries(filtersData).map(([field, value]) => ({
         [field]:
-          field.toLowerCase().endsWith('id') || field === 'id'
+          field.toLowerCase().endsWith('id') || field === 'id' || field === 'rating'
             ? Number(value)
-            : field === 'isHide'
-              ? value === 'true'
-              : typeof value === 'string' &&
+            : typeof value === 'string' &&
                 (value === 'true' || value === 'false')
-                ? value === 'true'
-                : value,
+              ? value === 'true'
+              : value,
       })),
     };
   }
@@ -133,14 +156,53 @@ const getAllReviews = async (
 
   const result = await prisma.review.findMany({
     where: whereConditions,
-    orderBy: { createdAt: 'desc' },
+    orderBy: orderBy,
     skip,
     take: limit,
-    include: {
-      user: true,
-      product: true,
-      order: true,
-      images: true,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      isHidden: true,
+      adminNote: true,
+      ipAddress: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
+      productId: true,
+      orderId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          },
+          
+        }
+      },
+      
     },
   });
 
@@ -159,11 +221,67 @@ const getReviewByID = async (id: string) => {
     where: {
       id: Number(id),
     },
-    include: {
-      user: true,
-      product: true,
-      order: true,
-      images: true,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      isHidden: true,
+      adminNote: true,
+      ipAddress: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
+      productId: true,
+      orderId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          }
+          // Removed flavors and sizes - not needed for review detail view
+        }
+      },
+      order: {
+        select: {
+          id: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+        }
+      },
+      images: {
+        select: {
+          id: true,
+          type: true,
+          path: true,
+          originalName: true,
+          modifiedName: true,
+          createdAt: true,
+        }
+      }
     },
   });
 
@@ -196,49 +314,148 @@ const updateReview = async (
   // Check permissions
   const isOwner = review.userId === user.id;
   const isAdmin = user.role === ENUM_USER_ROLE.ADMIN;
-  const isUpdatingHideStatus = payload.isHide !== undefined;
+  const isUpdatingHidden = payload.isHidden !== undefined;
+  const isUpdatingAdminNote = payload.adminNote !== undefined;
 
-  // Only admin can hide/unhide reviews
-  if (isUpdatingHideStatus && !isAdmin) {
-    throw new ApiError(status.UNAUTHORIZED, 'Only admins can hide/unhide reviews');
+  // Only admin can hide/unhide reviews and set admin notes
+  if ((isUpdatingHidden || isUpdatingAdminNote) && !isAdmin) {
+    throw new ApiError(status.UNAUTHORIZED, 'Only admins can hide/unhide reviews and set admin notes');
   }
 
   // Only owner can update rating/comment, admin can update anything
-  if (!isOwner && !isAdmin && !isUpdatingHideStatus) {
+  if (!isOwner && !isAdmin) {
     throw new ApiError(status.UNAUTHORIZED, 'You can only update your own reviews');
+  }
+
+  // Prepare update data
+  const updateData: any = {
+    updatedAt: new Date(),
+  };
+
+  // Add fields based on permissions
+  if (payload.rating !== undefined) {
+    updateData.rating = payload.rating;
+  }
+  if (payload.comment !== undefined) {
+    updateData.comment = payload.comment;
+  }
+
+  // Admin-only fields
+  if (isAdmin) {
+    if (payload.isHidden !== undefined) {
+      updateData.isHidden = payload.isHidden;
+    }
+    if (payload.adminNote !== undefined) {
+      updateData.adminNote = payload.adminNote;
+    }
   }
 
   const updatedReview = await prisma.review.update({
     where: {
       id: Number(id),
     },
-    data: {
-      ...(payload.rating !== undefined && { rating: payload.rating }),
-      ...(payload.comment !== undefined && { comment: payload.comment }),
-      ...(payload.isHide !== undefined && { isHide: payload.isHide }),
-      updatedAt: new Date(),
-    },
-    include: {
-      user: true,
-      product: true,
-      order: true,
-      images: true,
+    data: updateData,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      isHidden: true,
+      adminNote: true,
+      ipAddress: true,
+      createdAt: true,
+      updatedAt: true,
+      userId: true,
+      productId: true,
+      orderId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          },
+          flavors: {
+            select: {
+              productId: true,
+              flavorId: true,
+              flavor: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                }
+              },
+              sizes: {
+                select: {
+                  productId: true,
+                  flavorId: true,
+                  sizeId: true,
+                  stock: true,
+                  price: true,
+                  size: {
+                    select: {
+                      id: true,
+                      name: true,
+                      description: true,
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      order: {
+        select: {
+          id: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+        }
+      },
+      images: {
+        select: {
+          id: true,
+          type: true,
+          path: true,
+          originalName: true,
+          modifiedName: true,
+          createdAt: true,
+        }
+      }
     },
   });
 
   return updatedReview;
 };
 
-const deleteReviewByID = async (id: string, userInfo: UserInfoFromToken) => {
+const deleteReview = async (id: string, userInfo: UserInfoFromToken) => {
   const user = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
   });
   if (!user) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
-  }
-
-  if (user.role !== ENUM_USER_ROLE.ADMIN) {
-    throw new ApiError(status.UNAUTHORIZED, 'Only admins can delete reviews');
   }
 
   const review = await prisma.review.findUnique({
@@ -248,10 +465,13 @@ const deleteReviewByID = async (id: string, userInfo: UserInfoFromToken) => {
     throw new ApiError(status.NOT_FOUND, 'Review not found');
   }
 
+  // Check permissions - only admin can delete reviews
+  if (user.role !== ENUM_USER_ROLE.ADMIN) {
+    throw new ApiError(status.UNAUTHORIZED, 'Only admins can delete reviews');
+  }
+
   const deletedReview = await prisma.review.delete({
-    where: {
-      id: Number(id),
-    },
+    where: { id: Number(id) },
   });
 
   return deletedReview;
@@ -262,5 +482,6 @@ export const ReviewService = {
   getAllReviews,
   getReviewByID,
   updateReview,
-  deleteReviewByID,
+  deleteReview,
 };
+
