@@ -9,10 +9,10 @@ import { ENUM_USER_ROLE } from '../../enum/user';
 
 const router = express.Router();
 
-router.post('/',auth(),validateRequest(WishlistValidation.createWishlistSchema), WishlistController.createWishlist)
-router.get('/', WishlistController.getAllWishlists)
-router.get('/:id', WishlistController.getWishlistByID)
-router.delete('/:id',auth(), WishlistController.deleteWishlistByID)
-router.patch('/:id', WishlistController.updateWishlist);
+router.post('/', auth(), validateRequest(WishlistValidation.createWishlistSchema), WishlistController.createWishlist);
+router.get('/', auth(), WishlistController.getAllWishlists);
+router.get('/:id', auth(), WishlistController.getWishlistByID);
+router.patch('/:id', auth(), validateRequest(WishlistValidation.updateWishlistSchema), WishlistController.updateWishlist);
+router.delete('/:id', auth(), WishlistController.deleteWishlistByID);
 
 export const WishlistRoute = router;

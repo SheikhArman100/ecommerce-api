@@ -48,11 +48,17 @@ export async function seedUsers() {
   ];
 
   for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: user
+    const existingUser = await prisma.user.findUnique({
+      where: { email: user.email }
     });
+
+    if (!existingUser) {
+      await prisma.user.create({
+        data: user
+      });
+    } else {
+      console.log(`User ${user.email} already exists, skipping...`);
+    }
   }
 
   console.log('Users seeded successfully');

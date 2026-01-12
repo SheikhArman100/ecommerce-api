@@ -8,4 +8,14 @@ export const createWishlistSchema = z.object({
   }),
 });
 
-export const WishlistValidation = {createWishlistSchema};
+export const updateWishlistSchema = z.object({
+  body: z.object({
+    // For wishlist, we might allow updating notes or priority in the future
+    // Currently, update just refreshes the timestamp
+  }).optional(),
+});
+
+export const WishlistValidation = {
+  createWishlistSchema,
+  updateWishlistSchema
+};

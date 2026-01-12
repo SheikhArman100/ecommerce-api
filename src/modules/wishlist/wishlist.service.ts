@@ -79,60 +79,100 @@ const createWishlist = async (
 const getAllWishlists = async (
   filters: IWishlistFilters,
   paginationOptions: IPaginationOptions,
+  userInfo: UserInfoFromToken,
 ) => {
-  const { searchTerm, userId, productId } = filters;
+  // Check user role
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+    select: { role: true }
+  });
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
+  const { searchTerm, ...filtersData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
   let whereConditions: Prisma.WishListWhereInput = {};
 
+  // Role-based filtering: non-admin users can only see their own wishlists
+  if (user.role !== 'admin') {
+    whereConditions.userId = Number(userInfo.id);
+  }
+
   // Add search term condition if provided
   if (searchTerm) {
     whereConditions = {
-      OR: wishlistSearchableFields.map(field => ({
-        [field]: {
+      ...whereConditions,
+      product: {
+        title: {
           contains: searchTerm,
-          // mode: 'insensitive',
         },
+      },
+    };
+  }
+
+  // Add other filter conditions
+  if (Object.keys(filtersData).length) {
+    whereConditions = {
+      ...whereConditions,
+      AND: Object.entries(filtersData).map(([field, value]) => ({
+        [field]:
+          field.toLowerCase().endsWith('id') || field === 'id'
+            ? Number(value)
+            : typeof value === 'string' &&
+                (value === 'true' || value === 'false')
+              ? value === 'true'
+              : value,
       })),
     };
   }
 
-  //all the filters
-  // Build specific filter conditions
-  const andConditions: Prisma.WishListWhereInput[] = [];
-  if (userId) {
-    andConditions.push({ userId: Number(userId) });
-  }
-
-  if (productId) {
-    andConditions.push({ productId: Number(productId) });
-  }
-  // Combine AND conditions with existing whereConditions
-  if (andConditions.length > 0) {
-    whereConditions.AND = andConditions;
-  }
-
-  // Get total count of matching products
+  // Get total count
   const count = await prisma.wishList.count({ where: whereConditions });
 
-  // Fetch products with pagination and relations
+  // Fetch wishlists with pagination and relations
   const result = await prisma.wishList.findMany({
     where: whereConditions,
-    orderBy,
+    orderBy: orderBy,
     skip,
     take: limit,
     select: {
       id: true,
+      userId: true,
+      productId: true,
+      createdAt: true,
+      updatedAt: true,
       user: {
         select: {
+          id: true,
           name: true,
           email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
         },
       },
       product: {
         select: {
+          id: true,
           title: true,
-        },
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          },
+        }
       },
     },
   });
@@ -147,13 +187,99 @@ const getAllWishlists = async (
   };
 };
 
-const getWishlistByID = async (id: string) => {
+const getWishlistByID = async (id: string, userInfo: UserInfoFromToken) => {
+  // First check if user exists and get their role
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+    select: { role: true }
+  });
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
   const findWishlist = await prisma.wishList.findUnique({
     where: {
       id: Number(id),
     },
     select: {
       id: true,
+      userId: true,
+      productId: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          },
+        }
+      },
+    },
+  });
+
+  if (!findWishlist) {
+    throw new ApiError(status.NOT_FOUND, 'Wishlist not found');
+  }
+
+  // Check if user can access this wishlist item
+  if (findWishlist.userId !== Number(userInfo.id) && user.role !== 'admin') {
+    throw new ApiError(status.FORBIDDEN, 'You can only access your own wishlist items');
+  }
+
+  return findWishlist;
+};
+
+const updateWishlist = async (id: string, payload: Partial<IWishlist>, userInfo: UserInfoFromToken) => {
+  // Check if wishlist exists and belongs to user
+  const wishlist = await prisma.wishList.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!wishlist) {
+    throw new ApiError(status.NOT_FOUND, 'Wishlist item not found');
+  }
+
+  if (wishlist.userId !== Number(userInfo.id)) {
+    throw new ApiError(status.FORBIDDEN, 'You can only update your own wishlist items');
+  }
+
+  // For wishlist, typically you might only update timestamps or add notes
+  // Since the model is simple, we'll just update the updatedAt timestamp
+  const updatedWishlist = await prisma.wishList.update({
+    where: { id: Number(id) },
+    data: {
+      updatedAt: new Date(),
+    },
+    select: {
+      id: true,
+      userId: true,
+      productId: true,
+      createdAt: true,
+      updatedAt: true,
       user: {
         select: {
           name: true,
@@ -167,46 +293,52 @@ const getWishlistByID = async (id: string) => {
       },
     },
   });
-  if (!findWishlist) {
-    throw new ApiError(status.NOT_FOUND, 'Wishlist not found');
-  }
-  return findWishlist;
-};
 
-const updateWishlist = async () => {
-  return 'updateWishlist service';
+  return updatedWishlist;
 };
 
 const deleteWishlistByID = async (id:string,userInfo:UserInfoFromToken) => {
-  //check wishList
-  const checkWishlist = await prisma.wishList.findUnique({
-    where: {
-      id: Number(id),
-    },
+  // First check if user exists and get their role
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+    select: { role: true }
   });
-  if(!checkWishlist){
-    throw new ApiError(status.NOT_FOUND,"Wishlist not found")
+
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, "User not found");
   }
 
-  //check User
-  const checkUser=await prisma.user.findUnique({
-    where:{
-      id:Number(userInfo.id)
+  // Check if wishlist exists and get its data
+  const wishlist = await prisma.wishList.findUnique({
+    where: { id: Number(id) },
+    select: {
+      id: true,
+      userId: true,
+      product: { select: { title: true } }
     }
-  })
-  if(!checkUser){
-    throw new ApiError(status.NOT_FOUND,"User not found")
+  });
+
+  if (!wishlist) {
+    throw new ApiError(status.NOT_FOUND, "Wishlist item not found");
   }
-  const deletedWishlist=await prisma.wishList.delete({
-    where:{
-      id:checkWishlist.id,
-      userId:checkUser.id
-    },
-  })
-  if(!deletedWishlist){
-    throw new ApiError(status.FORBIDDEN,"Access denied!!!")
+
+  // Check ownership - user can only delete their own items, admin can delete any
+  if (wishlist.userId !== Number(userInfo.id) && user.role !== 'admin') {
+    throw new ApiError(status.FORBIDDEN, "You can only delete your own wishlist items");
   }
-  return deletedWishlist
+
+  // Now safely delete the wishlist item
+  const deletedWishlist = await prisma.wishList.delete({
+    where: { id: Number(id) },
+    select: {
+      id: true,
+      userId: true,
+      productId: true,
+      product: { select: { title: true } }
+    }
+  });
+
+  return deletedWishlist;
 };
 
 export const WishlistService = {

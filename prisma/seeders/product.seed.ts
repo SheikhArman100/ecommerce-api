@@ -14,13 +14,12 @@ export async function seedProducts() {
     throw new Error('Admin user not found! Please run user seeds first.');
   }
 
-  // First, clear existing data (optional, remove if you want to preserve existing data)
-  await prisma.productFlavorSize.deleteMany({});
-  await prisma.productFlavor.deleteMany({});
-  await prisma.product.deleteMany({});
-  await prisma.size.deleteMany({});
-  await prisma.flavor.deleteMany({});
-  await prisma.category.deleteMany({});
+  // Check if products already exist
+  const existingProductsCount = await prisma.product.count();
+  if (existingProductsCount > 0) {
+    console.log(`Products already exist (${existingProductsCount} found), skipping product seeding...`);
+    return;
+  }
 
   // Create or update sizes with upsert
   const sizeData = ['0.5', '1', '1.5', '2'];

@@ -28,18 +28,23 @@ const getAllWishlists = catchAsync(async (req: Request, res: Response) => {
   const result = await WishlistService.getAllWishlists(
     filters,
     paginationOptions,
+    req.user as UserInfoFromToken,
   );
 
   sendResponse(res, {
     success: true,
     statusCode: status.OK,
     message: 'Wishlists are retrieved successfully',
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
 const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await WishlistService.getWishlistByID(req.params.id);
+  const result = await WishlistService.getWishlistByID(
+    req.params.id,
+    req.user as UserInfoFromToken
+  );
 
   sendResponse(res, {
     success: true,
@@ -50,7 +55,11 @@ const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateWishlist = catchAsync(async (req: Request, res: Response) => {
-  const result = await WishlistService.updateWishlist;
+  const result = await WishlistService.updateWishlist(
+    req.params.id,
+    req.body,
+    req.user as UserInfoFromToken
+  );
 
   sendResponse(res, {
     success: true,

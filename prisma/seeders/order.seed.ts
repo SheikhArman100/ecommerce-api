@@ -22,8 +22,12 @@ export async function seedOrders() {
     throw new Error('Users and products must be seeded first!');
   }
 
-  // First, clear existing orders (cascade will delete order items)
-  await prisma.order.deleteMany({});
+  // Check if orders already exist
+  const existingOrdersCount = await prisma.order.count();
+  if (existingOrdersCount > 0) {
+    console.log(`Orders already exist (${existingOrdersCount} found), skipping order seeding...`);
+    return;
+  }
 
   const orders = [];
   const orderStatuses = [OrderStatus.Pending, OrderStatus.Shipped, OrderStatus.Delivered];

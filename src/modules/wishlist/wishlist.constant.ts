@@ -5,4 +5,6 @@ export const wishlistFilterableFields: string[] = [
     'createdAt',
   ];
 
-  export const wishlistSearchableFields = [];
+  export const wishlistSearchableFields = [
+    'product.title',
+  ];

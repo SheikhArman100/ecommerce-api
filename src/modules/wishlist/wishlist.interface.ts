@@ -13,7 +13,7 @@ export type IWishlist={
 
 export type IWishlistFilters = {
   searchTerm?: string;
-  userId?:number,
+  userId?:string,
   productId?:string,
   createdAt?:string
  

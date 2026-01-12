@@ -1,6 +1,7 @@
 
 import { seedUsers } from './user.seed';
 import { seedProducts } from './product.seed';
+import { seedWishlists } from './wishlist.seed';
 import { seedOrders } from './order.seed';
 import { seedReviews } from './review.seed';
 import {prisma} from "../../src/client"
@@ -12,6 +13,8 @@ async function main() {
     await seedUsers();
     // Then seed products
     await seedProducts();
+    // Then seed wishlists (needs users and products)
+    await seedWishlists();
     // Then seed orders (needs users and products)
     await seedOrders();
     // Finally seed reviews (needs users, products, and orders)
@@ -32,4 +35,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

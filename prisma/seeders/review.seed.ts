@@ -20,8 +20,12 @@ export async function seedReviews() {
     throw new Error('No delivered orders found! Please run order seeds first.');
   }
 
-  // First, clear existing reviews
-  await prisma.review.deleteMany({});
+  // Check if reviews already exist
+  const existingReviewsCount = await prisma.review.count();
+  if (existingReviewsCount > 0) {
+    console.log(`Reviews already exist (${existingReviewsCount} found), skipping review seeding...`);
+    return;
+  }
 
   // Create reviews for the orders
   const reviewComments = [
