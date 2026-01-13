@@ -108,8 +108,9 @@ export const createFlavorImages = async (
   flavorId: number,
   images: IFile[]
 ) => {
-  console.log('Creating flavor images:', images);
-  if (!images || images.length === 0) return [];
+  if (!images || images.length === 0) {
+    return [];
+  }
 
   return Promise.all(
     images.map((img) =>
@@ -458,16 +459,54 @@ export const handleFlavorUpdates = async (
         await handleQuantityBasedFlavorUpdate(tx, productId, existingProductFlavor.flavorId, flavor.stock, flavor.price);
       }
 
-      // Handle image operations
+      // Handle image operations - FIXED: Process images even without explicit flavor.images
+      let filteredImages: IFile[] = [];
+      let shouldProcessImages = false;
+
+      // Check if we have explicit image operations OR if there are images to process
       if (flavor.images) {
-        // Filter images for this specific flavor update
-        const filteredImages = multerImages?.filter((img) =>
-          img.fieldname === `flavors[update][${index}][images][add]`
-        ) || [];
+        shouldProcessImages = true;
+      } else if (multerImages && multerImages.length > 0) {
+        // Check if there are any images for this flavor index
+        const flavorImages = multerImages.filter((img) =>
+          img.fieldname === `flavors[update][${index}][images][add]` ||
+          (img.fieldname.startsWith('flavors[update][') &&
+           img.fieldname.includes('][images][add]')
+          )
+        );
+        if (flavorImages.length > 0) {
+          shouldProcessImages = true;
+        }
+      }
+
+      if (shouldProcessImages) {
+        if (multerImages && multerImages.length > 0) {
+          // Method 1: Try exact index match (original logic)
+          const exactPattern = `flavors[update][${index}][images][add]`;
+          filteredImages = multerImages.filter((img) => img.fieldname === exactPattern);
+
+          // Method 2: If no exact match, try broader matching for update images
+          if (filteredImages.length === 0) {
+            filteredImages = multerImages.filter((img) =>
+              img.fieldname.startsWith('flavors[update][') &&
+              img.fieldname.includes('][images][add]') &&
+              img.fieldname !== 'flavors[update][images][add]' // Exclude non-indexed
+            );
+          }
+
+          // Method 3: If still no match, take any remaining update images
+          if (filteredImages.length === 0) {
+            filteredImages = multerImages.filter((img) =>
+              img.fieldname.includes('flavors') &&
+              img.fieldname.includes('update') &&
+              img.fieldname.includes('images')
+            );
+          }
+        }
 
         await handleImageOperationsForUpdate(tx, productId, existingProductFlavor.flavorId, {
           add: filteredImages,
-          remove: flavor.images.remove || [],
+          remove: flavor.images?.remove || [],
         });
       }
     })
