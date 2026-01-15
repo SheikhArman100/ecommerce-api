@@ -6,5 +6,6 @@ export const cartFilterableFields: string[] = [
   
   // Define searchable fields for Cart 
   export const cartSearchableFields: string[] = [
-    'product.title',
+    'user.name',
+    'user.email',
   ]

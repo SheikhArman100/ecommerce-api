@@ -15,6 +15,8 @@ const createCartSchema = z.object({
       .number()
       .int()
       .positive('Quantity must be a positive integer')
+      .optional()
+      .default(1)
   }).strict(),
 });
 const updateCartItemSchema = z.object({

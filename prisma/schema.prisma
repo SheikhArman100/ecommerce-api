@@ -337,7 +337,6 @@ model CartItem {
   product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
 
-  @@unique([cartId, productId, flavorId, sizeId])
   @@map("cart_items")
 }
 

@@ -7,6 +7,9 @@ import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma } from '../../generated/client';
 import { cartSearchableFields } from './cart.constant';
+import { calculateCartTotals } from './cart.utils';
+
+
 
 const createCart = async (
   payload: Partial<ICartItem>,
@@ -81,7 +84,7 @@ const createCart = async (
     if (checkSize.stock < mergedQuantity) {
       throw new ApiError(
         status.INSUFFICIENT_STORAGE,
-        `Insufficient stock for product "${checKProduct.title}" (ID: ${payload.productId}), flavor "${checkFlavor.flavor.name}" (ID: ${payload.flavorId}), size "${checkSize.size.name}" (ID: ${payload.sizeId}). Available: ${checkSize.stock}, Requested: ${mergedQuantity}`,
+        `Cannot add item: insufficient stock for "${checKProduct.title}". Available: ${checkSize.stock}, Total requested: ${mergedQuantity} (you already have ${existingCartItem.quantity} in cart)`,
       );
     }
 
@@ -114,7 +117,7 @@ const createCart = async (
     if ((payload.quantity ?? 1) > checkSize.stock) {
       throw new ApiError(
         status.INSUFFICIENT_STORAGE,
-        `Insufficient stock for product "${checKProduct.title}" (ID: ${payload.productId}), flavor "${checkFlavor.flavor.name}" (ID: ${payload.flavorId}), size "${checkSize.size.name}" (ID: ${payload.sizeId}). Available: ${checkSize.stock}, Requested: ${payload.quantity}`,
+        `Insufficient stock for product "${checKProduct.title}" (ID: ${payload.productId}), flavor "${checkFlavor.flavor.name}" (ID: ${payload.flavorId}), size "${checkSize.size?.name || 'N/A'}" (ID: ${payload.sizeId}). Available: ${checkSize.stock}, Requested: ${payload.quantity}`,
       );
     }
 
@@ -178,46 +181,62 @@ const getAllCarts = async (
   filters: ICartFilters,
   paginationOptions: IPaginationOptions,
 ) => {
-  const { searchTerm, userId, productId } = filters;
+  const { searchTerm, ...filtersData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
   let whereConditions: Prisma.CartWhereInput = {};
 
   // Add search term condition if provided
   if (searchTerm) {
-    // Since cartSearchableFields is ['product.title'], use a single condition
-    whereConditions.OR = [
-      {
-        items: {
-          some: {
-            product: {
-              title: {
-                contains: searchTerm.trim().slice(0, 100), // Sanitize input
-                // mode: 'insensitive',
-              },
-            },
-          },
+    whereConditions = {
+      OR: [
+        {
+          user: {
+            name: {
+              contains: searchTerm
+            }
+          }
         },
-      },
-    ];
+        {
+          user: {
+            email: {
+              contains: searchTerm
+            }
+          }
+        }
+      ]
+    };
   }
+
+  // Handle special filters
   const andConditions: Prisma.CartWhereInput[] = [];
 
-  if (userId) {
-    const parsedUserId = parseInt(userId, 10);
+  if (filtersData.userId) {
+    const parsedUserId = parseInt(filtersData.userId as string, 10);
     if (!isNaN(parsedUserId)) {
       andConditions.push({ userId: parsedUserId });
     }
   }
-  if (productId) {
-    const parsedProductId = parseInt(productId, 10);
+
+  if (filtersData.productId) {
+    const parsedProductId = parseInt(filtersData.productId as string, 10);
     if (!isNaN(parsedProductId)) {
-      andConditions.push({ items: { some: { productId: parsedProductId } } });
+      andConditions.push({
+        items: {
+          some: { productId: parsedProductId }
+        }
+      });
     }
   }
+
   if (andConditions.length > 0) {
-    whereConditions.AND = andConditions;
+    whereConditions = {
+      ...whereConditions,
+      AND: andConditions,
+    };
   }
+
+  
 
   const count = await prisma.cart.count({ where: whereConditions });
 
@@ -227,13 +246,28 @@ const getAllCarts = async (
     skip,
     take: limit,
     include: {
-      user: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true,
+              image:true,
+            }
+          }
+        }
+      },
       items: {
         include: {
-          product: true,
-          productFlavorSize: true,
-        },
-      },
+          productFlavorSize: {
+            select: {
+              price: true,
+            }
+          }
+        }
+      }
     },
   });
 
@@ -271,7 +305,104 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
-  return checkCart;
+
+  // Calculate cart totals
+  const cartWithTotals = {
+    ...checkCart,
+    totals: calculateCartTotals(checkCart.items),
+  };
+
+  return cartWithTotals;
+};
+
+const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
+  // Check if user exists
+  const checkUser = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+  });
+  if (!checkUser) {
+    throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
+  // Check if cart exists
+  const checkCart = await prisma.cart.findUnique({
+    where: { id: Number(cartId) },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true,
+          detail: {
+            select: {
+              profileImage: true,
+              address: true,
+              city: true,
+              road: true,
+              image:true,
+            }
+          }
+        }
+      },
+      items: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              description: true,
+              isActive: true
+            }
+          },
+          productFlavorSize: {
+            include: {
+              size: {
+                select: {
+                  name: true,
+                  description: true
+                }
+              },
+              productFlavor: {
+                include: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                      description: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+    },
+  });
+  if (!checkCart) {
+    throw new ApiError(status.NOT_FOUND, 'Cart not found');
+  }
+
+  // Check if user is admin or cart owner
+  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
+    throw new ApiError(
+      status.FORBIDDEN,
+      'You are not authorized to view this cart',
+    );
+  }
+
+  // Calculate cart totals
+  const cartWithTotals = {
+    ...checkCart,
+    totals: calculateCartTotals(checkCart.items),
+  };
+
+  return cartWithTotals;
 };
 
 const updateCartItemByID = async (
@@ -293,14 +424,14 @@ const updateCartItemByID = async (
   if (!checkCartItem) {
     throw new ApiError(status.NOT_FOUND, 'Cart item not found');
   }
-  //check if cart item belongs to this user
+  //check if cart item belongs to this user (admins can update anyone's cart)
   const checkCart = await prisma.cart.findUnique({
     where: { id: checkCartItem.cartId },
   });
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
-  if (checkCart.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to update this cart item',
@@ -337,7 +468,7 @@ const updateCartItemByID = async (
   if (checkSize.stock < (quantity ?? 1)) {
     throw new ApiError(
       status.INSUFFICIENT_STORAGE,
-      `Insufficient stock for product "${checkCartItem.productId}", flavor "${checkCartItem.flavorId}", size "${checkSize.size.name}". Available: ${checkSize.stock}, Requested: ${quantity}`,
+      `Insufficient stock for product "${checkCartItem.productId}", flavor "${checkCartItem.flavorId}", size "${checkSize.size?.name || 'N/A'}". Available: ${checkSize.stock}, Requested: ${quantity}`,
     );
   }
   //update cart item
@@ -369,14 +500,14 @@ const deleteCartItemByID = async (id: string, userInfo: UserInfoFromToken) => {
   if (!checkCartItem) {
     throw new ApiError(status.NOT_FOUND, 'Cart item not found');
   }
-  //check if cart item belongs to this user
+  //check if cart item belongs to this user (admins can delete anyone's cart items)
   const checkCart = await prisma.cart.findUnique({
     where: { id: checkCartItem.cartId },
   });
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
-  if (checkCart.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to delete this cart item',
@@ -396,6 +527,7 @@ export const CartService = {
   createCart,
   getAllCarts,
   getSingleCart,
+  getCartByID,
   updateCartItemByID,
   deleteCartItemByID,
 };

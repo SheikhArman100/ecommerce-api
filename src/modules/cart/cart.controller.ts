@@ -32,7 +32,8 @@ const getAllCarts = catchAsync(async (req: Request, res: Response) => {
         success:true,
         statusCode: status.OK,
         message: 'Carts are retrieved successfully',
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
@@ -58,6 +59,17 @@ const updateCartItemByID = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getCartByID = catchAsync(async (req: Request, res: Response) => {
+    const result = await CartService.getCartByID(req.params.cartId, req.user as UserInfoFromToken);
+
+    sendResponse(res, {
+        success:true,
+        statusCode: status.OK,
+        message: 'Cart retrieved successfully',
+        data: result,
+    });
+});
+
 const deleteCartItemByID = catchAsync(async (req: Request, res: Response) => {
     const result = await CartService.deleteCartItemByID(req.params.cartItemId, req.user as UserInfoFromToken);
 
@@ -73,6 +85,7 @@ export const CartController = {
     createCart,
     getAllCarts,
     getSingleCart,
+    getCartByID,
     updateCartItemByID,
     deleteCartItemByID,
 };
