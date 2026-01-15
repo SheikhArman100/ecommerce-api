@@ -29,7 +29,8 @@ export type DiskType = (typeof DiskType)[keyof typeof DiskType]
 export const OrderStatus = {
   Pending: 'Pending',
   Shipped: 'Shipped',
-  Delivered: 'Delivered'
+  Delivered: 'Delivered',
+  Cancelled: 'Cancelled'
 } as const
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
