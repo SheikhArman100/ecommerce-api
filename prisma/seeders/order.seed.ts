@@ -30,7 +30,7 @@ export async function seedOrders() {
   }
 
   const orders = [];
-  const orderStatuses = [OrderStatus.Pending, OrderStatus.Shipped, OrderStatus.Delivered,OrderStatus.Cancelled];
+  const orderStatuses = [OrderStatus.Pending, OrderStatus.Shipped, OrderStatus.Delivered,OrderStatus.Canceled];
 
   for (const user of users) {
     // Create 2-4 orders per user with different statuses

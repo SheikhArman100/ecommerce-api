@@ -282,7 +282,8 @@ const getSingleOrder = async (
         select: {
           id: true,
           name: true,
-          email: true
+          email: true,
+          createdAt:true,
         }
       },
       items: {
@@ -295,8 +296,33 @@ const getSingleOrder = async (
             }
           },
           productFlavorSize: {
-            select: {
-              price: true
+            include: {
+              size: {
+                select: {
+                  name: true,
+                  description: true
+                }
+              },
+              productFlavor: {
+                include: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                      description: true
+                    }
+                  },
+                  images: {
+                    select: {
+                      path: true,
+                      originalName: true,
+                      type: true,
+                      modifiedName: true
+                    },
+                    take: 1
+                  }
+                }
+              }
             }
           }
         }
@@ -436,8 +462,33 @@ const updateOrderStatus = async (
             }
           },
           productFlavorSize: {
-            select: {
-              price: true
+            include: {
+              size: {
+                select: {
+                  name: true,
+                  description: true
+                }
+              },
+              productFlavor: {
+                include: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                      description: true
+                    }
+                  },
+                  images: {
+                    select: {
+                      path: true,
+                      originalName: true,
+                      type: true,
+                      modifiedName: true
+                    },
+                    take: 1
+                  }
+                }
+              }
             }
           }
         }

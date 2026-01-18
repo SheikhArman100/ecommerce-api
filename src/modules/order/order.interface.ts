@@ -58,5 +58,22 @@ export interface IOrderItem {
   productFlavorSize?: {
     price: number;
     stock: number;
+    size?: {
+      name: string;
+      description: string;
+    };
+    productFlavor?: {
+      flavor?: {
+        name: string;
+        color: string;
+        description: string;
+      };
+      images?: Array<{
+        path: string;
+        originalName: string;
+        type: string;
+        modifiedName: string;
+      }>;
+    };
   };
 }
