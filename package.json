@@ -13,7 +13,8 @@
     "lint:prettier": "npm run lint:check && npm run prettier:check",
     "test": "echo \"Error: no test specified\" && exit 1",
     "doc": "typedoc",
-    "seed": "ts-node prisma/seeders/seed.ts"
+    "seed": "ts-node prisma/seeders/seed.ts",
+    "generate-fake-data": "ts-node prisma/generate-fake-data.ts"
   },
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
     "zod": "^4.2.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
