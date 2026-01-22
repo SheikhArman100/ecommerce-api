@@ -19,6 +19,48 @@ const getDashboardOverview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getSalesAnalytics = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, dashboardFilterableFields);
+
+  const result = await DashboardService.getSalesAnalytics(filters);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Sales analytics data fetched successfully',
+    data: result,
+  });
+});
+
+const getProductPerformance = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, dashboardFilterableFields);
+
+  const result = await DashboardService.getProductPerformance(filters);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Product performance data fetched successfully',
+    data: result,
+  });
+});
+
+const getCustomerAnalytics = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, dashboardFilterableFields);
+
+  const result = await DashboardService.getCustomerAnalytics(filters);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Customer analytics data fetched successfully',
+    data: result,
+  });
+});
+
 export const DashboardController = {
   getDashboardOverview,
+  getSalesAnalytics,
+  getProductPerformance,
+  getCustomerAnalytics,
 };
