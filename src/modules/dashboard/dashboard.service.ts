@@ -1263,15 +1263,18 @@ const getStockAnalysis = async (): Promise<IProductStockAnalysis[]> => {
     }
   }
 
-  return Array.from(productStockMap.entries()).map(([productId, data]) => ({
-    productId,
-    productName: data.productName,
-    currentStock: data.totalStock,
-    stockValue: data.totalStock * data.averagePrice,
-    turnoverRate: data.totalStock > 0 ? Number((data.salesCount / data.totalStock).toFixed(2)) : 0,
-    outOfStockDays: 0, // Would need more complex tracking
-    reorderPoint: Math.max(1, Math.floor(data.totalStock * 0.2)), // 20% of current stock
-  })).slice(0, 10);
+  return Array.from(productStockMap.entries())
+    .map(([productId, data]) => ({
+      productId,
+      productName: data.productName,
+      currentStock: data.totalStock,
+      stockValue: data.totalStock * data.averagePrice,
+      turnoverRate: data.totalStock > 0 ? Number((data.salesCount / data.totalStock).toFixed(2)) : 0,
+      outOfStockDays: 0, // Would need more complex tracking
+      reorderPoint: Math.max(1, Math.floor(data.totalStock * 0.2)), // 20% of current stock
+    }))
+    .sort((a, b) => a.currentStock - b.currentStock) // Sort by lowest stock first
+    .slice(0, 10); // Take top 10 lowest stock products
 };
 
 const getReviewAnalytics = async (): Promise<IProductReviewAnalytics[]> => {
