@@ -1354,13 +1354,13 @@ const getReviewAnalytics = async (): Promise<IProductReviewAnalytics[]> => {
     const distribution = ratingDistributions.get(productId) || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     const totalReviews = productRatingCounts.get(productId) || 0;
 
-    // Normalize distribution to percentages
-    const normalizedDistribution = {
-      1: totalReviews > 0 ? Math.round((distribution[1] / totalReviews) * 100) : 0,
-      2: totalReviews > 0 ? Math.round((distribution[2] / totalReviews) * 100) : 0,
-      3: totalReviews > 0 ? Math.round((distribution[3] / totalReviews) * 100) : 0,
-      4: totalReviews > 0 ? Math.round((distribution[4] / totalReviews) * 100) : 0,
-      5: totalReviews > 0 ? Math.round((distribution[5] / totalReviews) * 100) : 0,
+    // Return actual counts for rating distribution
+    const ratingDistribution = {
+      1: distribution[1],
+      2: distribution[2],
+      3: distribution[3],
+      4: distribution[4],
+      5: distribution[5],
     };
 
     // Calculate rating trend
@@ -1374,10 +1374,10 @@ const getReviewAnalytics = async (): Promise<IProductReviewAnalytics[]> => {
       productName: productMap.get(productId) || 'Unknown Product',
       averageRating: Number(item._avg.rating),
       totalReviews: Number(item._count.id),
-      ratingDistribution: normalizedDistribution,
+      ratingDistribution,
       recentRatingTrend: ratingTrend,
     };
-  }).slice(0, 10);
+  });
 };
 
 const getProfitabilityMetrics = async (startDate?: Date, endDate?: Date): Promise<IProductProfitability[]> => {
