@@ -1617,7 +1617,7 @@ const getCustomerAnalytics = async (filters: IDashboardFilters = {}): Promise<IC
 
   // Fetch all 8 metrics in parallel for better performance
   const [
-    customerDemographics,
+    // customerDemographics,
     customerLifetimeValue,
     repeatPurchaseAnalysis,
     customerRetention,
@@ -1626,7 +1626,7 @@ const getCustomerAnalytics = async (filters: IDashboardFilters = {}): Promise<IC
     customerSatisfaction,
     customerBehavior,
   ] = await Promise.all([
-    getCustomerDemographics(startDate, endDate),
+    // getCustomerDemographics(startDate, endDate),
     getCustomerLifetimeValue(startDate, endDate),
     getRepeatPurchaseAnalysis(startDate, endDate),
     getCustomerRetention(startDate, endDate),
@@ -1637,7 +1637,7 @@ const getCustomerAnalytics = async (filters: IDashboardFilters = {}): Promise<IC
   ]);
 
   return {
-    customerDemographics,
+    customerDemographics: [], // Customer demographics commented out
     customerLifetimeValue,
     repeatPurchaseAnalysis,
     customerRetention,
@@ -1648,65 +1648,65 @@ const getCustomerAnalytics = async (filters: IDashboardFilters = {}): Promise<IC
   };
 };
 
-const getCustomerDemographics = async (startDate?: Date, endDate?: Date): Promise<ICustomerDemographics[]> => {
-  // Group customers by age ranges (simplified - assuming birth dates not tracked)
-  // For now, return basic demographics - this could be enhanced with user profile data
-  const customerData = await prisma.user.findMany({
-    where: {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-    include: {
-      _count: {
-        select: {
-          orders: true,
-        },
-      },
-    },
-  });
+// const getCustomerDemographics = async (startDate?: Date, endDate?: Date): Promise<ICustomerDemographics[]> => {
+//   // Group customers by age ranges (simplified - assuming birth dates not tracked)
+//   // For now, return basic demographics - this could be enhanced with user profile data
+//   const customerData = await prisma.user.findMany({
+//     where: {
+//       createdAt: {
+//         gte: startDate,
+//         lte: endDate,
+//       },
+//     },
+//     include: {
+//       _count: {
+//         select: {
+//           orders: true,
+//         },
+//       },
+//     },
+//   });
 
-  // Get order data for AOV calculation
-  const orderData = await prisma.order.groupBy({
-    by: ['userId'],
-    _avg: {
-      totalAmount: true,
-    },
-  });
+//   // Get order data for AOV calculation
+//   const orderData = await prisma.order.groupBy({
+//     by: ['userId'],
+//     _avg: {
+//       totalAmount: true,
+//     },
+//   });
 
-  const aovMap = new Map(orderData.map(item => [item.userId, Number(item._avg.totalAmount) || 0]));
+//   const aovMap = new Map(orderData.map(item => [item.userId, Number(item._avg.totalAmount) || 0]));
 
-  // Simplified demographics - could be enhanced with actual demographic data
-  const demographics: ICustomerDemographics[] = [
-    {
-      ageGroup: '18-24',
-      count: Math.floor(customerData.length * 0.15), // Estimated distribution
-      percentage: 15,
-      averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
-    },
-    {
-      ageGroup: '25-34',
-      count: Math.floor(customerData.length * 0.35),
-      percentage: 35,
-      averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
-    },
-    {
-      ageGroup: '35-44',
-      count: Math.floor(customerData.length * 0.30),
-      percentage: 30,
-      averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
-    },
-    {
-      ageGroup: '45+',
-      count: Math.floor(customerData.length * 0.20),
-      percentage: 20,
-      averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
-    },
-  ];
+//   // Simplified demographics - could be enhanced with actual demographic data
+//   const demographics: ICustomerDemographics[] = [
+//     {
+//       ageGroup: '18-24',
+//       count: Math.floor(customerData.length * 0.15), // Estimated distribution
+//       percentage: 15,
+//       averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
+//     },
+//     {
+//       ageGroup: '25-34',
+//       count: Math.floor(customerData.length * 0.35),
+//       percentage: 35,
+//       averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
+//     },
+//     {
+//       ageGroup: '35-44',
+//       count: Math.floor(customerData.length * 0.30),
+//       percentage: 30,
+//       averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
+//     },
+//     {
+//       ageGroup: '45+',
+//       count: Math.floor(customerData.length * 0.20),
+//       percentage: 20,
+//       averageOrderValue: customerData.reduce((sum, c) => sum + (aovMap.get(c.id) || 0), 0) / customerData.length,
+//     },
+//   ];
 
-  return demographics;
-};
+//   return demographics;
+// };
 
 const getCustomerLifetimeValue = async (startDate?: Date, endDate?: Date): Promise<ICustomerLifetimeValue[]> => {
   const customerData = await prisma.user.findMany({
@@ -1753,9 +1753,9 @@ const getCustomerLifetimeValue = async (startDate?: Date, endDate?: Date): Promi
 
     // Simple segmentation based on spending
     let customerSegment: 'high' | 'medium' | 'low' | 'new' = 'new';
-    if (totalSpent > 1000) customerSegment = 'high';
-    else if (totalSpent > 500) customerSegment = 'medium';
-    else if (totalSpent > 100) customerSegment = 'low';
+    if (totalSpent > 3000) customerSegment = 'high';
+    else if (totalSpent > 1500) customerSegment = 'medium';
+    else if (totalSpent > 500) customerSegment = 'low';
 
     return {
       customerId: customer.id,
@@ -2303,7 +2303,7 @@ export const DashboardService = {
   getLifecycleAnalysis,
   getConversionRates,
   getCustomerAnalytics,
-  getCustomerDemographics,
+  // getCustomerDemographics,
   getCustomerLifetimeValue,
   getRepeatPurchaseAnalysis,
   getCustomerRetention,
