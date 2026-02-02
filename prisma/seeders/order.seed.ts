@@ -7,16 +7,21 @@ export async function seedOrders() {
     take: 5 // Get first 5 users
   });
 
-  const products = await prisma.product.findMany({
-    take: 8, // Get first 8 products
-    include: {
-      flavors: {
-        include: {
-          sizes: true
+ const products = await prisma.product.findMany({
+  take: 8,
+  include: {
+    flavors: {
+      include: {
+        flavor: true, // include the Flavor object for snapshot
+        sizes: {
+          include: {
+            size: true, // include the Size object for snapshot
+          }
         }
       }
     }
-  });
+  }
+});
 
   if (users.length === 0 || products.length === 0) {
     throw new Error('Users and products must be seeded first!');
@@ -56,7 +61,10 @@ export async function seedOrders() {
           flavorId: flavor?.flavorId || 1,
           sizeId: size?.sizeId || 1,
           quantity,
-          price
+          price,
+          productTitle: product.title,
+          flavorName: flavor?.flavor?.name || null,
+          sizeName: size?.size?.name || null
         };
       });
 

@@ -137,7 +137,7 @@ export class DataFactory {
   // Generate fake sizes
   async createSizes(count: number = 6) {
     const sizes = [];
-    const sizeNames = ['Small', 'Medium', 'Large', 'Extra Large', '0.5kg', '1kg', '1.5kg', '2kg'];
+    const sizeNames = ["0.5", "1", "1.5", "2", "2.5", "3","3.5", "4","4.5", "5"];
 
     const adminUser = await prisma.user.findFirst({ where: { role: UserRole.admin } });
     if (!adminUser) throw new Error('Admin user not found');
@@ -246,7 +246,10 @@ export class DataFactory {
       include: {
         flavors: {
           include: {
-            sizes: true
+            flavor: true,
+            sizes: {
+              include: { size: true }
+            }
           }
         }
       }
@@ -286,7 +289,10 @@ export class DataFactory {
           flavorId: flavor.flavorId,
           sizeId: size.sizeId!,
           quantity,
-          price
+          price,
+          productTitle: product.title,
+          flavorName: flavor.flavor?.name || null,
+          sizeName: size.size?.name || null
         };
       }).filter(item => item !== null); // Remove null items
 
