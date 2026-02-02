@@ -25,7 +25,16 @@ const createOrderFromCart = async (
     include: {
       items: {
         include: {
-          productFlavorSize: true,
+          productFlavorSize: {
+            include: {
+              size: true,
+              productFlavor: {
+                include: {
+                  flavor: true,
+                },
+              },
+            },
+          },
           product: { select: { title: true, isActive: true } }
         }
       }
@@ -43,6 +52,7 @@ const createOrderFromCart = async (
   for (const cartItem of userCart.items) {
     const productVariant = cartItem.productFlavorSize;
 
+    
     // Check if product is active
     if (!cartItem.product.isActive) {
       throw new ApiError(
@@ -67,7 +77,11 @@ const createOrderFromCart = async (
       flavorId: cartItem.flavorId,
       sizeId: cartItem.sizeId,
       quantity: cartItem.quantity,
-      price: productVariant.price
+      price: productVariant.price,
+      // Snapshot fields
+      productTitle: cartItem.product.title,
+      sizeName: productVariant.size ? productVariant.size.name : null,
+      flavorName: productVariant.productFlavor.flavor ? productVariant.productFlavor.flavor.name : null,
     });
   }
 
@@ -86,8 +100,8 @@ const createOrderFromCart = async (
       include: {
         items: {
           include: {
-            product: { select: { title: true, slug: true } },
-            productFlavorSize: { select: { price: true } }
+            product: { select: { id: true, title: true, slug: true } },
+            productFlavorSize: { select: { price: true, stock: true } }
           }
         }
       }

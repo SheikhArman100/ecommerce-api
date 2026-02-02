@@ -305,7 +305,10 @@ export const OrderItemScalarFieldEnum = {
   quantity: 'quantity',
   price: 'price',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  productTitle: 'productTitle',
+  flavorName: 'flavorName',
+  sizeName: 'sizeName'
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
@@ -406,4 +409,13 @@ export const ReviewOrderByRelevanceFieldEnum = {
 } as const
 
 export type ReviewOrderByRelevanceFieldEnum = (typeof ReviewOrderByRelevanceFieldEnum)[keyof typeof ReviewOrderByRelevanceFieldEnum]
+
+
+export const OrderItemOrderByRelevanceFieldEnum = {
+  productTitle: 'productTitle',
+  flavorName: 'flavorName',
+  sizeName: 'sizeName'
+} as const
+
+export type OrderItemOrderByRelevanceFieldEnum = (typeof OrderItemOrderByRelevanceFieldEnum)[keyof typeof OrderItemOrderByRelevanceFieldEnum]
 

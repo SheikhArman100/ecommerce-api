@@ -51,8 +51,8 @@ model User {
   cart   Cart?
 
   // Many-to-One Relations
-  creator User? @relation("UserCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater User? @relation("UserUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator User? @relation("UserCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  updater User? @relation("UserUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
 
   // One-to-Many Relations
   refreshTokens     RefreshToken[]
@@ -131,10 +131,10 @@ model Product {
 
   //relations
   categoryId Int?
-  category   Category?       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category   Category?       @relation(fields: [categoryId], references: [id])
   flavors    ProductFlavor[]
-  creator    User            @relation("ProductCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater    User?           @relation("ProductUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator    User            @relation("ProductCreator", fields: [createdBy], references: [id])
+  updater    User?           @relation("ProductUpdater", fields: [updatedBy], references: [id])
   reviews    Review[]
   wishlists  WishList[]
   cartItems  CartItem[]
@@ -160,8 +160,8 @@ model Category {
   updatedAt DateTime? @updatedAt
 
   // Relations
-  creator  User      @relation("CategoryCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater  User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator  User      @relation("CategoryCreator", fields: [createdBy], references: [id])
+  updater  User?     @relation("CategoryUpdater", fields: [updatedBy], references: [id])
   products Product[]
 
   // Indexes for performance
@@ -181,8 +181,8 @@ model Flavor {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime?       @updatedAt
   //relations
-  creator     User            @relation("FlavorCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater     User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator     User            @relation("FlavorCreator", fields: [createdBy], references: [id])
+  updater     User?           @relation("FlavorUpdater", fields: [updatedBy], references: [id])
   products    ProductFlavor[]
 
   @@index([isActive])
@@ -199,8 +199,8 @@ model Size {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime?           @updatedAt
   //relations
-  creator        User                @relation("SizeCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  updater        User?               @relation("SizeUpdater", fields: [updatedBy], references: [id], onDelete: Cascade)
+  creator        User                @relation("SizeCreator", fields: [createdBy], references: [id])
+  updater        User?               @relation("SizeUpdater", fields: [updatedBy], references: [id])
   productFlavors ProductFlavorSize[]
 
   @@index([isActive])
@@ -241,8 +241,8 @@ model ProductFlavor {
   updatedAt DateTime @updatedAt
 
   //relations
-  product Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
-  flavor  Flavor              @relation(fields: [flavorId], references: [id], onDelete: Restrict)
+  product Product             @relation(fields: [productId], references: [id])
+  flavor  Flavor              @relation(fields: [flavorId], references: [id])
   images  File[]
   sizes   ProductFlavorSize[]
 
@@ -335,7 +335,7 @@ model CartItem {
 
   //relations
   cart              Cart              @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
   productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
 
   @@map("cart_items")
@@ -350,7 +350,7 @@ model Order {
   userId      Int
 
   //relations
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id])
   items   OrderItem[]
   reviews Review[] // Reviews for this order
 
@@ -368,10 +368,15 @@ model OrderItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Snapshot Fields
+  productTitle String?
+  flavorName   String?
+  sizeName     String?
+
   //relations
   order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product           Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
+  product           Product           @relation(fields: [productId], references: [id])
+  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
 
   @@map("order_items")
 }
