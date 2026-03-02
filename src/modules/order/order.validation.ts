@@ -3,6 +3,7 @@ import { OrderStatus } from '../../generated/enums';
 
 const createOrderSchema = z.object({
   body: z.object({
+    couponCode: z.string().optional(),
     // Orders are created from cart, no additional payload needed
   }).strict()
 });

@@ -2,8 +2,7 @@ import { OrderStatus } from "../../generated/enums";
 
 // Interface for Order creation payload
 export interface IOrderCreate {
-  // Orders are created from cart, so no direct payload needed
-  // The order creation process will use cart items
+  couponCode?: string;
 }
 
 // Interface for Order updates
@@ -28,9 +27,12 @@ export interface IOrder {
   id: number;
   status: OrderStatus;
   totalAmount: number;
+  discountAmount: number;
+  payableAmount: number;
   createdAt: Date;
   updatedAt: Date;
   userId: number;
+  couponId?: number;
   user?: {
     id: number;
     name: string;

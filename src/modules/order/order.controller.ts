@@ -9,7 +9,7 @@ import { paginationFields } from '../../constant';
 import pick from '../../helpers/pick';
 
 const createOrder = catchAsync(async (req: Request, res: Response) => {
-  const result = await OrderService.createOrderFromCart(req.user as UserInfoFromToken);
+  const result = await OrderService.createOrderFromCart(req.user as UserInfoFromToken, req.body);
 
   sendResponse(res, {
     success: true,

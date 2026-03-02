@@ -342,19 +342,45 @@ model CartItem {
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
-  status      OrderStatus @default(Pending)
-  totalAmount Float // Total cost of the order
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  userId      Int
+  id             Int         @id @default(autoincrement())
+  status         OrderStatus @default(Pending)
+  totalAmount    Float // Total cost of the order
+  discountAmount Float       @default(0)
+  payableAmount  Float? // Final amount after discount
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  userId         Int
+  couponId       Int?
 
   //relations
   user    User        @relation(fields: [userId], references: [id])
   items   OrderItem[]
   reviews Review[] // Reviews for this order
+  coupon  Coupon?     @relation(fields: [couponId], references: [id])
 
   @@map("orders")
+}
+
+model Coupon {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique
+  discountType     String   @default("FIXED") // FIXED or PERCENTAGE
+  discountValue    Float
+  minOrderAmount   Float    @default(0)
+  maxDiscountAmount Float?
+  expiryDate       DateTime
+  isActive         Boolean  @default(true)
+  usageLimit       Int?
+  usedCount        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdBy        Int
+  updatedBy        Int
+
+  // Relations
+  orders Order[]
+
+  @@map("coupons")
 }
 
 model OrderItem {

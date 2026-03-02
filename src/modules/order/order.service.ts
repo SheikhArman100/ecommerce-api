@@ -2,14 +2,17 @@ import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
-import { IOrder, IOrderFilters, IOrderItem, IOrderUpdate } from './order.interface';
+import { IOrder, IOrderCreate, IOrderFilters, IOrderItem, IOrderUpdate } from './order.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma, OrderStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 
+import { CouponService } from '../coupon/coupon.service';
+
 const createOrderFromCart = async (
   userInfo: UserInfoFromToken,
+  payload: IOrderCreate
 ): Promise<IOrder> => {
   // Check if user exists
   const checkUser = await prisma.user.findUnique({
@@ -85,6 +88,26 @@ const createOrderFromCart = async (
     });
   }
 
+  // Calculate discount if coupon is provided
+  let discountAmount = 0;
+  let couponId: number | undefined;
+
+  if (payload.couponCode) {
+    const coupon = await CouponService.validateCoupon(payload.couponCode, totalAmount);
+    couponId = coupon.id;
+
+    if (coupon.discountType === 'PERCENTAGE') {
+      discountAmount = (totalAmount * coupon.discountValue) / 100;
+      if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+        discountAmount = coupon.maxDiscountAmount;
+      }
+    } else {
+      discountAmount = coupon.discountValue;
+    }
+  }
+
+  const payableAmount = totalAmount - discountAmount;
+
   // Create order and order items in a transaction
   const order = await prisma.$transaction(async (tx) => {
     // Create the order
@@ -92,6 +115,9 @@ const createOrderFromCart = async (
       data: {
         userId: checkUser.id,
         totalAmount,
+        discountAmount,
+        payableAmount,
+        couponId,
         status: OrderStatus.Pending,
         items: {
           create: orderItems
@@ -103,9 +129,22 @@ const createOrderFromCart = async (
             product: { select: { id: true, title: true, slug: true } },
             productFlavorSize: { select: { price: true, stock: true } }
           }
-        }
+        },
+        coupon: true
       }
     });
+
+    // Update coupon used count if applicable
+    if (couponId) {
+      await tx.coupon.update({
+        where: { id: couponId },
+        data: {
+          usedCount: {
+            increment: 1
+          }
+        }
+      });
+    }
 
     // Update stock quantities
     for (const cartItem of userCart.items) {
@@ -133,7 +172,7 @@ const createOrderFromCart = async (
     return newOrder;
   });
 
-  return order as IOrder;
+  return order as unknown as IOrder;
 };
 
 const getAllOrders = async (
@@ -510,7 +549,7 @@ const updateOrderStatus = async (
     },
   });
 
-  return updatedOrder as IOrder;
+  return updatedOrder as unknown as IOrder;
 };
 
 export const OrderService = {

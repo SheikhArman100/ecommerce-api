@@ -10,6 +10,7 @@ import { cartRoute } from '../modules/cart/cart.route';
 import { orderRoute } from '../modules/order/order.route';
 import { reviewRoute } from '../modules/review/review.route';
 import { dashboardRoute } from '../modules/dashboard/dashboard.route';
+import { couponRoute } from '../modules/coupon/coupon.route';
 
 const router = express.Router();
 
@@ -62,6 +63,10 @@ const moduleRoutes: Route[] = [
   {
     path: '/dashboard',
     route: dashboardRoute,
+  },
+  {
+    path: '/coupon',
+    route: couponRoute,
   },
 ];
 
