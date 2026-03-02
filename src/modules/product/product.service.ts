@@ -452,6 +452,8 @@ const getAllProducts = async (
       category: {
         select: {
           name: true,
+          image:true,
+
         },
       },
       flavors: {

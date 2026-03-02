@@ -14,6 +14,7 @@ const app: Application = express();
  */
 const allowedURL = [
   config.admin_client_url,
+  config.frontend_url,
   'http://192.168.68.120:3017',
   'http://192.168.68.107:3017',
 ];

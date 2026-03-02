@@ -8,6 +8,7 @@ export default {
   database_url: process.env.DATABASE_URL,
   port: process.env.PORT,
   admin_client_url: process.env.ADMIN_CLIENT_URL,
+  frontend_url: process.env.FRONTEND_URL,
   backend_url:process.env.BACKEND_URL,
   jwt: {
     bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
