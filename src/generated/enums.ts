@@ -28,12 +28,25 @@ export type DiskType = (typeof DiskType)[keyof typeof DiskType]
 
 export const OrderStatus = {
   Pending: 'Pending',
+  Paid: 'Paid',
   Shipped: 'Shipped',
   Delivered: 'Delivered',
-  Cancelled: 'Cancelled'
+  Cancelled: 'Cancelled',
+  Failed: 'Failed'
 } as const
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
+
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 
 export const FileType = {

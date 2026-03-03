@@ -20,15 +20,19 @@ export const orderSearchableFields: string[] = [
 // Order status options
 export const ORDER_STATUSES = [
   OrderStatus.Pending,
+  OrderStatus.Paid,
   OrderStatus.Shipped,
   OrderStatus.Delivered,
-  OrderStatus.Cancelled
+  OrderStatus.Cancelled,
+  OrderStatus.Failed,
 ] as const;
 
 // Status transition validation
 export const ALLOWED_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.Pending]: [OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Cancelled],
+  [OrderStatus.Pending]: [OrderStatus.Paid, OrderStatus.Cancelled, OrderStatus.Failed],
+  [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Cancelled],
   [OrderStatus.Shipped]: [OrderStatus.Delivered, OrderStatus.Cancelled],
-  [OrderStatus.Delivered]: [], // Final status, no further transitions
-  [OrderStatus.Cancelled]: [] // Final status, no further transitions
+  [OrderStatus.Delivered]: [],
+  [OrderStatus.Cancelled]: [],
+  [OrderStatus.Failed]: [OrderStatus.Paid] // Allow retry
 };

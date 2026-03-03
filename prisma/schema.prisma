@@ -20,9 +20,19 @@ enum DiskType {
 
 enum OrderStatus {
   Pending
+  Paid
   Shipped
   Delivered
   Cancelled
+  Failed
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
 }
 
 enum FileType {
@@ -347,18 +357,39 @@ model Order {
   totalAmount    Float // Total cost of the order
   discountAmount Float       @default(0)
   payableAmount  Float? // Final amount after discount
+  paymentStatus  PaymentStatus @default(PENDING)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   userId         Int
   couponId       Int?
 
   //relations
-  user    User        @relation(fields: [userId], references: [id])
-  items   OrderItem[]
-  reviews Review[] // Reviews for this order
-  coupon  Coupon?     @relation(fields: [couponId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  items    OrderItem[]
+  reviews  Review[] // Reviews for this order
+  coupon   Coupon?   @relation(fields: [couponId], references: [id])
+  payments Payment[]
 
   @@map("orders")
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  orderId           Int
+  transactionId     String        @unique // SSLCommerz tran_id
+  amount            Float
+  paymentStatus     PaymentStatus @default(PENDING)
+  bankTranId        String?
+  paymentGateway    String        @default("SSLCOMMERZ")
+  gatewayResponse   Json?
+  validationResponse Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
 
 model Coupon {

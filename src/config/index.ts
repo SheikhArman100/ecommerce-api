@@ -23,8 +23,12 @@ export default {
   },
   softograph_email: process.env.SOFTOGRAPH_EMAIL,
   softograph_pass: process.env.SOFTOPGRAPH_PASS,
-  rabbitMQ_url: process.env.RABBITMQ_URL,
-  email_queue_name: process.env.EMAIL_QUEUE_NAME,
+  // rabbitMQ_url: process.env.RABBITMQ_URL,
+  // email_queue_name: process.env.EMAIL_QUEUE_NAME,
   google_client_id: process.env.GOOGLE_CLIENT_ID,
-  google_client_secret: process.env.GOOGLE_CLIENT_SECRET
+  google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
+  ssl_store_id: process.env.SSL_STORE_ID,
+  ssl_store_pass: process.env.SSL_STORE_PASS,
+  ssl_is_sandbox: process.env.SSL_IS_SANDBOX,
+  app_base_url: process.env.APP_BASE_URL,
 };
