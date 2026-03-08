@@ -10,6 +10,7 @@ import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.const
 import config from '../../config';
 
 import { CouponService } from '../coupon/coupon.service';
+import { NotificationService } from '../notification/notification.service';
 
 const createOrderFromCart = async (
   userInfo: UserInfoFromToken,
@@ -173,6 +174,23 @@ const createOrderFromCart = async (
 
     return newOrder;
   });
+
+  // Async triggers for notifications (don't block the response)
+  NotificationService.sendOrderConfirmationEmail(checkUser.email, {
+    userName: checkUser.name,
+    orderId: order.id,
+    payableAmount: order.payableAmount,
+    discountAmount: order.discountAmount,
+    deliveryCharge: order.deliveryCharge,
+    items: order.items,
+  }).catch(err => console.error('Order Confirmation Email Error:', err));
+
+  NotificationService.sendAdminOrderAlert({
+    orderId: order.id,
+    userName: checkUser.name,
+    userEmail: checkUser.email,
+    payableAmount: order.payableAmount,
+  }).catch(err => console.error('Admin Order Alert Error:', err));
 
   return order as unknown as IOrder;
 };

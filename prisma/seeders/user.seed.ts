@@ -19,14 +19,6 @@ export async function seedUsers() {
       role: UserRole.admin
     },
     {
-      name: 'Amanullah Aman',
-      email: 'aman@softograph.com',
-      phoneNumber: '+1234567890',
-      password: defaultPassword,
-      isVerified: true,
-      role: UserRole.admin
-    },
-    {
       name: 'Demo User',
       email: 'demo@softograph.com',
       phoneNumber: '+1234567890',

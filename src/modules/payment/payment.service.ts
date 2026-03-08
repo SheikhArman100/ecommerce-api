@@ -10,6 +10,7 @@ import { IPaymentFilters, IPaymentUpdate } from './payment.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { paymentSearchableFields } from './payment.constant';
+import { NotificationService } from '../notification/notification.service';
 
 const initiatePayment = async (orderId: number) => {
   const order = await prisma.order.findUnique({
@@ -95,6 +96,14 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
           paymentStatus: PaymentStatus.PAID,
         },
       });
+
+      // Notify User
+      NotificationService.sendPaymentSuccessEmail(payment.order.user.email, {
+        userName: payment.order.user.name,
+        orderId: payment.orderId,
+        payableAmount: payment.order.payableAmount,
+        transactionId: payment.transactionId,
+      }).catch(err => console.error('Payment Success Email Error:', err));
     });
     return { success: true };
   } else {
