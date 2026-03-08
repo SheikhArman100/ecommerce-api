@@ -33,6 +33,7 @@ export interface IOrder {
   updatedAt: Date;
   userId: number;
   couponId?: number;
+  deliveryCharge: number;
   user?: {
     id: number;
     name: string;

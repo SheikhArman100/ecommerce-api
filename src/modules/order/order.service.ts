@@ -7,6 +7,7 @@ import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma, OrderStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
+import config from '../../config';
 
 import { CouponService } from '../coupon/coupon.service';
 
@@ -106,7 +107,7 @@ const createOrderFromCart = async (
     }
   }
 
-  const payableAmount = totalAmount - discountAmount;
+  const payableAmount = totalAmount - discountAmount + config.delivery_charge;
 
   // Create order and order items in a transaction
   const order = await prisma.$transaction(async (tx) => {
@@ -118,6 +119,7 @@ const createOrderFromCart = async (
         discountAmount,
         payableAmount,
         couponId,
+        deliveryCharge: config.delivery_charge,
         status: OrderStatus.Pending,
         items: {
           create: orderItems

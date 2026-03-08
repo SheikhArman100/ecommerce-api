@@ -358,6 +358,7 @@ model Order {
   discountAmount Float       @default(0)
   payableAmount  Float? // Final amount after discount
   paymentStatus  PaymentStatus @default(PENDING)
+  deliveryCharge Float       @default(0)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   userId         Int
