@@ -79,6 +79,8 @@ model User {
   reviews           Review[]
   wishlists         WishList[]
   orders            Order[]
+  createdCampaigns  Campaign[]     @relation("CampaignCreator")
+  updatedCampaigns  Campaign[]     @relation("CampaignUpdater")
 
   // Indexes
   @@index([email])
@@ -149,6 +151,7 @@ model Product {
   wishlists  WishList[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  campaigns  CampaignProduct[]
 
   // Indexes
   @@index([isActive])
@@ -437,4 +440,40 @@ model OrderItem {
   productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
 
   @@map("order_items")
+}
+
+model Campaign {
+  id               Int      @id @default(autoincrement())
+  title            String
+  slug             String   @unique
+  description      String?  @db.Text
+  bannerImage      String?
+  discountDefault  Float    @default(0) // Default percentage discount
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdBy        Int
+  updatedBy        Int?
+
+  // Relations
+  creator          User              @relation("CampaignCreator", fields: [createdBy], references: [id])
+  updater          User?             @relation("CampaignUpdater", fields: [updatedBy], references: [id])
+  products         CampaignProduct[]
+
+  @@map("campaigns")
+}
+
+model CampaignProduct {
+  id                        Int   @id @default(autoincrement())
+  campaignId                Int
+  productId                 Int
+  customDiscountPercentage  Float? // Override campaign default discount
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, productId])
+  @@map("campaign_products")
 }

@@ -127,3 +127,13 @@ export type Coupon = Prisma.CouponModel
  * 
  */
 export type OrderItem = Prisma.OrderItemModel
+/**
+ * Model Campaign
+ * 
+ */
+export type Campaign = Prisma.CampaignModel
+/**
+ * Model CampaignProduct
+ * 
+ */
+export type CampaignProduct = Prisma.CampaignProductModel

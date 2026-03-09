@@ -221,8 +221,8 @@ const updateProductSchema = z.object({
       .string()
       .min(10, 'Description must be at least 10 characters')
       .optional(),
-    categoryId: z.string().refine(val => !isNaN(Number(val)), {
-      message: 'Category ID must be a valid number',
+    categoryId:  z.number({
+      error: 'Category ID must be a number',
     }).optional(),
     isActive: z.boolean().optional(),
     flavors: z

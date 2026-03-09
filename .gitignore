@@ -16,6 +16,9 @@ uploads/category/images/*
 uploads/review/images/*
 !uploads/review/images/.gitkeep
 
+uploads/campaign/images/*
+!uploads/campaign/images/.gitkeep
+
 logs/*
 !logs/.gitkeep
 

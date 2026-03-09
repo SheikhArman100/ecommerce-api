@@ -452,8 +452,7 @@ const getAllProducts = async (
       category: {
         select: {
           name: true,
-          image:true,
-
+          image: true,
         },
       },
       flavors: {
@@ -486,7 +485,48 @@ const getAllProducts = async (
           },
         },
       },
+      campaigns: {
+        where: {
+          campaign: {
+            isActive: true,
+            startDate: { lte: new Date() },
+            endDate: { gte: new Date() },
+          },
+        },
+        select: {
+          customDiscountPercentage: true,
+          campaign: {
+            select: {
+              discountDefault: true,
+            },
+          },
+        },
+      },
     },
+  });
+
+  // Calculate campaign-aware prices
+  const resultWithPricing = result.map(product => {
+    let maxDiscount = 0;
+    product.campaigns.forEach(cp => {
+      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+      if (discount > maxDiscount) maxDiscount = discount;
+    });
+
+    const flavorsWithPricing = product.flavors.map(flavor => ({
+      ...flavor,
+      sizes: flavor.sizes.map(size => ({
+        ...size,
+        originalPrice: size.price,
+        salesPrice: maxDiscount > 0 ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2)) : size.price,
+        discountPercentage: maxDiscount,
+      })),
+    }));
+
+    return {
+      ...product,
+      flavors: flavorsWithPricing,
+    };
   });
 
   return {
@@ -495,7 +535,7 @@ const getAllProducts = async (
       limit: limit === 0 ? count : limit,
       count,
     },
-    data: result,
+    data: resultWithPricing,
   };
 };
 const getSingleProduct = async (productId: string) => {
@@ -507,7 +547,7 @@ const getSingleProduct = async (productId: string) => {
     select: {
       id: true,
       title: true,
-      slug:true,
+      slug: true,
       isActive: true,
       description: true,
       createdAt: true,
@@ -524,7 +564,6 @@ const getSingleProduct = async (productId: string) => {
             select: {
               id: true,
               name: true,
-              
             },
           },
           images: {
@@ -564,24 +603,72 @@ const getSingleProduct = async (productId: string) => {
           role: true,
         },
       },
+      campaigns: {
+        where: {
+          campaign: {
+            isActive: true,
+            startDate: { lte: new Date() },
+            endDate: { gte: new Date() },
+          },
+        },
+        select: {
+          customDiscountPercentage: true,
+          campaign: {
+            select: {
+              id: true,
+              title: true,
+              discountDefault: true,
+            },
+          },
+        },
+      },
     },
   });
   if (!checkProduct) {
     throw new ApiError(status.NOT_FOUND, 'Product not found');
   }
 
-  return checkProduct;
+  // Calculate pricing
+  let maxDiscount = 0;
+  let activeCampaign = null;
+
+  (checkProduct as any).campaigns.forEach((cp: any) => {
+    const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+    if (discount > maxDiscount) {
+      maxDiscount = discount;
+      activeCampaign = cp.campaign;
+    }
+  });
+
+  const productWithPricing = {
+    ...checkProduct,
+    activeCampaign,
+    flavors: checkProduct.flavors.map(flavor => ({
+      ...flavor,
+      sizes: flavor.sizes.map(size => ({
+        ...size,
+        originalPrice: size.price,
+        salesPrice:
+          maxDiscount > 0
+            ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2))
+            : size.price,
+        discountPercentage: maxDiscount,
+      })),
+    })),
+  };
+
+  return productWithPricing;
 };
 const getSingleProductBySlug = async (slug: string) => {
   //checkProduct
   const checkProduct = await prisma.product.findUnique({
     where: {
-      slug:slug,
+      slug: slug,
     },
     select: {
       id: true,
       title: true,
-      slug:true,
+      slug: true,
       description: true,
       createdAt: true,
       updatedAt: true,
@@ -636,13 +723,61 @@ const getSingleProductBySlug = async (slug: string) => {
           role: true,
         },
       },
+      campaigns: {
+        where: {
+          campaign: {
+            isActive: true,
+            startDate: { lte: new Date() },
+            endDate: { gte: new Date() },
+          },
+        },
+        select: {
+          customDiscountPercentage: true,
+          campaign: {
+            select: {
+              id: true,
+              title: true,
+              discountDefault: true,
+            },
+          },
+        },
+      },
     },
   });
   if (!checkProduct) {
     throw new ApiError(status.NOT_FOUND, 'Product not found');
   }
 
-  return checkProduct;
+  // Calculate pricing
+  let maxDiscount = 0;
+  let activeCampaign = null;
+
+  (checkProduct as any).campaigns.forEach((cp: any) => {
+    const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+    if (discount > maxDiscount) {
+      maxDiscount = discount;
+      activeCampaign = cp.campaign;
+    }
+  });
+
+  const productWithPricing = {
+    ...checkProduct,
+    activeCampaign,
+    flavors: checkProduct.flavors.map(flavor => ({
+      ...flavor,
+      sizes: flavor.sizes.map(size => ({
+        ...size,
+        originalPrice: size.price,
+        salesPrice:
+          maxDiscount > 0
+            ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2))
+            : size.price,
+        discountPercentage: maxDiscount,
+      })),
+    })),
+  };
+
+  return productWithPricing;
 };
 const updateProduct = async (
   productId: string,

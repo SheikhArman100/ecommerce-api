@@ -40,7 +40,29 @@ const createOrderFromCart = async (
               },
             },
           },
-          product: { select: { title: true, isActive: true } }
+          product: { 
+            select: { 
+              title: true, 
+              isActive: true,
+              campaigns: {
+                where: {
+                  campaign: {
+                    isActive: true,
+                    startDate: { lte: new Date() },
+                    endDate: { gte: new Date() },
+                  },
+                },
+                select: {
+                  customDiscountPercentage: true,
+                  campaign: {
+                    select: {
+                      discountDefault: true,
+                    },
+                  },
+                },
+              },
+            } 
+          }
         }
       }
     }
@@ -74,7 +96,19 @@ const createOrderFromCart = async (
       );
     }
 
-    const itemPrice = productVariant.price * cartItem.quantity;
+    // Calculate campaign discount
+    let maxDiscount = 0;
+    cartItem.product.campaigns.forEach((cp: any) => {
+      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+      if (discount > maxDiscount) maxDiscount = discount;
+    });
+
+    const basePrice = productVariant.price;
+    const discountedPrice = maxDiscount > 0 
+      ? parseFloat((basePrice * (1 - maxDiscount / 100)).toFixed(2)) 
+      : basePrice;
+
+    const itemPrice = discountedPrice * cartItem.quantity;
     totalAmount += itemPrice;
 
     orderItems.push({
@@ -82,7 +116,7 @@ const createOrderFromCart = async (
       flavorId: cartItem.flavorId,
       sizeId: cartItem.sizeId,
       quantity: cartItem.quantity,
-      price: productVariant.price,
+      price: discountedPrice,
       // Snapshot fields
       productTitle: cartItem.product.title,
       sizeName: productVariant.size ? productVariant.size.name : null,

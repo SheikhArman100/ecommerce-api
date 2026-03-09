@@ -401,7 +401,9 @@ export const ModelName = {
   Order: 'Order',
   Payment: 'Payment',
   Coupon: 'Coupon',
-  OrderItem: 'OrderItem'
+  OrderItem: 'OrderItem',
+  Campaign: 'Campaign',
+  CampaignProduct: 'CampaignProduct'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userDetail" | "refreshToken" | "product" | "category" | "flavor" | "size" | "file" | "productFlavor" | "productFlavorSize" | "review" | "wishList" | "cart" | "cartItem" | "order" | "payment" | "coupon" | "orderItem"
+    modelProps: "user" | "userDetail" | "refreshToken" | "product" | "category" | "flavor" | "size" | "file" | "productFlavor" | "productFlavorSize" | "review" | "wishList" | "cart" | "cartItem" | "order" | "payment" | "coupon" | "orderItem" | "campaign" | "campaignProduct"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1609,6 +1611,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Campaign: {
+      payload: Prisma.$CampaignPayload<ExtArgs>
+      fields: Prisma.CampaignFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CampaignFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CampaignFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        findFirst: {
+          args: Prisma.CampaignFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CampaignFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        findMany: {
+          args: Prisma.CampaignFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>[]
+        }
+        create: {
+          args: Prisma.CampaignCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        createMany: {
+          args: Prisma.CampaignCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.CampaignDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        update: {
+          args: Prisma.CampaignUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        deleteMany: {
+          args: Prisma.CampaignDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CampaignUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.CampaignUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignPayload>
+        }
+        aggregate: {
+          args: Prisma.CampaignAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaign>
+        }
+        groupBy: {
+          args: Prisma.CampaignGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CampaignGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CampaignCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CampaignCountAggregateOutputType> | number
+        }
+      }
+    }
+    CampaignProduct: {
+      payload: Prisma.$CampaignProductPayload<ExtArgs>
+      fields: Prisma.CampaignProductFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CampaignProductFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CampaignProductFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        findFirst: {
+          args: Prisma.CampaignProductFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CampaignProductFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        findMany: {
+          args: Prisma.CampaignProductFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>[]
+        }
+        create: {
+          args: Prisma.CampaignProductCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        createMany: {
+          args: Prisma.CampaignProductCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.CampaignProductDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        update: {
+          args: Prisma.CampaignProductUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        deleteMany: {
+          args: Prisma.CampaignProductDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CampaignProductUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.CampaignProductUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CampaignProductPayload>
+        }
+        aggregate: {
+          args: Prisma.CampaignProductAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCampaignProduct>
+        }
+        groupBy: {
+          args: Prisma.CampaignProductGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CampaignProductGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CampaignProductCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CampaignProductCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1919,6 +2053,35 @@ export const OrderItemScalarFieldEnum = {
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]
 
 
+export const CampaignScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  description: 'description',
+  bannerImage: 'bannerImage',
+  discountDefault: 'discountDefault',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy'
+} as const
+
+export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
+
+
+export const CampaignProductScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  productId: 'productId',
+  customDiscountPercentage: 'customDiscountPercentage'
+} as const
+
+export type CampaignProductScalarFieldEnum = (typeof CampaignProductScalarFieldEnum)[keyof typeof CampaignProductScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -2066,6 +2229,16 @@ export const OrderItemOrderByRelevanceFieldEnum = {
 } as const
 
 export type OrderItemOrderByRelevanceFieldEnum = (typeof OrderItemOrderByRelevanceFieldEnum)[keyof typeof OrderItemOrderByRelevanceFieldEnum]
+
+
+export const CampaignOrderByRelevanceFieldEnum = {
+  title: 'title',
+  slug: 'slug',
+  description: 'description',
+  bannerImage: 'bannerImage'
+} as const
+
+export type CampaignOrderByRelevanceFieldEnum = (typeof CampaignOrderByRelevanceFieldEnum)[keyof typeof CampaignOrderByRelevanceFieldEnum]
 
 
 
@@ -2270,6 +2443,8 @@ export type GlobalOmitConfig = {
   payment?: Prisma.PaymentOmit
   coupon?: Prisma.CouponOmit
   orderItem?: Prisma.OrderItemOmit
+  campaign?: Prisma.CampaignOmit
+  campaignProduct?: Prisma.CampaignProductOmit
 }
 
 /* Types for Logging */
