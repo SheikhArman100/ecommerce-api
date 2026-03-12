@@ -436,6 +436,7 @@ const getAllProducts = async (
     select: {
       id: true,
       title: true,
+      slug: true,
       description: true,
       isActive: true,
       createdAt: true,
@@ -684,6 +685,7 @@ const getSingleProductBySlug = async (slug: string) => {
             select: {
               id: true,
               name: true,
+              color:true,
             },
           },
           images: {

@@ -113,9 +113,36 @@ const getSingleCampaign = async (id: number) => {
         include: {
           product: {
             include: {
+              creator: {
+                select: {
+                  name: true,
+                  email: true,
+                  role: true,
+                },
+              },
+              category: {
+                select: {
+                  name: true,
+                  image: true,
+                },
+              },
               flavors: {
                 include: {
-                  sizes: true,
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                    },
+                  },
+                  sizes: {
+                    include: {
+                      size: {
+                        select: {
+                          name: true,
+                        },
+                      },
+                    },
+                  },
                   images: true,
                 },
               },
@@ -128,7 +155,35 @@ const getSingleCampaign = async (id: number) => {
   if (!result) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
-  return result;
+
+  // Calculate campaign-aware prices for the products in this campaign
+  const productsWithPricing = result.products.map(cp => {
+    const discount = cp.customDiscountPercentage ?? result.discountDefault;
+    const product = cp.product;
+
+    const flavorsWithPricing = product.flavors.map(flavor => ({
+      ...flavor,
+      sizes: flavor.sizes.map(size => ({
+        ...size,
+        originalPrice: size.price,
+        salesPrice: discount > 0 ? parseFloat((size.price * (1 - discount / 100)).toFixed(2)) : size.price,
+        discountPercentage: discount,
+      })),
+    }));
+
+    return {
+      ...cp,
+      product: {
+        ...product,
+        flavors: flavorsWithPricing,
+      },
+    };
+  });
+
+  return {
+    ...result,
+    products: productsWithPricing,
+  };
 };
 
 const updateCampaign = async (id: number, payload: ICampaignUpdate) => {
