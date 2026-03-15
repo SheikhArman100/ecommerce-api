@@ -40,6 +40,19 @@ const getAllWishlists = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getWishlistByUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await WishlistService.getWishlistByUser(
+    req.user as UserInfoFromToken
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: 'Single User Wishlists retrieved successfully',
+    data: result,
+  });
+});
+
 const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
   const result = await WishlistService.getWishlistByID(
     req.params.id,
@@ -83,6 +96,7 @@ const deleteWishlistByID = catchAsync(async (req: Request, res: Response) => {
 export const WishlistController = {
   createWishlist,
   getAllWishlists,
+  getWishlistByUser,
   getWishlistByID,
   updateWishlist,
   deleteWishlistByID,

@@ -81,25 +81,12 @@ const getAllWishlists = async (
   paginationOptions: IPaginationOptions,
   userInfo: UserInfoFromToken,
 ) => {
-  // Check user role
-  const user = await prisma.user.findUnique({
-    where: { id: Number(userInfo.id) },
-    select: { role: true }
-  });
-
-  if (!user) {
-    throw new ApiError(status.NOT_FOUND, 'User not found');
-  }
+ 
 
   const { searchTerm, ...filtersData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
   let whereConditions: Prisma.WishListWhereInput = {};
-
-  // Role-based filtering: non-admin users can only see their own wishlists
-  if (user.role !== 'admin') {
-    whereConditions.userId = Number(userInfo.id);
-  }
 
   // Add search term condition if provided
   if (searchTerm) {
@@ -186,6 +173,146 @@ const getAllWishlists = async (
     data: result,
   };
 };
+
+const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+    select: { role: true, id: true },
+  });
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+  const result = await prisma.wishList.findMany({
+    where: {
+      userId: Number(user.id),
+    },
+    select: {
+      id: true,
+      userId: true,
+      productId: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: {
+              profileImage: true, // ✅ User profile image path
+              image: true,
+            }
+          }
+        },
+      },
+      product: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          isActive: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              description: true,
+            }
+          },
+          flavors: {
+            select: {
+              flavor: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                },
+              },
+              images: {
+                select: {
+                  id: true,
+                  path: true,
+                  originalName: true,
+                  modifiedName: true,
+                },
+              },
+              sizes: {
+                select: {
+                  size: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                  stock: true,
+                  price: true,
+                  soldByQuantity: true,
+                },
+              },
+            },
+          },
+          campaigns: {
+            where: {
+              campaign: {
+                isActive: true,
+                startDate: { lte: new Date() },
+                endDate: { gte: new Date() },
+              },
+            },
+            select: {
+              customDiscountPercentage: true,
+              campaign: {
+                select: {
+                  id: true,
+                  title: true,
+                  discountDefault: true,
+                },
+              },
+            },
+          },
+        }
+      },
+    },
+  });
+
+  const resultWithPricing = result.map((wishlist: any) => {
+    let maxDiscount = 0;
+    let activeCampaign = null;
+
+    wishlist.product.campaigns?.forEach((cp: any) => {
+      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+      if (discount > maxDiscount) {
+        maxDiscount = discount;
+        activeCampaign = cp.campaign;
+      }
+    });
+
+    const flavorsWithPricing = wishlist.product.flavors.map((flavor: any) => ({
+      ...flavor,
+      sizes: flavor.sizes.map((size: any) => ({
+        ...size,
+        originalPrice: size.price,
+        salesPrice: maxDiscount > 0 ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2)) : size.price,
+        discountPercentage: maxDiscount,
+      })),
+    }));
+
+    // Remove the raw campaigns array to keep the response clean
+    const { campaigns, ...productData } = wishlist.product;
+
+    return {
+      ...wishlist,
+      product: {
+        ...productData,
+        activeCampaign,
+        flavors: flavorsWithPricing,
+      }
+    };
+  });
+
+  return resultWithPricing;
+}
 
 const getWishlistByID = async (id: string, userInfo: UserInfoFromToken) => {
   // First check if user exists and get their role
@@ -344,6 +471,7 @@ const deleteWishlistByID = async (id:string,userInfo:UserInfoFromToken) => {
 export const WishlistService = {
   createWishlist,
   getAllWishlists,
+  getWishlistByUser,
   getWishlistByID,
   updateWishlist,
   deleteWishlistByID,
