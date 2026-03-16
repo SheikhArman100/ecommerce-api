@@ -5,7 +5,8 @@ export const calculateCartTotals = (items: any[]) => {
 
   items.forEach(item => {
     totalItems += item.quantity;
-    totalAmount += (item.productFlavorSize?.price || 0) * item.quantity;
+    const priceToUse = item.salesPrice ?? item.productFlavorSize?.price ?? 0;
+    totalAmount += priceToUse * item.quantity;
   });
 
   return {

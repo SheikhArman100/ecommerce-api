@@ -51,12 +51,15 @@ const createCart = async (
     );
   }
 
+  // Prepare sizeId for query (handle null for quantity products)
+  const querySizeId = payload.sizeId ? Number(payload.sizeId) : null;
+
   //check if size exist for this product and flavor
   const checkSize = await prisma.productFlavorSize.findFirst({
     where: {
       productId: Number(payload.productId),
       flavorId: Number(payload.flavorId),
-      sizeId: Number(payload.sizeId),
+      sizeId: querySizeId,
     },
     include: { size: { select: { name: true } } },
   });
@@ -73,7 +76,7 @@ const createCart = async (
       cart: { userId: Number(userInfo.id) },
       productId: Number(payload.productId),
       flavorId: Number(payload.flavorId),
-      sizeId: Number(payload.sizeId),
+      sizeId: querySizeId as any,
     },
     include: { cart: true },
   });
@@ -133,7 +136,7 @@ const createCart = async (
             create: {
               productId: Number(payload.productId),
               flavorId: Number(payload.flavorId),
-              sizeId: Number(payload.sizeId),
+              sizeId: querySizeId as any,
               quantity: payload.quantity ?? 1,
             },
           },
@@ -156,7 +159,7 @@ const createCart = async (
             create: {
               productId: Number(payload.productId),
               flavorId: Number(payload.flavorId),
-              sizeId: Number(payload.sizeId),
+              sizeId: querySizeId as any,
               quantity: payload.quantity ?? 1,
             },
           },
@@ -296,20 +299,89 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
       user: { select: { id: true, name: true, email: true } },
       items: {
         include: {
-          product: { select: { id: true, title: true, slug: true } },
-          productFlavorSize: { select: { price: true, stock: true } },
+          product: {
+            include: {
+              category: { select: { id: true, name: true } },
+              campaigns: {
+                where: {
+                  campaign: {
+                    isActive: true,
+                    startDate: { lte: new Date() },
+                    endDate: { gte: new Date() },
+                  },
+                },
+                select: {
+                  customDiscountPercentage: true,
+                  campaign: {
+                    select: {
+                      id: true,
+                      title: true,
+                      discountDefault: true,
+                    },
+                  },
+                },
+              },
+            }
+          },
+          productFlavorSize: {
+            include: {
+              size: { select: { id: true, name: true } },
+              productFlavor: {
+                include: {
+                  flavor: { select: { id: true, name: true, color: true } },
+                  images: {
+                    select: {
+                      id: true,
+                      path: true,
+                      originalName: true,
+                      modifiedName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
   });
+
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
 
+  // Calculate pricing for each item
+  const itemsWithPricing = checkCart.items.map((item: any) => {
+    let maxDiscount = 0;
+    let activeCampaign = null;
+
+    item.product.campaigns?.forEach((cp: any) => {
+      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+      if (discount > maxDiscount) {
+        maxDiscount = discount;
+        activeCampaign = cp.campaign;
+      }
+    });
+
+    const originalPrice = item.productFlavorSize.price;
+    const salesPrice = maxDiscount > 0 
+      ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
+      : originalPrice;
+
+    return {
+      ...item,
+      salesPrice,
+      originalPrice,
+      discountPercentage: maxDiscount,
+      activeCampaign,
+    };
+  });
+
   // Calculate cart totals
   const cartWithTotals = {
     ...checkCart,
-    totals: calculateCartTotals(checkCart.items),
+    items: itemsWithPricing,
+    totals: calculateCartTotals(itemsWithPricing),
   };
 
   return cartWithTotals;
@@ -343,7 +415,7 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
               address: true,
               city: true,
               road: true,
-              image:true,
+              image: true,
             }
           }
         }
@@ -351,36 +423,48 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
       items: {
         include: {
           product: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-              description: true,
-              isActive: true
+            include: {
+              category: { select: { id: true, name: true } },
+              campaigns: {
+                where: {
+                  campaign: {
+                    isActive: true,
+                    startDate: { lte: new Date() },
+                    endDate: { gte: new Date() },
+                  },
+                },
+                select: {
+                  customDiscountPercentage: true,
+                  campaign: {
+                    select: {
+                      id: true,
+                      title: true,
+                      discountDefault: true,
+                    },
+                  },
+                },
+              },
             }
           },
           productFlavorSize: {
             include: {
-              size: {
-                select: {
-                  name: true,
-                  description: true
-                }
-              },
+              size: { select: { id: true, name: true, description: true } },
               productFlavor: {
                 include: {
-                  flavor: {
+                  flavor: { select: { id: true, name: true, color: true, description: true } },
+                  images: {
                     select: {
-                      name: true,
-                      color: true,
-                      description: true
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                      id: true,
+                      path: true,
+                      originalName: true,
+                      modifiedName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
   });
@@ -396,10 +480,38 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
     );
   }
 
+  // Calculate pricing for each item
+  const itemsWithPricing = checkCart.items.map((item: any) => {
+    let maxDiscount = 0;
+    let activeCampaign = null;
+
+    item.product.campaigns?.forEach((cp: any) => {
+      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+      if (discount > maxDiscount) {
+        maxDiscount = discount;
+        activeCampaign = cp.campaign;
+      }
+    });
+
+    const originalPrice = item.productFlavorSize.price;
+    const salesPrice = maxDiscount > 0 
+      ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
+      : originalPrice;
+
+    return {
+      ...item,
+      salesPrice,
+      originalPrice,
+      discountPercentage: maxDiscount,
+      activeCampaign,
+    };
+  });
+
   // Calculate cart totals
   const cartWithTotals = {
     ...checkCart,
-    totals: calculateCartTotals(checkCart.items),
+    items: itemsWithPricing,
+    totals: calculateCartTotals(itemsWithPricing),
   };
 
   return cartWithTotals;

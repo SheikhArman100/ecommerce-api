@@ -17,7 +17,7 @@ export interface ICart {
     cartId: number;
     productId: number;
     flavorId: number;
-    sizeId: number;
+    sizeId: number | null;
     quantity: number;
     createdAt: Date;
     updatedAt: Date;

@@ -10,7 +10,7 @@ const createCartSchema = z.object({
       }),
     sizeId: z.string().refine(val => !isNaN(Number(val)), {
         message: 'Size id must be a valid number',
-      }),
+      }).optional(),
     quantity: z
       .number()
       .int()

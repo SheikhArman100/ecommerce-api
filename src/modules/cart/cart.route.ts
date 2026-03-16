@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post('/',auth(),validateRequest(CartValidation.createCartSchema), CartController.createCart);
 router.get('/',auth(ENUM_USER_ROLE.ADMIN), CartController.getAllCarts);
-router.get('/single-cart',auth(), CartController.getSingleCart)
+router.get('/user',auth(), CartController.getSingleCart)
 router.get('/:cartId',auth(ENUM_USER_ROLE.ADMIN), CartController.getCartByID);
 router.delete('/:cartItemId',auth(), CartController.deleteCartItemByID)
 router.patch('/:cartItemId',auth(),validateRequest(CartValidation.updateCartItemSchema), CartController.updateCartItemByID);
