@@ -9,6 +9,7 @@ import { Prisma, OrderStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 import config from '../../config';
 
+import { ENUM_USER_ROLE } from '../../enum/user';
 import { CouponService } from '../coupon/coupon.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -61,6 +62,20 @@ const createOrderFromCart = async (
                   },
                 },
               },
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: true,
+                      productFlavor: {
+                        include: {
+                          flavor: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             } 
           }
         }
@@ -74,12 +89,31 @@ const createOrderFromCart = async (
 
   // Validate all cart items
   let totalAmount = 0;
-  const orderItems: any[] = [];
+  const orderItems: Prisma.OrderItemUncheckedCreateWithoutOrderInput[] = [];
 
   for (const cartItem of userCart.items) {
-    const productVariant = cartItem.productFlavorSize;
+    // Fallback for productFlavorSize if direct relation is null (quantity products)
+    let productVariant = cartItem.productFlavorSize;
+    if (!productVariant && cartItem.product?.flavors) {
+      // Search through flavors and their sizes
+      for (const flavor of cartItem.product.flavors) {
+        const variant = flavor.sizes.find(
+          (v: any) => v.flavorId === cartItem.flavorId && v.sizeId === cartItem.sizeId
+        );
+        if (variant) {
+          productVariant = variant;
+          break;
+        }
+      }
+    }
 
-    
+    if (!productVariant) {
+      throw new ApiError(
+        status.NOT_FOUND,
+        `Product variant (Flavor/Size) no longer exists for "${cartItem.product.title}"`
+      );
+    }
+
     // Check if product is active
     if (!cartItem.product.isActive) {
       throw new ApiError(
@@ -103,7 +137,7 @@ const createOrderFromCart = async (
       if (discount > maxDiscount) maxDiscount = discount;
     });
 
-    const basePrice = productVariant.price;
+    const basePrice = productVariant?.price || 0;
     const discountedPrice = maxDiscount > 0 
       ? parseFloat((basePrice * (1 - maxDiscount / 100)).toFixed(2)) 
       : basePrice;
@@ -119,8 +153,8 @@ const createOrderFromCart = async (
       price: discountedPrice,
       // Snapshot fields
       productTitle: cartItem.product.title,
-      sizeName: productVariant.size ? productVariant.size.name : null,
-      flavorName: productVariant.productFlavor.flavor ? productVariant.productFlavor.flavor.name : null,
+      sizeName: productVariant?.size ? productVariant.size.name : null,
+      flavorName: productVariant?.productFlavor.flavor ? productVariant.productFlavor.flavor.name : null,
     });
   }
 
@@ -190,7 +224,7 @@ const createOrderFromCart = async (
           productId_flavorId_sizeId: {
             productId: cartItem.productId,
             flavorId: cartItem.flavorId,
-            sizeId: cartItem.sizeId
+            sizeId: cartItem.sizeId as any
           }
         },
         data: {
@@ -396,20 +430,27 @@ const getSingleOrder = async (
       items: {
         include: {
           product: {
-            select: {
-              id: true,
-              title: true,
-              slug: true
-            }
+            include: {
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: { select: { id: true, name: true, description: true } },
+                      productFlavor: {
+                        include: {
+                          flavor: { select: { id: true, name: true, color: true, description: true } },
+                          images: { select: { id: true, path: true, originalName: true, modifiedName: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           productFlavorSize: {
             include: {
-              size: {
-                select: {
-                  name: true,
-                  description: true
-                }
-              },
+              size: { select: { name: true, description: true } },
               productFlavor: {
                 include: {
                   flavor: {
@@ -442,14 +483,38 @@ const getSingleOrder = async (
   }
 
   // Check if user is admin or order owner
-  if (checkUser.role !== 'admin' && order.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== ENUM_USER_ROLE.ADMIN && order.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to view this order',
     );
   }
 
-  return order as IOrder;
+  // Handle variant resolution fallback for quantity products
+  const orderWithMappedItems = {
+    ...order,
+    items: (order.items as any[]).map((item: any) => {
+      let productFlavorSize = item.productFlavorSize;
+      if (!productFlavorSize && item.product?.flavors) {
+        // Search through flavors and their sizes
+        for (const flavor of item.product.flavors) {
+          const variant = flavor.sizes.find(
+            (v: any) => v.flavorId === item.flavorId && v.sizeId === item.sizeId
+          );
+          if (variant) {
+            productFlavorSize = variant;
+            break;
+          }
+        }
+      }
+      return {
+        ...item,
+        productFlavorSize
+      };
+    })
+  };
+
+  return orderWithMappedItems as unknown as IOrder;
 };
 
 const getUserOrders = async (
@@ -478,15 +543,47 @@ const getUserOrders = async (
       items: {
         include: {
           product: {
-            select: {
-              id: true,
-              title: true,
-              slug: true
-            }
+            include: {
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: { select: { id: true, name: true, description: true } },
+                      productFlavor: {
+                        include: {
+                          flavor: { select: { id: true, name: true, color: true, description: true } },
+                          images: { select: { id: true, path: true, originalName: true, modifiedName: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           productFlavorSize: {
-            select: {
-              price: true
+            include: {
+              size: { select: { name: true, description: true } },
+              productFlavor: {
+                include: {
+                  flavor: {
+                    select: {
+                      name: true,
+                      color: true,
+                      description: true
+                    }
+                  },
+                  images: {
+                    select: {
+                      path: true,
+                      originalName: true,
+                      type: true,
+                      modifiedName: true
+                    },
+                    take: 1
+                  }
+                }
+              }
             }
           }
         }
@@ -494,13 +591,37 @@ const getUserOrders = async (
     },
   });
 
+  // Handle variant resolution fallback for quantity products
+  const mappedResults = result.map(order => ({
+    ...order,
+    items: order.items.map((item: any) => {
+      let productFlavorSize = item.productFlavorSize;
+      if (!productFlavorSize && item.product?.flavors) {
+        // Search through flavors and their sizes
+        for (const flavor of item.product.flavors) {
+          const variant = flavor.sizes.find(
+            (v: any) => v.flavorId === item.flavorId && v.sizeId === item.sizeId
+          );
+          if (variant) {
+            productFlavorSize = variant;
+            break;
+          }
+        }
+      }
+      return {
+        ...item,
+        productFlavorSize
+      };
+    })
+  }));
+
   return {
     meta: {
       page,
       limit: limit === 0 ? count : limit,
       count,
     },
-    data: result,
+    data: mappedResults,
   };
 };
 
@@ -517,7 +638,7 @@ const updateOrderStatus = async (
     throw new ApiError(status.NOT_FOUND, 'User not found');
   }
 
-  if (checkUser.role !== 'admin') {
+  if (checkUser.role !== ENUM_USER_ROLE.ADMIN) {
     throw new ApiError(
       status.FORBIDDEN,
       'Only administrators can update order status',
@@ -562,11 +683,23 @@ const updateOrderStatus = async (
       items: {
         include: {
           product: {
-            select: {
-              id: true,
-              title: true,
-              slug: true
-            }
+            include: {
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: { select: { id: true, name: true, description: true } },
+                      productFlavor: {
+                        include: {
+                          flavor: { select: { id: true, name: true, color: true, description: true } },
+                          images: { select: { id: true, path: true, originalName: true, modifiedName: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
           productFlavorSize: {
             include: {
@@ -603,7 +736,31 @@ const updateOrderStatus = async (
     },
   });
 
-  return updatedOrder as unknown as IOrder;
+  // Handle variant resolution fallback for quantity products
+  const mappedOrder = {
+    ...updatedOrder,
+    items: updatedOrder.items.map((item: any) => {
+      let productFlavorSize = item.productFlavorSize;
+      if (!productFlavorSize && item.product?.flavors) {
+        // Search through flavors and their sizes
+        for (const flavor of item.product.flavors) {
+          const variant = flavor.sizes.find(
+            (v: any) => v.flavorId === item.flavorId && v.sizeId === item.sizeId
+          );
+          if (variant) {
+            productFlavorSize = variant;
+            break;
+          }
+        }
+      }
+      return {
+        ...item,
+        productFlavorSize
+      };
+    })
+  };
+
+  return mappedOrder as unknown as IOrder;
 };
 
 export const OrderService = {

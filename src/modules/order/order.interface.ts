@@ -48,7 +48,7 @@ export interface IOrderItem {
   orderId: number;
   productId: number;
   flavorId: number;
-  sizeId: number;
+  sizeId: number | null;
   quantity: number;
   price: number;
   createdAt: Date;

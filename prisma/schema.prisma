@@ -341,7 +341,7 @@ model CartItem {
   cartId    Int
   productId Int
   flavorId  Int
-  sizeId    Int
+  sizeId    Int?
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -349,7 +349,7 @@ model CartItem {
   //relations
   cart              Cart              @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product           Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
+  productFlavorSize ProductFlavorSize? @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId], onDelete: Restrict)
 
   @@map("cart_items")
 }
@@ -423,7 +423,7 @@ model OrderItem {
   orderId   Int
   productId Int
   flavorId  Int
-  sizeId    Int
+  sizeId    Int?
   quantity  Int      @default(1)
   price     Float
   createdAt DateTime @default(now())
@@ -437,7 +437,7 @@ model OrderItem {
   //relations
   order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product           Product           @relation(fields: [productId], references: [id])
-  productFlavorSize ProductFlavorSize @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
+  productFlavorSize ProductFlavorSize? @relation(fields: [productId, flavorId, sizeId], references: [productId, flavorId, sizeId])
 
   @@map("order_items")
 }

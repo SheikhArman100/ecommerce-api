@@ -8,6 +8,7 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma } from '../../generated/client';
 import { cartSearchableFields } from './cart.constant';
 import { calculateCartTotals } from './cart.utils';
+import { ENUM_USER_ROLE } from '../../enum/user';
 
 
 
@@ -76,7 +77,7 @@ const createCart = async (
       cart: { userId: Number(userInfo.id) },
       productId: Number(payload.productId),
       flavorId: Number(payload.flavorId),
-      sizeId: querySizeId as any,
+      sizeId: querySizeId,
     },
     include: { cart: true },
   });
@@ -136,7 +137,7 @@ const createCart = async (
             create: {
               productId: Number(payload.productId),
               flavorId: Number(payload.flavorId),
-              sizeId: querySizeId as any,
+              sizeId: querySizeId,
               quantity: payload.quantity ?? 1,
             },
           },
@@ -150,7 +151,7 @@ const createCart = async (
             },
           },
         },
-      });
+      }) as ICart;
     } else {
       cart = await prisma.cart.create({
         data: {
@@ -159,7 +160,7 @@ const createCart = async (
             create: {
               productId: Number(payload.productId),
               flavorId: Number(payload.flavorId),
-              sizeId: querySizeId as any,
+              sizeId: querySizeId,
               quantity: payload.quantity ?? 1,
             },
           },
@@ -173,7 +174,7 @@ const createCart = async (
             },
           },
         },
-      });
+      }) as ICart;
     }
   }
 
@@ -321,6 +322,21 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
                   },
                 },
               },
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: { select: { id: true, name: true } },
+                      productFlavor: {
+                        include: {
+                          flavor: { select: { id: true, name: true, color: true } },
+                          images: { select: { id: true, path: true, originalName: true, modifiedName: true } },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             }
           },
           productFlavorSize: {
@@ -363,13 +379,29 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
       }
     });
 
-    const originalPrice = item.productFlavorSize.price;
+    // Fallback for productFlavorSize if direct relation is null (happens for quantity products)
+    let productFlavorSize = item.productFlavorSize;
+    if (!productFlavorSize && item.product?.flavors) {
+      // Search through flavors and their sizes
+      for (const flavor of item.product.flavors) {
+        const variant = flavor.sizes.find(
+          (v: any) => v.flavorId === item.flavorId && v.sizeId === item.sizeId
+        );
+        if (variant) {
+          productFlavorSize = variant;
+          break;
+        }
+      }
+    }
+
+    const originalPrice = productFlavorSize?.price || 0;
     const salesPrice = maxDiscount > 0 
       ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
       : originalPrice;
 
     return {
       ...item,
+      productFlavorSize, // Update with resolved metadata
       salesPrice,
       originalPrice,
       discountPercentage: maxDiscount,
@@ -444,6 +476,28 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
                   },
                 },
               },
+              flavors: {
+                include: {
+                  sizes: {
+                    include: {
+                      size: { select: { id: true, name: true, description: true } },
+                      productFlavor: {
+                        include: {
+                          flavor: { select: { id: true, name: true, color: true, description: true } },
+                          images: {
+                            select: {
+                              id: true,
+                              path: true,
+                              originalName: true,
+                              modifiedName: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             }
           },
           productFlavorSize: {
@@ -473,7 +527,7 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
   }
 
   // Check if user is admin or cart owner
-  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== ENUM_USER_ROLE.ADMIN && checkCart.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to view this cart',
@@ -493,13 +547,29 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
       }
     });
 
-    const originalPrice = item.productFlavorSize.price;
+    // Fallback for productFlavorSize if direct relation is null (happens for quantity products)
+    let productFlavorSize = item.productFlavorSize;
+    if (!productFlavorSize && item.product?.flavors) {
+      // Search through flavors and their sizes
+      for (const flavor of item.product.flavors) {
+        const variant = flavor.sizes.find(
+          (v: any) => v.flavorId === item.flavorId && v.sizeId === item.sizeId
+        );
+        if (variant) {
+          productFlavorSize = variant;
+          break;
+        }
+      }
+    }
+
+    const originalPrice = productFlavorSize?.price || 0;
     const salesPrice = maxDiscount > 0 
       ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
       : originalPrice;
 
     return {
       ...item,
+      productFlavorSize, // Update with resolved metadata
       salesPrice,
       originalPrice,
       discountPercentage: maxDiscount,
@@ -543,7 +613,7 @@ const updateCartItemByID = async (
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
-  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== ENUM_USER_ROLE.ADMIN && checkCart.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to update this cart item',
@@ -619,7 +689,7 @@ const deleteCartItemByID = async (id: string, userInfo: UserInfoFromToken) => {
   if (!checkCart) {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
-  if (checkUser.role !== 'admin' && checkCart.userId !== Number(userInfo.id)) {
+  if (checkUser.role !== ENUM_USER_ROLE.ADMIN && checkCart.userId !== Number(userInfo.id)) {
     throw new ApiError(
       status.FORBIDDEN,
       'You are not authorized to delete this cart item',

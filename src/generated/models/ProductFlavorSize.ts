@@ -496,9 +496,9 @@ export type ProductFlavorSizeSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
 }
 
-export type ProductFlavorSizeScalarRelationFilter = {
-  is?: Prisma.ProductFlavorSizeWhereInput
-  isNot?: Prisma.ProductFlavorSizeWhereInput
+export type ProductFlavorSizeNullableScalarRelationFilter = {
+  is?: Prisma.ProductFlavorSizeWhereInput | null
+  isNot?: Prisma.ProductFlavorSizeWhereInput | null
 }
 
 export type ProductFlavorSizeCreateNestedManyWithoutSizeInput = {
@@ -599,10 +599,12 @@ export type ProductFlavorSizeCreateNestedOneWithoutCartItemsInput = {
   connect?: Prisma.ProductFlavorSizeWhereUniqueInput
 }
 
-export type ProductFlavorSizeUpdateOneRequiredWithoutCartItemsNestedInput = {
+export type ProductFlavorSizeUpdateOneWithoutCartItemsNestedInput = {
   create?: Prisma.XOR<Prisma.ProductFlavorSizeCreateWithoutCartItemsInput, Prisma.ProductFlavorSizeUncheckedCreateWithoutCartItemsInput>
   connectOrCreate?: Prisma.ProductFlavorSizeCreateOrConnectWithoutCartItemsInput
   upsert?: Prisma.ProductFlavorSizeUpsertWithoutCartItemsInput
+  disconnect?: Prisma.ProductFlavorSizeWhereInput | boolean
+  delete?: Prisma.ProductFlavorSizeWhereInput | boolean
   connect?: Prisma.ProductFlavorSizeWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductFlavorSizeUpdateToOneWithWhereWithoutCartItemsInput, Prisma.ProductFlavorSizeUpdateWithoutCartItemsInput>, Prisma.ProductFlavorSizeUncheckedUpdateWithoutCartItemsInput>
 }
@@ -613,10 +615,12 @@ export type ProductFlavorSizeCreateNestedOneWithoutOrderItemsInput = {
   connect?: Prisma.ProductFlavorSizeWhereUniqueInput
 }
 
-export type ProductFlavorSizeUpdateOneRequiredWithoutOrderItemsNestedInput = {
+export type ProductFlavorSizeUpdateOneWithoutOrderItemsNestedInput = {
   create?: Prisma.XOR<Prisma.ProductFlavorSizeCreateWithoutOrderItemsInput, Prisma.ProductFlavorSizeUncheckedCreateWithoutOrderItemsInput>
   connectOrCreate?: Prisma.ProductFlavorSizeCreateOrConnectWithoutOrderItemsInput
   upsert?: Prisma.ProductFlavorSizeUpsertWithoutOrderItemsInput
+  disconnect?: Prisma.ProductFlavorSizeWhereInput | boolean
+  delete?: Prisma.ProductFlavorSizeWhereInput | boolean
   connect?: Prisma.ProductFlavorSizeWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductFlavorSizeUpdateToOneWithWhereWithoutOrderItemsInput, Prisma.ProductFlavorSizeUpdateWithoutOrderItemsInput>, Prisma.ProductFlavorSizeUncheckedUpdateWithoutOrderItemsInput>
 }
