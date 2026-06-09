@@ -20,33 +20,90 @@ const createCampaign = async (payload: ICampaignCreate) => {
   return result;
 };
 
+/**
+ * Calculates campaign-aware pricing for each product.
+ * `originalPrice` = the base size price
+ * `salesPrice`    = base * (1 - discount / 100), rounded to 2 decimals
+ * `discountPercentage` = the effective discount (custom || default)
+ */
+const applyCampaignPricing = (
+  product: any,
+  discount: number
+) => ({
+  ...product,
+  flavors: product.flavors?.map((flavor: any) => ({
+    ...flavor,
+    sizes: flavor.sizes?.map((size: any) => ({
+      ...size,
+      originalPrice: size.price,
+      salesPrice:
+        discount > 0
+          ? parseFloat((Number(size.price) * (1 - discount / 100)).toFixed(2))
+          : size.price,
+      discountPercentage: discount,
+    })),
+  })),
+});
+
+/**
+ * Returns the deep product include used by both getAllCampaigns (single-product listings)
+ * and getSingleCampaign.
+ */
+const productInclude = {
+  creator: {
+    select: { name: true, email: true, role: true },
+  },
+  category: {
+    select: { name: true, image: true },
+  },
+  flavors: {
+    include: {
+      flavor: {
+        select: { name: true, color: true },
+      },
+      sizes: {
+        include: {
+          size: { select: { name: true } },
+        },
+      },
+      images: true,
+    },
+  },
+};
+
 const getAllCampaigns = async (
   filters: ICampaignFilters,
   paginationOptions: IPaginationOptions
 ) => {
-  const { searchTerm, ...filterData } = filters;
+  const { searchTerm, isActive, startDate, endDate, ...filterData } = filters;
   const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
 
-  const andConditions = [];
+  const andConditions: Prisma.CampaignWhereInput[] = [];
 
   if (searchTerm) {
     andConditions.push({
       OR: campaignSearchableFields.map(field => ({
-        [field]: {
-          contains: searchTerm,
-        },
+        [field]: { contains: searchTerm },
       })),
     });
   }
 
-  if (Object.keys(filterData).length > 0) {
+  // Date-window filter: campaign must be live NOW (or whatever window the caller passes)
+  // - If `isActive` is set to "true", we additionally constrain to the current date.
+  // - `startDate` / `endDate` from the query act as an explicit window override.
+  const now = new Date();
+  if (isActive === 'true') {
+    andConditions.push({ isActive: true });
+    andConditions.push({ startDate: { lte: now } });
+    andConditions.push({ endDate: { gte: now } });
+  } else if (startDate || endDate) {
+    if (startDate) andConditions.push({ startDate: { gte: new Date(startDate) } });
+    if (endDate)   andConditions.push({ endDate:   { gte: new Date(endDate)   } });
+  } else if (Object.keys(filterData).length > 0) {
     andConditions.push({
       AND: Object.entries(filterData).map(([field, value]) => {
-        if (field === 'isActive') {
-          return { [field]: value === 'true' };
-        }
+        if (field === 'isActive') return { [field]: value === 'true' };
         if (field === 'startDate' || field === 'endDate') {
-          // You might want custom date range logic here
           return { [field]: { gte: new Date(value as string) } };
         }
         return { [field]: value };
@@ -60,21 +117,9 @@ const getAllCampaigns = async (
   const result = await prisma.campaign.findMany({
     where: whereConditions,
     include: {
-      creator: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      updater: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      _count: {
-        select: { products: true },
-      },
+      creator: { select: { name: true, email: true } },
+      updater: { select: { name: true, email: true } },
+      _count: { select: { products: true } },
     },
     skip,
     take: limit,
@@ -84,99 +129,79 @@ const getAllCampaigns = async (
   const count = await prisma.campaign.count({ where: whereConditions });
 
   return {
-    meta: {
-      page,
-      limit,
-      count,
-    },
+    meta: { page, limit, count },
     data: result,
   };
 };
 
+/**
+ * Fetches a single campaign with its fully-hydrated (and campaign-priced) products.
+ * Use this when you need the products array on the campaign.
+ */
 const getSingleCampaign = async (id: number) => {
   const result = await prisma.campaign.findUnique({
     where: { id },
     include: {
-      creator: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      updater: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
+      creator: { select: { name: true, email: true } },
+      updater: { select: { name: true, email: true } },
       products: {
         include: {
-          product: {
-            include: {
-              creator: {
-                select: {
-                  name: true,
-                  email: true,
-                  role: true,
-                },
-              },
-              category: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-              flavors: {
-                include: {
-                  flavor: {
-                    select: {
-                      name: true,
-                      color: true,
-                    },
-                  },
-                  sizes: {
-                    include: {
-                      size: {
-                        select: {
-                          name: true,
-                        },
-                      },
-                    },
-                  },
-                  images: true,
-                },
-              },
-            },
-          },
+          product: { include: productInclude },
         },
       },
     },
   });
+
   if (!result) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
 
-  // Calculate campaign-aware prices for the products in this campaign
   const productsWithPricing = result.products.map(cp => {
     const discount = cp.customDiscountPercentage ?? result.discountDefault;
-    const product = cp.product;
-
-    const flavorsWithPricing = product.flavors.map(flavor => ({
-      ...flavor,
-      sizes: flavor.sizes.map(size => ({
-        ...size,
-        originalPrice: size.price,
-        salesPrice: discount > 0 ? parseFloat((size.price * (1 - discount / 100)).toFixed(2)) : size.price,
-        discountPercentage: discount,
-      })),
-    }));
-
     return {
       ...cp,
-      product: {
-        ...product,
-        flavors: flavorsWithPricing,
+      product: applyCampaignPricing(cp.product, discount),
+    };
+  });
+
+  return {
+    ...result,
+    products: productsWithPricing,
+  };
+};
+
+/**
+ * Fetches the currently-running campaign (isActive=true AND startDate <= now <= endDate),
+ * with its products fully hydrated and priced.
+ *
+ * Returns `null` if no campaign is currently live.
+ */
+const getActiveCampaign = async () => {
+  const now = new Date();
+  const result = await prisma.campaign.findFirst({
+    where: {
+      isActive: true,
+      startDate: { lte: now },
+      endDate:   { gte: now },
+    },
+    include: {
+      creator: { select: { name: true, email: true } },
+      updater: { select: { name: true, email: true } },
+      products: {
+        include: {
+          product: { include: productInclude },
+        },
       },
+    },
+  });
+
+  if (!result) return null;
+
+  const productsWithPricing = result.products.map(cp => {
+    const discount = cp.customDiscountPercentage ?? result.discountDefault;
+    return {
+      ...cp,
+      product: applyCampaignPricing(cp.product, discount),
     };
   });
 
@@ -192,23 +217,16 @@ const updateCampaign = async (id: number, payload: ICampaignUpdate) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
 
-  // Handle image cleanup if new image is uploaded
   if (payload.bannerImage && isExist.bannerImage) {
     const oldImagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
-    if (fs.existsSync(oldImagePath)) {
-      fs.unlinkSync(oldImagePath);
-    }
+    if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
   }
 
   const updateData: any = { ...payload };
   if (payload.startDate) updateData.startDate = new Date(payload.startDate);
-  if (payload.endDate) updateData.endDate = new Date(payload.endDate);
+  if (payload.endDate)   updateData.endDate   = new Date(payload.endDate);
 
-  const result = await prisma.campaign.update({
-    where: { id },
-    data: updateData,
-  });
-  return result;
+  return prisma.campaign.update({ where: { id }, data: updateData });
 };
 
 const deleteCampaign = async (id: number) => {
@@ -217,18 +235,12 @@ const deleteCampaign = async (id: number) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
 
-  // Cleanup image
   if (isExist.bannerImage) {
     const imagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
+    if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
   }
 
-  const result = await prisma.campaign.delete({
-    where: { id },
-  });
-  return result;
+  return prisma.campaign.delete({ where: { id } });
 };
 
 const addProductToCampaign = async (campaignId: number, payload: ICampaignProductAdd) => {
@@ -237,41 +249,28 @@ const addProductToCampaign = async (campaignId: number, payload: ICampaignProduc
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
 
-  const result = await prisma.campaignProduct.upsert({
-    where: {
-      campaignId_productId: {
-        campaignId,
-        productId: payload.productId,
-      },
-    },
-    update: {
-      customDiscountPercentage: payload.customDiscountPercentage,
-    },
+  return prisma.campaignProduct.upsert({
+    where: { campaignId_productId: { campaignId, productId: payload.productId } },
+    update: { customDiscountPercentage: payload.customDiscountPercentage },
     create: {
       campaignId,
       productId: payload.productId,
       customDiscountPercentage: payload.customDiscountPercentage,
     },
   });
-  return result;
 };
 
 const removeProductFromCampaign = async (campaignId: number, productId: number) => {
-  const result = await prisma.campaignProduct.delete({
-    where: {
-      campaignId_productId: {
-        campaignId,
-        productId,
-      },
-    },
+  return prisma.campaignProduct.delete({
+    where: { campaignId_productId: { campaignId, productId } },
   });
-  return result;
 };
 
 export const CampaignService = {
   createCampaign,
   getAllCampaigns,
   getSingleCampaign,
+  getActiveCampaign,
   updateCampaign,
   deleteCampaign,
   addProductToCampaign,

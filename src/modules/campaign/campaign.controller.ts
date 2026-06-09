@@ -40,6 +40,18 @@ const getAllCampaigns = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getActiveCampaign = catchAsync(async (_req: Request, res: Response) => {
+  const result = await CampaignService.getActiveCampaign();
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: result
+      ? 'Active campaign fetched successfully'
+      : 'No active campaign at the moment',
+    data: result,
+  });
+});
+
 const getSingleCampaign = catchAsync(async (req: Request, res: Response) => {
   const result = await CampaignService.getSingleCampaign(Number(req.params.id));
   sendResponse(res, {
@@ -104,6 +116,7 @@ const removeProductFromCampaign = catchAsync(async (req: Request, res: Response)
 export const CampaignController = {
   createCampaign,
   getAllCampaigns,
+  getActiveCampaign,
   getSingleCampaign,
   updateCampaign,
   deleteCampaign,
