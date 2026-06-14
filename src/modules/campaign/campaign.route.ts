@@ -12,8 +12,8 @@ const router = express.Router();
 // IMPORTANT: `/active` must be declared BEFORE `/:id` so that "active" isn't
 // parsed as a numeric id and rejected by the controller.
 router.get('/active', CampaignController.getActiveCampaign);
-router.get('/', CampaignController.getAllCampaigns);
-router.get('/:id', CampaignController.getSingleCampaign);
+router.get('/',auth(ENUM_USER_ROLE.ADMIN), CampaignController.getAllCampaigns);
+router.get('/:id',auth(ENUM_USER_ROLE.ADMIN), CampaignController.getSingleCampaign);
 
 router.post(
   '/',
