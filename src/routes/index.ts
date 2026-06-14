@@ -75,7 +75,7 @@ const moduleRoutes: Route[] = [
     route: paymentRoute,
   },
   {
-    path: '/campaigns',
+    path: '/campaign',
     route: CampaignRoutes,
   },
 ];

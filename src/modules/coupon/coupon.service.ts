@@ -26,6 +26,16 @@ const createCoupon = async (
     );
   }
 
+  const existingCoupon=await prisma.coupon.findUnique({
+    where:{
+      code: payload.code
+
+    }
+  })
+  if(existingCoupon){
+    throw new ApiError(status.BAD_REQUEST, 'Coupon with this code already exists');
+  }
+
   const result = await prisma.coupon.create({
     data: {
       ...payload,
