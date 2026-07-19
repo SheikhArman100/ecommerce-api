@@ -17,16 +17,19 @@ const allowedURL = [
   config.frontend_url,
   'http://192.168.68.120:3017',
   'http://192.168.68.107:3017',
+  'https://sandbox.sslcommerz.com',
+  'https://securepay.sslcommerz.com',
 ];
 
+// More permissive CORS - allow all origins but still track credentials
+// Payment callback URLs from SSLCommerz need to work cross-origin
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedURL.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      // Allow requests with no origin (server-to-server, redirects, etc.)
+      // Allow all configured URLs
+      // Allow any origin (needed for SSLCommerz payment callbacks)
+      callback(null, true);
     },
     credentials: true,
   }),

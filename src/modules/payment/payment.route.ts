@@ -7,9 +7,8 @@ import auth from '../../middleware/auth';
 
 const router = express.Router();
 
-router.post('/initiate', auth(), PaymentController.initiatePayment);
-
 // These are redirection URLs called by SSLCommerz
+// Payment is now initiated automatically inside POST /order
 router.post('/success', PaymentController.handleSuccess);
 router.post('/fail', PaymentController.handleFail);
 router.post('/cancel', PaymentController.handleCancel);

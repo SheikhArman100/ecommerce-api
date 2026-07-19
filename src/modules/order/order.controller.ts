@@ -14,8 +14,11 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     success: true,
     statusCode: status.CREATED,
-    message: 'Order created successfully',
-    data: result,
+    message: 'Order initiated. Please complete payment.',
+    data: {
+      GatewayPageURL: result.GatewayPageURL,
+      transactionId: result.transactionId,
+    },
   });
 });
 

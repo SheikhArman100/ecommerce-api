@@ -3,83 +3,23 @@ import { SSLCommerzService } from './sslcommerz.service';
 import ApiError from '../../errors/ApiError';
 import status from 'http-status';
 import { PaymentStatus } from '../../generated/enums';
-import { nanoid } from 'nanoid';
-import config from '../../config';
-import { OrderItem, Prisma } from '../../generated/client';
+import { Prisma } from '../../generated/client';
 import { IPaymentFilters, IPaymentUpdate } from './payment.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { paymentSearchableFields } from './payment.constant';
+import { OrderService } from '../order/order.service';
 import { NotificationService } from '../notification/notification.service';
-
-const initiatePayment = async (orderId: number) => {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      user: {
-        include: {
-          detail: true,
-        },
-      },
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  });
-
-  if (!order) {
-    throw new ApiError(status.NOT_FOUND, 'Order not found');
-  }
-
-  const tranId = `TRAN-${nanoid(10)}`;
-  const payableAmount = order.payableAmount || order.totalAmount;
-
-  const paymentData = {
-    total_amount: payableAmount,
-    currency: 'BDT' as const,
-    tran_id: tranId,
-    success_url: `${config.app_base_url}/api/v1/payment/success?tran_id=${tranId}`,
-    fail_url: `${config.app_base_url}/api/v1/payment/fail?tran_id=${tranId}`,
-    cancel_url: `${config.app_base_url}/api/v1/payment/cancel?tran_id=${tranId}`,
-    ipn_url: `${config.app_base_url}/api/v1/payment/ipn`,
-    shipping_method: 'Courier' as const,
-    product_name: order.items.map((item: OrderItem) => item.productTitle).join(', '),
-    product_category: 'Ecommerce',
-    product_profile: 'general',
-    cus_name: order.user.name,
-    cus_email: order.user.email,
-    cus_add1: order.user.detail?.address || 'N/A',
-    cus_city: order.user.detail?.city || 'N/A',
-    cus_postcode: '1000',
-    cus_country: 'Bangladesh',
-    cus_phone: order.user.phoneNumber,
-  };
-
-  const sslResponse = await SSLCommerzService.initiatePayment(paymentData) as any;
-
-  if (sslResponse?.status === 'SUCCESS') {
-    await (prisma as any).payment.create({
-      data: {
-        orderId: order.id,
-        transactionId: tranId,
-        amount: payableAmount,
-        paymentStatus: PaymentStatus.PENDING,
-        gatewayResponse: sslResponse,
-      },
-    });
-    return (sslResponse as any).GatewayPageURL;
-  } else {
-    throw new ApiError(status.BAD_REQUEST, 'Payment initiation failed');
-  }
-};
 
 const handleSuccess = async (tran_id: string, val_id: string) => {
   const verificationResponse = await SSLCommerzService.verifyPayment(val_id) as any;
 
   if (verificationResponse?.status === 'VALID' || verificationResponse?.status === 'AUTHENTICATED') {
+    // Capture order info for email notifications (payment variable is scoped inside the transaction)
+    let orderInfo: any = null;
+
     await prisma.$transaction(async (tx: any) => {
+      // 1. Update payment record
       const payment = await tx.payment.update({
         where: { transactionId: tran_id },
         data: {
@@ -87,8 +27,25 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
           bankTranId: verificationResponse?.bank_tran_id,
           validationResponse: verificationResponse,
         },
+        include: {
+          order: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
 
+      // Capture order/user info for emails before transaction closes
+      orderInfo = {
+        orderId: payment.orderId,
+        userEmail: payment.order.user.email,
+        userName: payment.order.user.name,
+        payableAmount: payment.order.payableAmount,
+        transactionId: payment.transactionId,
+      };
+
+      // 2. Update order status to Paid
       await tx.order.update({
         where: { id: payment.orderId },
         data: {
@@ -96,15 +53,49 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
           paymentStatus: PaymentStatus.PAID,
         },
       });
-
-      // Notify User
-      NotificationService.sendPaymentSuccessEmail(payment.order.user.email, {
-        userName: payment.order.user.name,
-        orderId: payment.orderId,
-        payableAmount: payment.order.payableAmount,
-        transactionId: payment.transactionId,
-      }).catch(err => console.error('Payment Success Email Error:', err));
     });
+
+    // 3. Send payment success email (after transaction committed)
+    if (orderInfo) {
+      NotificationService.sendPaymentSuccessEmail(orderInfo.userEmail, {
+        userName: orderInfo.userName,
+        orderId: orderInfo.orderId,
+        payableAmount: orderInfo.payableAmount,
+        transactionId: orderInfo.transactionId,
+      }).catch(err => console.error('Payment Success Email Error:', err));
+    }
+
+    // 4. Create order items from cart snapshot, decrement stock, clear cart
+    await OrderService.createOrderItemsFromSnapshot(tran_id);
+
+    // 5. Send order confirmation emails (async, non-blocking)
+    if (orderInfo) {
+      const completedOrder = await prisma.order.findUnique({
+        where: { id: orderInfo.orderId },
+        include: {
+          items: true,
+        },
+      });
+
+      if (completedOrder) {
+        NotificationService.sendOrderConfirmationEmail(orderInfo.userEmail, {
+          userName: orderInfo.userName,
+          orderId: completedOrder.id,
+          payableAmount: completedOrder.payableAmount,
+          discountAmount: completedOrder.discountAmount,
+          deliveryCharge: completedOrder.deliveryCharge,
+          items: completedOrder.items,
+        }).catch(err => console.error('Order Confirmation Email Error:', err));
+
+        NotificationService.sendAdminOrderAlert({
+          orderId: completedOrder.id,
+          userName: orderInfo.userName,
+          userEmail: orderInfo.userEmail,
+          payableAmount: completedOrder.payableAmount,
+        }).catch(err => console.error('Admin Order Alert Error:', err));
+      }
+    }
+
     return { success: true };
   } else {
     await (prisma as any).payment.update({
@@ -114,6 +105,10 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
         validationResponse: verificationResponse,
       },
     });
+
+    // Clean up the shell order since payment verification failed
+    await cleanupFailedPayment(tran_id);
+
     return { success: false };
   }
 };
@@ -142,7 +137,7 @@ const handleCancel = async (tran_id: string) => {
     include: {
       order: {
         include: {
-          items: true,
+          user: true,
         },
       },
     },
@@ -151,52 +146,37 @@ const handleCancel = async (tran_id: string) => {
   if (!payment || !payment.order) return;
 
   await prisma.$transaction(async (tx: any) => {
-    // 1. Get or create user cart
-    let userCart = await tx.cart.findUnique({
-      where: { userId: payment.order.userId },
-    });
-
-    if (!userCart) {
-      userCart = await tx.cart.create({
-        data: { userId: payment.order.userId },
-      });
-    }
-
-    // 2. Restore Stock and Cart Items
-    for (const item of payment.order.items) {
-      // Restore Stock
-      await tx.productFlavorSize.update({
-        where: {
-          productId_flavorId_sizeId: {
-            productId: item.productId,
-            flavorId: item.flavorId,
-            sizeId: item.sizeId,
-          },
-        },
-        data: {
-          stock: { increment: item.quantity },
-        },
-      });
-
-      // Restore to Cart
-      await tx.cartItem.create({
-        data: {
-          cartId: userCart.id,
-          productId: item.productId,
-          flavorId: item.flavorId,
-          sizeId: item.sizeId,
-          quantity: item.quantity,
-        },
-      });
-    }
-
-    // 3. Delete Payment and Order (Cleanup)
+    // Delete payment record
     await tx.payment.delete({
       where: { id: payment.id },
     });
 
+    // Delete the shell order (no items/stock affected yet)
     await tx.order.delete({
       where: { id: payment.order.id },
+    });
+  });
+};
+
+const cleanupFailedPayment = async (tran_id: string) => {
+  const payment = await (prisma as any).payment.findUnique({
+    where: { transactionId: tran_id },
+  });
+
+  if (!payment) return;
+
+  await prisma.$transaction(async (tx: any) => {
+    // Mark payment as failed
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        paymentStatus: PaymentStatus.FAILED,
+      },
+    });
+
+    // Delete the shell order
+    await tx.order.delete({
+      where: { id: payment.orderId },
     });
   });
 };
@@ -355,7 +335,6 @@ const updatePayment = async (id: string, payload: IPaymentUpdate) => {
 };
 
 export const PaymentService = {
-  initiatePayment,
   handleSuccess,
   handleFail,
   handleCancel,

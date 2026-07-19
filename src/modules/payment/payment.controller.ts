@@ -8,39 +8,27 @@ import pick from '../../helpers/pick';
 import { paymentFilterableFields } from './payment.constant';
 import { paginationFields } from '../../constant';
 
-const initiatePayment = catchAsync(async (req: Request, res: Response) => {
-  const { orderId } = req.body;
-  const result = await PaymentService.initiatePayment(Number(orderId));
-
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Payment initiated successfully',
-    data: result,
-  });
-});
-
 const handleSuccess = catchAsync(async (req: Request, res: Response) => {
   const { tran_id, val_id } = req.body.tran_id ? req.body : req.query;
   const result = await PaymentService.handleSuccess(tran_id as string, val_id as string);
 
   if (result.success) {
-    res.redirect(`${config.frontend_url}/payment/success?tran_id=${tran_id}`);
+    res.redirect(`${config.frontend_url}/checkout/success?tran_id=${tran_id}`);
   } else {
-    res.redirect(`${config.frontend_url}/payment/fail?tran_id=${tran_id}`);
+    res.redirect(`${config.frontend_url}/checkout/fail?tran_id=${tran_id}`);
   }
 });
 
 const handleFail = catchAsync(async (req: Request, res: Response) => {
   const { tran_id } = req.body.tran_id ? req.body : req.query;
   await PaymentService.handleFail(tran_id as string);
-  res.redirect(`${config.frontend_url}/payment/fail?tran_id=${tran_id}`);
+  res.redirect(`${config.frontend_url}/checkout/fail?tran_id=${tran_id}`);
 });
 
 const handleCancel = catchAsync(async (req: Request, res: Response) => {
   const { tran_id } = req.body.tran_id ? req.body : req.query;
   await PaymentService.handleCancel(tran_id as string);
-  res.redirect(`${config.frontend_url}/payment/cancel?tran_id=${tran_id}`);
+  res.redirect(`${config.frontend_url}/checkout/cancel?tran_id=${tran_id}`);
 });
 
 const handleIPN = catchAsync(async (req: Request, res: Response) => {
@@ -111,7 +99,6 @@ const updatePayment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const PaymentController = {
-  initiatePayment,
   handleSuccess,
   handleFail,
   handleCancel,

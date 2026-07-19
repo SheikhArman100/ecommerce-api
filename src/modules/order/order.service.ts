@@ -2,24 +2,27 @@ import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
-import { IOrder, IOrderCreate, IOrderFilters, IOrderItem, IOrderUpdate } from './order.interface';
+import { IOrder, IOrderCreate, IOrderFilters, IOrderInitiationResponse, IOrderUpdate } from './order.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
-import { Prisma, OrderStatus } from '../../generated/client';
+import { Prisma, OrderStatus, PaymentStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 import config from '../../config';
+import { nanoid } from 'nanoid';
 
 import { ENUM_USER_ROLE } from '../../enum/user';
 import { CouponService } from '../coupon/coupon.service';
+import { SSLCommerzService } from '../payment/sslcommerz.service';
 import { NotificationService } from '../notification/notification.service';
 
 const createOrderFromCart = async (
   userInfo: UserInfoFromToken,
   payload: IOrderCreate
-): Promise<IOrder> => {
+): Promise<IOrderInitiationResponse> => {
   // Check if user exists
   const checkUser = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
+    include: { detail: true },
   });
   if (!checkUser) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
@@ -87,15 +90,14 @@ const createOrderFromCart = async (
     throw new ApiError(status.BAD_REQUEST, 'Cart is empty or does not exist');
   }
 
-  // Validate all cart items
+  // Validate all cart items and build cart snapshot
   let totalAmount = 0;
-  const orderItems: Prisma.OrderItemUncheckedCreateWithoutOrderInput[] = [];
+  const cartSnapshotItems: any[] = [];
 
   for (const cartItem of userCart.items) {
-    // Fallback for productFlavorSize if direct relation is null (quantity products)
+    // Resolve variant
     let productVariant = cartItem.productFlavorSize;
     if (!productVariant && cartItem.product?.flavors) {
-      // Search through flavors and their sizes
       for (const flavor of cartItem.product.flavors) {
         const variant = flavor.sizes.find(
           (v: any) => v.flavorId === cartItem.flavorId && v.sizeId === cartItem.sizeId
@@ -145,16 +147,15 @@ const createOrderFromCart = async (
     const itemPrice = discountedPrice * cartItem.quantity;
     totalAmount += itemPrice;
 
-    orderItems.push({
+    cartSnapshotItems.push({
       productId: cartItem.productId,
       flavorId: cartItem.flavorId,
       sizeId: cartItem.sizeId,
       quantity: cartItem.quantity,
       price: discountedPrice,
-      // Snapshot fields
       productTitle: cartItem.product.title,
-      sizeName: productVariant?.size ? productVariant.size.name : null,
-      flavorName: productVariant?.productFlavor.flavor ? productVariant.productFlavor.flavor.name : null,
+      flavorName: productVariant?.productFlavor?.flavor?.name || null,
+      sizeName: productVariant?.size?.name || null,
     });
   }
 
@@ -176,91 +177,185 @@ const createOrderFromCart = async (
     }
   }
 
-  const payableAmount = totalAmount - discountAmount + config.delivery_charge;
+  const deliveryCharge = config.delivery_charge;
+  const payableAmount = totalAmount - discountAmount + deliveryCharge;
 
-  // Create order and order items in a transaction
-  const order = await prisma.$transaction(async (tx) => {
-    // Create the order
-    const newOrder = await tx.order.create({
+  // Generate transaction ID
+  const tranId = `TRAN-${nanoid(10)}`;
+
+  // Build cart snapshot to store in payment record
+  const cartSnapshot = {
+    items: cartSnapshotItems,
+  };
+
+  // Create shell order + payment record + initiate SSLCommerz payment in transaction
+  const result = await prisma.$transaction(async (tx: any) => {
+    // 1. Create shell order (NO items yet - they will be created after payment success)
+    const shellOrder = await tx.order.create({
       data: {
         userId: checkUser.id,
         totalAmount,
         discountAmount,
         payableAmount,
-        couponId,
-        deliveryCharge: config.delivery_charge,
+        deliveryCharge,
+        couponId: couponId || null,
         status: OrderStatus.Pending,
-        items: {
-          create: orderItems
-        }
+        paymentStatus: PaymentStatus.PENDING,
       },
-      include: {
-        items: {
-          include: {
-            product: { select: { id: true, title: true, slug: true } },
-            productFlavorSize: { select: { price: true, stock: true } }
-          }
-        },
-        coupon: true
-      }
     });
 
-    // Update coupon used count if applicable
+    // Increment coupon used count if applicable
     if (couponId) {
       await tx.coupon.update({
         where: { id: couponId },
-        data: {
-          usedCount: {
-            increment: 1
-          }
-        }
+        data: { usedCount: { increment: 1 } },
       });
     }
 
-    // Update stock quantities
-    for (const cartItem of userCart.items) {
-      await tx.productFlavorSize.update({
-        where: {
-          productId_flavorId_sizeId: {
-            productId: cartItem.productId,
-            flavorId: cartItem.flavorId,
-            sizeId: cartItem.sizeId as any
-          }
+    // 2. Initiate payment with SSLCommerz
+    const sslPaymentData = {
+      total_amount: payableAmount,
+      currency: 'BDT' as const,
+      tran_id: tranId,
+      success_url: `${config.app_base_url}/api/v1/payment/success`,
+      fail_url: `${config.app_base_url}/api/v1/payment/fail`,
+      cancel_url: `${config.app_base_url}/api/v1/payment/cancel`,
+      ipn_url: `${config.app_base_url}/api/v1/payment/ipn`,
+      shipping_method: 'Courier' as const,
+      product_name: cartSnapshotItems.map((item: any) => item.productTitle).join(', '),
+      product_category: 'Ecommerce',
+      product_profile: 'general',
+      cus_name: checkUser.name,
+      cus_email: checkUser.email,
+      cus_add1: checkUser.detail?.address || 'N/A',
+      cus_add2: checkUser.detail?.address || 'N/A',
+      cus_city: checkUser.detail?.city || 'N/A',
+      cus_state: checkUser.detail?.city || 'N/A',
+      cus_postcode: '1000',
+      cus_country: 'Bangladesh',
+      cus_phone: checkUser.phoneNumber,
+      cus_fax: checkUser.phoneNumber,
+      ship_name: checkUser.name,
+      ship_add1: checkUser.detail?.address || 'N/A',
+      ship_add2: checkUser.detail?.address || 'N/A',
+      ship_city: checkUser.detail?.city || 'N/A',
+      ship_state: checkUser.detail?.city || 'N/A',
+      ship_postcode: '1000',
+      ship_country: 'Bangladesh',
+    };
+
+    const sslResponse = await SSLCommerzService.initiatePayment(sslPaymentData) as any;
+
+    console.log('SSLCommerz Initiation Response:', sslResponse);
+
+    if (sslResponse?.status !== 'SUCCESS') {
+      throw new ApiError(status.BAD_REQUEST, 'Payment initiation failed');
+    }
+
+    // 3. Create payment record with cart snapshot stored in gatewayResponse
+    await tx.payment.create({
+      data: {
+        orderId: shellOrder.id,
+        transactionId: tranId,
+        amount: payableAmount,
+        paymentStatus: PaymentStatus.PENDING,
+        gatewayResponse: {
+          ...sslResponse,
+          cartSnapshot, // Store cart snapshot for deferred order item creation
         },
-        data: {
-          stock: {
-            decrement: cartItem.quantity
-          }
-        }
-      });
-    }
-
-    // Clear the user's cart
-    await tx.cartItem.deleteMany({
-      where: { cartId: userCart.id }
+      },
     });
 
-    return newOrder;
+    return {
+      shellOrderId: shellOrder.id,
+      GatewayPageURL: sslResponse.GatewayPageURL,
+      transactionId: tranId,
+    };
   });
 
-  // Async triggers for notifications (don't block the response)
-  NotificationService.sendOrderConfirmationEmail(checkUser.email, {
-    userName: checkUser.name,
-    orderId: order.id,
-    payableAmount: order.payableAmount,
-    discountAmount: order.discountAmount,
-    deliveryCharge: order.deliveryCharge,
-    items: order.items,
-  }).catch(err => console.error('Order Confirmation Email Error:', err));
+  return {
+    GatewayPageURL: result.GatewayPageURL,
+    transactionId: result.transactionId,
+  };
+};
 
-  NotificationService.sendAdminOrderAlert({
-    orderId: order.id,
-    userName: checkUser.name,
-    userEmail: checkUser.email,
-    payableAmount: order.payableAmount,
-  }).catch(err => console.error('Admin Order Alert Error:', err));
+const createOrderItemsFromSnapshot = async (tran_id: string) => {
+  // Find the payment record with cart snapshot
+  const payment = await (prisma as any).payment.findUnique({
+    where: { transactionId: tran_id },
+  });
 
-  return order as unknown as IOrder;
+  if (!payment) {
+    throw new ApiError(status.NOT_FOUND, 'Payment record not found');
+  }
+
+  const gatewayResponse = payment.gatewayResponse as any;
+  const cartSnapshot = gatewayResponse?.cartSnapshot;
+
+  if (!cartSnapshot || !cartSnapshot.items || cartSnapshot.items.length === 0) {
+    throw new ApiError(status.BAD_REQUEST, 'Cart snapshot not found in payment record');
+  }
+
+  // Find user's cart to clear later
+  const order = await prisma.order.findUnique({
+    where: { id: payment.orderId },
+  });
+
+  if (!order) {
+    throw new ApiError(status.NOT_FOUND, 'Order not found');
+  }
+
+  const userCart = await prisma.cart.findUnique({
+    where: { userId: order.userId },
+  });
+
+  // Create order items and decrement stock in a transaction
+  await prisma.$transaction(async (tx: any) => {
+    // 1. Create order items from snapshot
+    for (const item of cartSnapshot.items) {
+      await tx.orderItem.create({
+        data: {
+          orderId: payment.orderId,
+          productId: item.productId,
+          flavorId: item.flavorId,
+          sizeId: item.sizeId,
+          quantity: item.quantity,
+          price: item.price,
+          productTitle: item.productTitle,
+          flavorName: item.flavorName,
+          sizeName: item.sizeName,
+        },
+      });
+
+      // 2. Find product flavor size record and decrement stock
+      // Use findFirst with nullable sizeId since @@unique doesn't accept null in where
+      const productFlavorSize = await tx.productFlavorSize.findFirst({
+        where: {
+          productId: item.productId,
+          flavorId: item.flavorId,
+          sizeId: item.sizeId, // null for quantity-based products
+        },
+      });
+
+      if (!productFlavorSize) {
+        throw new Error(`Product flavor size not found for product ${item.productId}, flavor ${item.flavorId}, size ${item.sizeId}`);
+      }
+
+      await tx.productFlavorSize.update({
+        where: { id: productFlavorSize.id },
+        data: {
+          stock: { decrement: item.quantity },
+        },
+      });
+    }
+
+    // 3. Clear cart if exists
+    if (userCart) {
+      await tx.cartItem.deleteMany({
+        where: { cartId: userCart.id },
+      });
+    }
+  });
 };
 
 const getAllOrders = async (
@@ -765,6 +860,7 @@ const updateOrderStatus = async (
 
 export const OrderService = {
   createOrderFromCart,
+  createOrderItemsFromSnapshot,
   getAllOrders,
   getSingleOrder,
   getUserOrders,

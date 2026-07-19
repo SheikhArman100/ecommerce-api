@@ -5,6 +5,30 @@ export interface IOrderCreate {
   couponCode?: string;
 }
 
+// Cart snapshot stored in payment gatewayResponse for deferred order creation
+export interface ICartSnapshot {
+  userId: number;
+  items: ICartSnapshotItem[];
+  totalAmount: number;
+  discountAmount: number;
+  payableAmount: number;
+  deliveryCharge: number;
+  couponId?: number;
+  couponCode?: string;
+}
+
+export interface ICartSnapshotItem {
+  productId: number;
+  flavorId: number;
+  sizeId: number | null;
+  quantity: number;
+  price: number;
+  productTitle: string;
+  flavorName: string | null;
+  sizeName: string | null;
+  stockToDecrement: number;
+}
+
 // Interface for Order updates
 export interface IOrderUpdate {
   status?: OrderStatus;
@@ -20,6 +44,12 @@ export interface IOrderFilters {
   startDate?: string;
   endDate?: string;
   productId?: string;
+}
+
+// Interface for payment initiation response
+export interface IOrderInitiationResponse {
+  GatewayPageURL: string;
+  transactionId: string;
 }
 
 // Interface for Order response
