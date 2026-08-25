@@ -200,7 +200,7 @@ export type WishListGroupByOutputType = {
   _max: WishListMaxAggregateOutputType | null
 }
 
-type GetWishListGroupByPayload<T extends WishListGroupByArgs> = Prisma.PrismaPromise<
+export type GetWishListGroupByPayload<T extends WishListGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<WishListGroupByOutputType, T['by']> &
       {
@@ -617,7 +617,25 @@ export type WishListSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["wishList"]>
 
+export type WishListSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  userId?: boolean
+  productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["wishList"]>
 
+export type WishListSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  userId?: boolean
+  productId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["wishList"]>
 
 export type WishListSelectScalar = {
   id?: boolean
@@ -629,6 +647,14 @@ export type WishListSelectScalar = {
 
 export type WishListOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "productId" | "createdAt" | "updatedAt", ExtArgs["result"]["wishList"]>
 export type WishListInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}
+export type WishListIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}
+export type WishListIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }
@@ -763,6 +789,30 @@ export interface WishListDelegate<ExtArgs extends runtime.Types.Extensions.Inter
   createMany<T extends WishListCreateManyArgs>(args?: Prisma.SelectSubset<T, WishListCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many WishLists and returns the data saved in the database.
+   * @param {WishListCreateManyAndReturnArgs} args - Arguments to create many WishLists.
+   * @example
+   * // Create many WishLists
+   * const wishList = await prisma.wishList.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many WishLists and only return the `id`
+   * const wishListWithIdOnly = await prisma.wishList.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends WishListCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, WishListCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WishListPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a WishList.
    * @param {WishListDeleteArgs} args - Arguments to delete one WishList.
    * @example
@@ -825,6 +875,36 @@ export interface WishListDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    * 
    */
   updateMany<T extends WishListUpdateManyArgs>(args: Prisma.SelectSubset<T, WishListUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more WishLists and returns the data updated in the database.
+   * @param {WishListUpdateManyAndReturnArgs} args - Arguments to update many WishLists.
+   * @example
+   * // Update many WishLists
+   * const wishList = await prisma.wishList.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more WishLists and only return the `id`
+   * const wishListWithIdOnly = await prisma.wishList.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends WishListUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, WishListUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WishListPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one WishList.
@@ -1217,6 +1297,11 @@ export type WishListFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` WishLists.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of WishLists.
+   */
   distinct?: Prisma.WishListScalarFieldEnum | Prisma.WishListScalarFieldEnum[]
 }
 
@@ -1251,6 +1336,29 @@ export type WishListCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   data: Prisma.WishListCreateManyInput | Prisma.WishListCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * WishList createManyAndReturn
+ */
+export type WishListCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WishList
+   */
+  select?: Prisma.WishListSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the WishList
+   */
+  omit?: Prisma.WishListOmit<ExtArgs> | null
+  /**
+   * The data used to create many WishLists.
+   */
+  data: Prisma.WishListCreateManyInput | Prisma.WishListCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WishListIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1295,6 +1403,36 @@ export type WishListUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many WishLists to update.
    */
   limit?: number
+}
+
+/**
+ * WishList updateManyAndReturn
+ */
+export type WishListUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WishList
+   */
+  select?: Prisma.WishListSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the WishList
+   */
+  omit?: Prisma.WishListOmit<ExtArgs> | null
+  /**
+   * The data used to update WishLists.
+   */
+  data: Prisma.XOR<Prisma.WishListUpdateManyMutationInput, Prisma.WishListUncheckedUpdateManyInput>
+  /**
+   * Filter which WishLists to update
+   */
+  where?: Prisma.WishListWhereInput
+  /**
+   * Limit how many WishLists to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WishListIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

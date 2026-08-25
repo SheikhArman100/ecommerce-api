@@ -240,7 +240,7 @@ export type ProductFlavorSizeGroupByOutputType = {
   _max: ProductFlavorSizeMaxAggregateOutputType | null
 }
 
-type GetProductFlavorSizeGroupByPayload<T extends ProductFlavorSizeGroupByArgs> = Prisma.PrismaPromise<
+export type GetProductFlavorSizeGroupByPayload<T extends ProductFlavorSizeGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<ProductFlavorSizeGroupByOutputType, T['by']> &
       {
@@ -1013,7 +1013,33 @@ export type ProductFlavorSizeSelect<ExtArgs extends runtime.Types.Extensions.Int
   _count?: boolean | Prisma.ProductFlavorSizeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["productFlavorSize"]>
 
+export type ProductFlavorSizeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  productId?: boolean
+  flavorId?: boolean
+  sizeId?: boolean
+  stock?: boolean
+  price?: boolean
+  soldByQuantity?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  productFlavor?: boolean | Prisma.ProductFlavorDefaultArgs<ExtArgs>
+  size?: boolean | Prisma.ProductFlavorSize$sizeArgs<ExtArgs>
+}, ExtArgs["result"]["productFlavorSize"]>
 
+export type ProductFlavorSizeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  productId?: boolean
+  flavorId?: boolean
+  sizeId?: boolean
+  stock?: boolean
+  price?: boolean
+  soldByQuantity?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  productFlavor?: boolean | Prisma.ProductFlavorDefaultArgs<ExtArgs>
+  size?: boolean | Prisma.ProductFlavorSize$sizeArgs<ExtArgs>
+}, ExtArgs["result"]["productFlavorSize"]>
 
 export type ProductFlavorSizeSelectScalar = {
   id?: boolean
@@ -1034,6 +1060,14 @@ export type ProductFlavorSizeInclude<ExtArgs extends runtime.Types.Extensions.In
   cartItems?: boolean | Prisma.ProductFlavorSize$cartItemsArgs<ExtArgs>
   orderItems?: boolean | Prisma.ProductFlavorSize$orderItemsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductFlavorSizeCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ProductFlavorSizeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  productFlavor?: boolean | Prisma.ProductFlavorDefaultArgs<ExtArgs>
+  size?: boolean | Prisma.ProductFlavorSize$sizeArgs<ExtArgs>
+}
+export type ProductFlavorSizeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  productFlavor?: boolean | Prisma.ProductFlavorDefaultArgs<ExtArgs>
+  size?: boolean | Prisma.ProductFlavorSize$sizeArgs<ExtArgs>
 }
 
 export type $ProductFlavorSizePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1172,6 +1206,30 @@ export interface ProductFlavorSizeDelegate<ExtArgs extends runtime.Types.Extensi
   createMany<T extends ProductFlavorSizeCreateManyArgs>(args?: Prisma.SelectSubset<T, ProductFlavorSizeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many ProductFlavorSizes and returns the data saved in the database.
+   * @param {ProductFlavorSizeCreateManyAndReturnArgs} args - Arguments to create many ProductFlavorSizes.
+   * @example
+   * // Create many ProductFlavorSizes
+   * const productFlavorSize = await prisma.productFlavorSize.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many ProductFlavorSizes and only return the `id`
+   * const productFlavorSizeWithIdOnly = await prisma.productFlavorSize.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends ProductFlavorSizeCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, ProductFlavorSizeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductFlavorSizePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a ProductFlavorSize.
    * @param {ProductFlavorSizeDeleteArgs} args - Arguments to delete one ProductFlavorSize.
    * @example
@@ -1234,6 +1292,36 @@ export interface ProductFlavorSizeDelegate<ExtArgs extends runtime.Types.Extensi
    * 
    */
   updateMany<T extends ProductFlavorSizeUpdateManyArgs>(args: Prisma.SelectSubset<T, ProductFlavorSizeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more ProductFlavorSizes and returns the data updated in the database.
+   * @param {ProductFlavorSizeUpdateManyAndReturnArgs} args - Arguments to update many ProductFlavorSizes.
+   * @example
+   * // Update many ProductFlavorSizes
+   * const productFlavorSize = await prisma.productFlavorSize.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more ProductFlavorSizes and only return the `id`
+   * const productFlavorSizeWithIdOnly = await prisma.productFlavorSize.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends ProductFlavorSizeUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, ProductFlavorSizeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductFlavorSizePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one ProductFlavorSize.
@@ -1632,6 +1720,11 @@ export type ProductFlavorSizeFindManyArgs<ExtArgs extends runtime.Types.Extensio
    * Skip the first `n` ProductFlavorSizes.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of ProductFlavorSizes.
+   */
   distinct?: Prisma.ProductFlavorSizeScalarFieldEnum | Prisma.ProductFlavorSizeScalarFieldEnum[]
 }
 
@@ -1666,6 +1759,29 @@ export type ProductFlavorSizeCreateManyArgs<ExtArgs extends runtime.Types.Extens
    */
   data: Prisma.ProductFlavorSizeCreateManyInput | Prisma.ProductFlavorSizeCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * ProductFlavorSize createManyAndReturn
+ */
+export type ProductFlavorSizeCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductFlavorSize
+   */
+  select?: Prisma.ProductFlavorSizeSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductFlavorSize
+   */
+  omit?: Prisma.ProductFlavorSizeOmit<ExtArgs> | null
+  /**
+   * The data used to create many ProductFlavorSizes.
+   */
+  data: Prisma.ProductFlavorSizeCreateManyInput | Prisma.ProductFlavorSizeCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductFlavorSizeIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1710,6 +1826,36 @@ export type ProductFlavorSizeUpdateManyArgs<ExtArgs extends runtime.Types.Extens
    * Limit how many ProductFlavorSizes to update.
    */
   limit?: number
+}
+
+/**
+ * ProductFlavorSize updateManyAndReturn
+ */
+export type ProductFlavorSizeUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductFlavorSize
+   */
+  select?: Prisma.ProductFlavorSizeSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductFlavorSize
+   */
+  omit?: Prisma.ProductFlavorSizeOmit<ExtArgs> | null
+  /**
+   * The data used to update ProductFlavorSizes.
+   */
+  data: Prisma.XOR<Prisma.ProductFlavorSizeUpdateManyMutationInput, Prisma.ProductFlavorSizeUncheckedUpdateManyInput>
+  /**
+   * Filter which ProductFlavorSizes to update
+   */
+  where?: Prisma.ProductFlavorSizeWhereInput
+  /**
+   * Limit how many ProductFlavorSizes to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductFlavorSizeIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

@@ -221,7 +221,7 @@ export type SizeGroupByOutputType = {
   _max: SizeMaxAggregateOutputType | null
 }
 
-type GetSizeGroupByPayload<T extends SizeGroupByArgs> = Prisma.PrismaPromise<
+export type GetSizeGroupByPayload<T extends SizeGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<SizeGroupByOutputType, T['by']> &
       {
@@ -265,7 +265,6 @@ export type SizeOrderByWithRelationInput = {
   creator?: Prisma.UserOrderByWithRelationInput
   updater?: Prisma.UserOrderByWithRelationInput
   productFlavors?: Prisma.ProductFlavorSizeOrderByRelationAggregateInput
-  _relevance?: Prisma.SizeOrderByRelevanceInput
 }
 
 export type SizeWhereUniqueInput = Prisma.AtLeast<{
@@ -399,12 +398,6 @@ export type SizeListRelationFilter = {
 
 export type SizeOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type SizeOrderByRelevanceInput = {
-  fields: Prisma.SizeOrderByRelevanceFieldEnum | Prisma.SizeOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type SizeCountOrderByAggregateInput = {
@@ -851,7 +844,31 @@ export type SizeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   _count?: boolean | Prisma.SizeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["size"]>
 
+export type SizeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  name?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Size$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["size"]>
 
+export type SizeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  name?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Size$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["size"]>
 
 export type SizeSelectScalar = {
   id?: boolean
@@ -870,6 +887,14 @@ export type SizeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updater?: boolean | Prisma.Size$updaterArgs<ExtArgs>
   productFlavors?: boolean | Prisma.Size$productFlavorsArgs<ExtArgs>
   _count?: boolean | Prisma.SizeCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type SizeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Size$updaterArgs<ExtArgs>
+}
+export type SizeIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Size$updaterArgs<ExtArgs>
 }
 
 export type $SizePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1006,6 +1031,30 @@ export interface SizeDelegate<ExtArgs extends runtime.Types.Extensions.InternalA
   createMany<T extends SizeCreateManyArgs>(args?: Prisma.SelectSubset<T, SizeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Sizes and returns the data saved in the database.
+   * @param {SizeCreateManyAndReturnArgs} args - Arguments to create many Sizes.
+   * @example
+   * // Create many Sizes
+   * const size = await prisma.size.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Sizes and only return the `id`
+   * const sizeWithIdOnly = await prisma.size.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends SizeCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, SizeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SizePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Size.
    * @param {SizeDeleteArgs} args - Arguments to delete one Size.
    * @example
@@ -1068,6 +1117,36 @@ export interface SizeDelegate<ExtArgs extends runtime.Types.Extensions.InternalA
    * 
    */
   updateMany<T extends SizeUpdateManyArgs>(args: Prisma.SelectSubset<T, SizeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Sizes and returns the data updated in the database.
+   * @param {SizeUpdateManyAndReturnArgs} args - Arguments to update many Sizes.
+   * @example
+   * // Update many Sizes
+   * const size = await prisma.size.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Sizes and only return the `id`
+   * const sizeWithIdOnly = await prisma.size.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends SizeUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, SizeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SizePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Size.
@@ -1464,6 +1543,11 @@ export type SizeFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Skip the first `n` Sizes.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Sizes.
+   */
   distinct?: Prisma.SizeScalarFieldEnum | Prisma.SizeScalarFieldEnum[]
 }
 
@@ -1498,6 +1582,29 @@ export type SizeCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   data: Prisma.SizeCreateManyInput | Prisma.SizeCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Size createManyAndReturn
+ */
+export type SizeCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Size
+   */
+  select?: Prisma.SizeSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Size
+   */
+  omit?: Prisma.SizeOmit<ExtArgs> | null
+  /**
+   * The data used to create many Sizes.
+   */
+  data: Prisma.SizeCreateManyInput | Prisma.SizeCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SizeIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1542,6 +1649,36 @@ export type SizeUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Sizes to update.
    */
   limit?: number
+}
+
+/**
+ * Size updateManyAndReturn
+ */
+export type SizeUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Size
+   */
+  select?: Prisma.SizeSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Size
+   */
+  omit?: Prisma.SizeOmit<ExtArgs> | null
+  /**
+   * The data used to update Sizes.
+   */
+  data: Prisma.XOR<Prisma.SizeUpdateManyMutationInput, Prisma.SizeUncheckedUpdateManyInput>
+  /**
+   * Filter which Sizes to update
+   */
+  where?: Prisma.SizeWhereInput
+  /**
+   * Limit how many Sizes to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SizeIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

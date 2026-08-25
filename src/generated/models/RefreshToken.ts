@@ -203,7 +203,7 @@ export type RefreshTokenGroupByOutputType = {
   _max: RefreshTokenMaxAggregateOutputType | null
 }
 
-type GetRefreshTokenGroupByPayload<T extends RefreshTokenGroupByArgs> = Prisma.PrismaPromise<
+export type GetRefreshTokenGroupByPayload<T extends RefreshTokenGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<RefreshTokenGroupByOutputType, T['by']> &
       {
@@ -239,7 +239,6 @@ export type RefreshTokenOrderByWithRelationInput = {
   expiresAt?: Prisma.SortOrder
   ipAddress?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
-  _relevance?: Prisma.RefreshTokenOrderByRelevanceInput
 }
 
 export type RefreshTokenWhereUniqueInput = Prisma.AtLeast<{
@@ -348,12 +347,6 @@ export type RefreshTokenListRelationFilter = {
 
 export type RefreshTokenOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type RefreshTokenOrderByRelevanceInput = {
-  fields: Prisma.RefreshTokenOrderByRelevanceFieldEnum | Prisma.RefreshTokenOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type RefreshTokenCountOrderByAggregateInput = {
@@ -531,7 +524,25 @@ export type RefreshTokenSelect<ExtArgs extends runtime.Types.Extensions.Internal
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["refreshToken"]>
 
+export type RefreshTokenSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  token?: boolean
+  userId?: boolean
+  createdAt?: boolean
+  expiresAt?: boolean
+  ipAddress?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["refreshToken"]>
 
+export type RefreshTokenSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  token?: boolean
+  userId?: boolean
+  createdAt?: boolean
+  expiresAt?: boolean
+  ipAddress?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["refreshToken"]>
 
 export type RefreshTokenSelectScalar = {
   id?: boolean
@@ -544,6 +555,12 @@ export type RefreshTokenSelectScalar = {
 
 export type RefreshTokenOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "token" | "userId" | "createdAt" | "expiresAt" | "ipAddress", ExtArgs["result"]["refreshToken"]>
 export type RefreshTokenInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type RefreshTokenIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type RefreshTokenIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
@@ -677,6 +694,30 @@ export interface RefreshTokenDelegate<ExtArgs extends runtime.Types.Extensions.I
   createMany<T extends RefreshTokenCreateManyArgs>(args?: Prisma.SelectSubset<T, RefreshTokenCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many RefreshTokens and returns the data saved in the database.
+   * @param {RefreshTokenCreateManyAndReturnArgs} args - Arguments to create many RefreshTokens.
+   * @example
+   * // Create many RefreshTokens
+   * const refreshToken = await prisma.refreshToken.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many RefreshTokens and only return the `id`
+   * const refreshTokenWithIdOnly = await prisma.refreshToken.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends RefreshTokenCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, RefreshTokenCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a RefreshToken.
    * @param {RefreshTokenDeleteArgs} args - Arguments to delete one RefreshToken.
    * @example
@@ -739,6 +780,36 @@ export interface RefreshTokenDelegate<ExtArgs extends runtime.Types.Extensions.I
    * 
    */
   updateMany<T extends RefreshTokenUpdateManyArgs>(args: Prisma.SelectSubset<T, RefreshTokenUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more RefreshTokens and returns the data updated in the database.
+   * @param {RefreshTokenUpdateManyAndReturnArgs} args - Arguments to update many RefreshTokens.
+   * @example
+   * // Update many RefreshTokens
+   * const refreshToken = await prisma.refreshToken.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more RefreshTokens and only return the `id`
+   * const refreshTokenWithIdOnly = await prisma.refreshToken.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends RefreshTokenUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, RefreshTokenUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one RefreshToken.
@@ -1131,6 +1202,11 @@ export type RefreshTokenFindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Skip the first `n` RefreshTokens.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of RefreshTokens.
+   */
   distinct?: Prisma.RefreshTokenScalarFieldEnum | Prisma.RefreshTokenScalarFieldEnum[]
 }
 
@@ -1165,6 +1241,29 @@ export type RefreshTokenCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
    */
   data: Prisma.RefreshTokenCreateManyInput | Prisma.RefreshTokenCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * RefreshToken createManyAndReturn
+ */
+export type RefreshTokenCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RefreshToken
+   */
+  select?: Prisma.RefreshTokenSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the RefreshToken
+   */
+  omit?: Prisma.RefreshTokenOmit<ExtArgs> | null
+  /**
+   * The data used to create many RefreshTokens.
+   */
+  data: Prisma.RefreshTokenCreateManyInput | Prisma.RefreshTokenCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RefreshTokenIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1209,6 +1308,36 @@ export type RefreshTokenUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many RefreshTokens to update.
    */
   limit?: number
+}
+
+/**
+ * RefreshToken updateManyAndReturn
+ */
+export type RefreshTokenUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RefreshToken
+   */
+  select?: Prisma.RefreshTokenSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the RefreshToken
+   */
+  omit?: Prisma.RefreshTokenOmit<ExtArgs> | null
+  /**
+   * The data used to update RefreshTokens.
+   */
+  data: Prisma.XOR<Prisma.RefreshTokenUpdateManyMutationInput, Prisma.RefreshTokenUncheckedUpdateManyInput>
+  /**
+   * Filter which RefreshTokens to update
+   */
+  where?: Prisma.RefreshTokenWhereInput
+  /**
+   * Limit how many RefreshTokens to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RefreshTokenIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

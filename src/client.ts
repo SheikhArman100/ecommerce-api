@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaClient } from "./generated/client";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import ApiError from "./errors/ApiError";
 import prismaLogger from "./logger/prismaLogger";
 
@@ -9,15 +10,8 @@ if (!connectionString) {
   throw new ApiError(500, 'DATABASE_URL environment variable is required');
 }
 
-const url = new URL(connectionString);
-
-const adapter = new PrismaMariaDb({
-  host: url.hostname,
-  port: url.port ? Number(url.port) : undefined,
-  user: url.username ? decodeURIComponent(url.username) : undefined,
-  password: url.password ? decodeURIComponent(url.password) : undefined,
-  database: url.pathname.slice(1) || undefined,
-});
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 
 // Enable logging only in development
 const isDevelopment = process.env.NODE_ENV !== 'production';

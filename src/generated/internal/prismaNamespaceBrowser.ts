@@ -79,12 +79,12 @@ export type ModelName = (typeof ModelName)[keyof typeof ModelName]
  * Enums
  */
 
-export const TransactionIsolationLevel = {
+export const TransactionIsolationLevel = runtime.makeStrictEnum({
   ReadUncommitted: 'ReadUncommitted',
   ReadCommitted: 'ReadCommitted',
   RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
-} as const
+} as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
@@ -398,109 +398,11 @@ export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
 export const NullableJsonNullValueInput = {
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull'
+  DbNull: DbNull,
+  JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
-export const UserOrderByRelevanceFieldEnum = {
-  name: 'name',
-  email: 'email',
-  phoneNumber: 'phoneNumber',
-  password: 'password'
-} as const
-
-export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
-
-
-export const UserDetailOrderByRelevanceFieldEnum = {
-  profileImage: 'profileImage',
-  address: 'address',
-  city: 'city',
-  road: 'road'
-} as const
-
-export type UserDetailOrderByRelevanceFieldEnum = (typeof UserDetailOrderByRelevanceFieldEnum)[keyof typeof UserDetailOrderByRelevanceFieldEnum]
-
-
-export const RefreshTokenOrderByRelevanceFieldEnum = {
-  token: 'token',
-  ipAddress: 'ipAddress'
-} as const
-
-export type RefreshTokenOrderByRelevanceFieldEnum = (typeof RefreshTokenOrderByRelevanceFieldEnum)[keyof typeof RefreshTokenOrderByRelevanceFieldEnum]
-
-
-export const ProductOrderByRelevanceFieldEnum = {
-  title: 'title',
-  slug: 'slug',
-  description: 'description'
-} as const
-
-export type ProductOrderByRelevanceFieldEnum = (typeof ProductOrderByRelevanceFieldEnum)[keyof typeof ProductOrderByRelevanceFieldEnum]
-
-
-export const CategoryOrderByRelevanceFieldEnum = {
-  name: 'name',
-  slug: 'slug',
-  description: 'description'
-} as const
-
-export type CategoryOrderByRelevanceFieldEnum = (typeof CategoryOrderByRelevanceFieldEnum)[keyof typeof CategoryOrderByRelevanceFieldEnum]
-
-
-export const FlavorOrderByRelevanceFieldEnum = {
-  name: 'name',
-  color: 'color',
-  description: 'description'
-} as const
-
-export type FlavorOrderByRelevanceFieldEnum = (typeof FlavorOrderByRelevanceFieldEnum)[keyof typeof FlavorOrderByRelevanceFieldEnum]
-
-
-export const SizeOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
-} as const
-
-export type SizeOrderByRelevanceFieldEnum = (typeof SizeOrderByRelevanceFieldEnum)[keyof typeof SizeOrderByRelevanceFieldEnum]
-
-
-export const FileOrderByRelevanceFieldEnum = {
-  path: 'path',
-  originalName: 'originalName',
-  modifiedName: 'modifiedName'
-} as const
-
-export type FileOrderByRelevanceFieldEnum = (typeof FileOrderByRelevanceFieldEnum)[keyof typeof FileOrderByRelevanceFieldEnum]
-
-
-export const ReviewOrderByRelevanceFieldEnum = {
-  comment: 'comment',
-  adminNote: 'adminNote',
-  ipAddress: 'ipAddress'
-} as const
-
-export type ReviewOrderByRelevanceFieldEnum = (typeof ReviewOrderByRelevanceFieldEnum)[keyof typeof ReviewOrderByRelevanceFieldEnum]
-
-
-export const JsonNullValueFilter = {
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull',
-  AnyNull: 'AnyNull'
-} as const
-
-export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 export const QueryMode = {
@@ -511,39 +413,19 @@ export const QueryMode = {
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-export const PaymentOrderByRelevanceFieldEnum = {
-  id: 'id',
-  transactionId: 'transactionId',
-  bankTranId: 'bankTranId',
-  paymentGateway: 'paymentGateway'
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
 } as const
 
-export type PaymentOrderByRelevanceFieldEnum = (typeof PaymentOrderByRelevanceFieldEnum)[keyof typeof PaymentOrderByRelevanceFieldEnum]
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
-export const CouponOrderByRelevanceFieldEnum = {
-  code: 'code',
-  discountType: 'discountType'
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
 } as const
 
-export type CouponOrderByRelevanceFieldEnum = (typeof CouponOrderByRelevanceFieldEnum)[keyof typeof CouponOrderByRelevanceFieldEnum]
-
-
-export const OrderItemOrderByRelevanceFieldEnum = {
-  productTitle: 'productTitle',
-  flavorName: 'flavorName',
-  sizeName: 'sizeName'
-} as const
-
-export type OrderItemOrderByRelevanceFieldEnum = (typeof OrderItemOrderByRelevanceFieldEnum)[keyof typeof OrderItemOrderByRelevanceFieldEnum]
-
-
-export const CampaignOrderByRelevanceFieldEnum = {
-  title: 'title',
-  slug: 'slug',
-  description: 'description',
-  bannerImage: 'bannerImage'
-} as const
-
-export type CampaignOrderByRelevanceFieldEnum = (typeof CampaignOrderByRelevanceFieldEnum)[keyof typeof CampaignOrderByRelevanceFieldEnum]
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

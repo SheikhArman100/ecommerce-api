@@ -230,7 +230,7 @@ export type PaymentGroupByOutputType = {
   _max: PaymentMaxAggregateOutputType | null
 }
 
-type GetPaymentGroupByPayload<T extends PaymentGroupByArgs> = Prisma.PrismaPromise<
+export type GetPaymentGroupByPayload<T extends PaymentGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<PaymentGroupByOutputType, T['by']> &
       {
@@ -276,7 +276,6 @@ export type PaymentOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   order?: Prisma.OrderOrderByWithRelationInput
-  _relevance?: Prisma.PaymentOrderByRelevanceInput
 }
 
 export type PaymentWhereUniqueInput = Prisma.AtLeast<{
@@ -438,12 +437,6 @@ export type PaymentListRelationFilter = {
 
 export type PaymentOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type PaymentOrderByRelevanceInput = {
-  fields: Prisma.PaymentOrderByRelevanceFieldEnum | Prisma.PaymentOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type PaymentCountOrderByAggregateInput = {
@@ -674,7 +667,35 @@ export type PaymentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payment"]>
 
+export type PaymentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  orderId?: boolean
+  transactionId?: boolean
+  amount?: boolean
+  paymentStatus?: boolean
+  bankTranId?: boolean
+  paymentGateway?: boolean
+  gatewayResponse?: boolean
+  validationResponse?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["payment"]>
 
+export type PaymentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  orderId?: boolean
+  transactionId?: boolean
+  amount?: boolean
+  paymentStatus?: boolean
+  bankTranId?: boolean
+  paymentGateway?: boolean
+  gatewayResponse?: boolean
+  validationResponse?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["payment"]>
 
 export type PaymentSelectScalar = {
   id?: boolean
@@ -692,6 +713,12 @@ export type PaymentSelectScalar = {
 
 export type PaymentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderId" | "transactionId" | "amount" | "paymentStatus" | "bankTranId" | "paymentGateway" | "gatewayResponse" | "validationResponse" | "createdAt" | "updatedAt", ExtArgs["result"]["payment"]>
 export type PaymentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+}
+export type PaymentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
+}
+export type PaymentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   order?: boolean | Prisma.OrderDefaultArgs<ExtArgs>
 }
 
@@ -830,6 +857,30 @@ export interface PaymentDelegate<ExtArgs extends runtime.Types.Extensions.Intern
   createMany<T extends PaymentCreateManyArgs>(args?: Prisma.SelectSubset<T, PaymentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Payments and returns the data saved in the database.
+   * @param {PaymentCreateManyAndReturnArgs} args - Arguments to create many Payments.
+   * @example
+   * // Create many Payments
+   * const payment = await prisma.payment.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Payments and only return the `id`
+   * const paymentWithIdOnly = await prisma.payment.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends PaymentCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, PaymentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Payment.
    * @param {PaymentDeleteArgs} args - Arguments to delete one Payment.
    * @example
@@ -892,6 +943,36 @@ export interface PaymentDelegate<ExtArgs extends runtime.Types.Extensions.Intern
    * 
    */
   updateMany<T extends PaymentUpdateManyArgs>(args: Prisma.SelectSubset<T, PaymentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Payments and returns the data updated in the database.
+   * @param {PaymentUpdateManyAndReturnArgs} args - Arguments to update many Payments.
+   * @example
+   * // Update many Payments
+   * const payment = await prisma.payment.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Payments and only return the `id`
+   * const paymentWithIdOnly = await prisma.payment.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends PaymentUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, PaymentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Payment.
@@ -1289,6 +1370,11 @@ export type PaymentFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Skip the first `n` Payments.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Payments.
+   */
   distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[]
 }
 
@@ -1323,6 +1409,29 @@ export type PaymentCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   data: Prisma.PaymentCreateManyInput | Prisma.PaymentCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Payment createManyAndReturn
+ */
+export type PaymentCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * The data used to create many Payments.
+   */
+  data: Prisma.PaymentCreateManyInput | Prisma.PaymentCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1367,6 +1476,36 @@ export type PaymentUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Payments to update.
    */
   limit?: number
+}
+
+/**
+ * Payment updateManyAndReturn
+ */
+export type PaymentUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payment
+   */
+  select?: Prisma.PaymentSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payment
+   */
+  omit?: Prisma.PaymentOmit<ExtArgs> | null
+  /**
+   * The data used to update Payments.
+   */
+  data: Prisma.XOR<Prisma.PaymentUpdateManyMutationInput, Prisma.PaymentUncheckedUpdateManyInput>
+  /**
+   * Filter which Payments to update
+   */
+  where?: Prisma.PaymentWhereInput
+  /**
+   * Limit how many Payments to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

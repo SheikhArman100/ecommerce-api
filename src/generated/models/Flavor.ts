@@ -228,7 +228,7 @@ export type FlavorGroupByOutputType = {
   _max: FlavorMaxAggregateOutputType | null
 }
 
-type GetFlavorGroupByPayload<T extends FlavorGroupByArgs> = Prisma.PrismaPromise<
+export type GetFlavorGroupByPayload<T extends FlavorGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<FlavorGroupByOutputType, T['by']> &
       {
@@ -274,7 +274,6 @@ export type FlavorOrderByWithRelationInput = {
   creator?: Prisma.UserOrderByWithRelationInput
   updater?: Prisma.UserOrderByWithRelationInput
   products?: Prisma.ProductFlavorOrderByRelationAggregateInput
-  _relevance?: Prisma.FlavorOrderByRelevanceInput
 }
 
 export type FlavorWhereUniqueInput = Prisma.AtLeast<{
@@ -418,12 +417,6 @@ export type FlavorListRelationFilter = {
 
 export type FlavorOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type FlavorOrderByRelevanceInput = {
-  fields: Prisma.FlavorOrderByRelevanceFieldEnum | Prisma.FlavorOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type FlavorCountOrderByAggregateInput = {
@@ -889,7 +882,33 @@ export type FlavorSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   _count?: boolean | Prisma.FlavorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["flavor"]>
 
+export type FlavorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  name?: boolean
+  color?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["flavor"]>
 
+export type FlavorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  name?: boolean
+  color?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["flavor"]>
 
 export type FlavorSelectScalar = {
   id?: boolean
@@ -909,6 +928,14 @@ export type FlavorInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
   products?: boolean | Prisma.Flavor$productsArgs<ExtArgs>
   _count?: boolean | Prisma.FlavorCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type FlavorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
+}
+export type FlavorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Flavor$updaterArgs<ExtArgs>
 }
 
 export type $FlavorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1046,6 +1073,30 @@ export interface FlavorDelegate<ExtArgs extends runtime.Types.Extensions.Interna
   createMany<T extends FlavorCreateManyArgs>(args?: Prisma.SelectSubset<T, FlavorCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Flavors and returns the data saved in the database.
+   * @param {FlavorCreateManyAndReturnArgs} args - Arguments to create many Flavors.
+   * @example
+   * // Create many Flavors
+   * const flavor = await prisma.flavor.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Flavors and only return the `id`
+   * const flavorWithIdOnly = await prisma.flavor.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends FlavorCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, FlavorCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlavorPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Flavor.
    * @param {FlavorDeleteArgs} args - Arguments to delete one Flavor.
    * @example
@@ -1108,6 +1159,36 @@ export interface FlavorDelegate<ExtArgs extends runtime.Types.Extensions.Interna
    * 
    */
   updateMany<T extends FlavorUpdateManyArgs>(args: Prisma.SelectSubset<T, FlavorUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Flavors and returns the data updated in the database.
+   * @param {FlavorUpdateManyAndReturnArgs} args - Arguments to update many Flavors.
+   * @example
+   * // Update many Flavors
+   * const flavor = await prisma.flavor.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Flavors and only return the `id`
+   * const flavorWithIdOnly = await prisma.flavor.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends FlavorUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, FlavorUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FlavorPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Flavor.
@@ -1505,6 +1586,11 @@ export type FlavorFindManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Skip the first `n` Flavors.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Flavors.
+   */
   distinct?: Prisma.FlavorScalarFieldEnum | Prisma.FlavorScalarFieldEnum[]
 }
 
@@ -1539,6 +1625,29 @@ export type FlavorCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    */
   data: Prisma.FlavorCreateManyInput | Prisma.FlavorCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Flavor createManyAndReturn
+ */
+export type FlavorCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Flavor
+   */
+  select?: Prisma.FlavorSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Flavor
+   */
+  omit?: Prisma.FlavorOmit<ExtArgs> | null
+  /**
+   * The data used to create many Flavors.
+   */
+  data: Prisma.FlavorCreateManyInput | Prisma.FlavorCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FlavorIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1583,6 +1692,36 @@ export type FlavorUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Limit how many Flavors to update.
    */
   limit?: number
+}
+
+/**
+ * Flavor updateManyAndReturn
+ */
+export type FlavorUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Flavor
+   */
+  select?: Prisma.FlavorSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Flavor
+   */
+  omit?: Prisma.FlavorOmit<ExtArgs> | null
+  /**
+   * The data used to update Flavors.
+   */
+  data: Prisma.XOR<Prisma.FlavorUpdateManyMutationInput, Prisma.FlavorUncheckedUpdateManyInput>
+  /**
+   * Filter which Flavors to update
+   */
+  where?: Prisma.FlavorWhereInput
+  /**
+   * Limit how many Flavors to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FlavorIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

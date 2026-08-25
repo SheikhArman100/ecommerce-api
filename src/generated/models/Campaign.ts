@@ -260,7 +260,7 @@ export type CampaignGroupByOutputType = {
   _max: CampaignMaxAggregateOutputType | null
 }
 
-type GetCampaignGroupByPayload<T extends CampaignGroupByArgs> = Prisma.PrismaPromise<
+export type GetCampaignGroupByPayload<T extends CampaignGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<CampaignGroupByOutputType, T['by']> &
       {
@@ -314,7 +314,6 @@ export type CampaignOrderByWithRelationInput = {
   creator?: Prisma.UserOrderByWithRelationInput
   updater?: Prisma.UserOrderByWithRelationInput
   products?: Prisma.CampaignProductOrderByRelationAggregateInput
-  _relevance?: Prisma.CampaignOrderByRelevanceInput
 }
 
 export type CampaignWhereUniqueInput = Prisma.AtLeast<{
@@ -498,12 +497,6 @@ export type CampaignListRelationFilter = {
 
 export type CampaignOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type CampaignOrderByRelevanceInput = {
-  fields: Prisma.CampaignOrderByRelevanceFieldEnum | Prisma.CampaignOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type CampaignCountOrderByAggregateInput = {
@@ -1055,7 +1048,41 @@ export type CampaignSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["campaign"]>
 
+export type CampaignSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  title?: boolean
+  slug?: boolean
+  description?: boolean
+  bannerImage?: boolean
+  discountDefault?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  isActive?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["campaign"]>
 
+export type CampaignSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  title?: boolean
+  slug?: boolean
+  description?: boolean
+  bannerImage?: boolean
+  discountDefault?: boolean
+  startDate?: boolean
+  endDate?: boolean
+  isActive?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["campaign"]>
 
 export type CampaignSelectScalar = {
   id?: boolean
@@ -1079,6 +1106,14 @@ export type CampaignInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
   products?: boolean | Prisma.Campaign$productsArgs<ExtArgs>
   _count?: boolean | Prisma.CampaignCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type CampaignIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
+}
+export type CampaignIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
 }
 
 export type $CampaignPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1220,6 +1255,30 @@ export interface CampaignDelegate<ExtArgs extends runtime.Types.Extensions.Inter
   createMany<T extends CampaignCreateManyArgs>(args?: Prisma.SelectSubset<T, CampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Campaigns and returns the data saved in the database.
+   * @param {CampaignCreateManyAndReturnArgs} args - Arguments to create many Campaigns.
+   * @example
+   * // Create many Campaigns
+   * const campaign = await prisma.campaign.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Campaigns and only return the `id`
+   * const campaignWithIdOnly = await prisma.campaign.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends CampaignCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, CampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Campaign.
    * @param {CampaignDeleteArgs} args - Arguments to delete one Campaign.
    * @example
@@ -1282,6 +1341,36 @@ export interface CampaignDelegate<ExtArgs extends runtime.Types.Extensions.Inter
    * 
    */
   updateMany<T extends CampaignUpdateManyArgs>(args: Prisma.SelectSubset<T, CampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Campaigns and returns the data updated in the database.
+   * @param {CampaignUpdateManyAndReturnArgs} args - Arguments to update many Campaigns.
+   * @example
+   * // Update many Campaigns
+   * const campaign = await prisma.campaign.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Campaigns and only return the `id`
+   * const campaignWithIdOnly = await prisma.campaign.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends CampaignUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, CampaignUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Campaign.
@@ -1683,6 +1772,11 @@ export type CampaignFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` Campaigns.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Campaigns.
+   */
   distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
 }
 
@@ -1717,6 +1811,29 @@ export type CampaignCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    */
   data: Prisma.CampaignCreateManyInput | Prisma.CampaignCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Campaign createManyAndReturn
+ */
+export type CampaignCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Campaign
+   */
+  select?: Prisma.CampaignSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Campaign
+   */
+  omit?: Prisma.CampaignOmit<ExtArgs> | null
+  /**
+   * The data used to create many Campaigns.
+   */
+  data: Prisma.CampaignCreateManyInput | Prisma.CampaignCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1761,6 +1878,36 @@ export type CampaignUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many Campaigns to update.
    */
   limit?: number
+}
+
+/**
+ * Campaign updateManyAndReturn
+ */
+export type CampaignUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Campaign
+   */
+  select?: Prisma.CampaignSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Campaign
+   */
+  omit?: Prisma.CampaignOmit<ExtArgs> | null
+  /**
+   * The data used to update Campaigns.
+   */
+  data: Prisma.XOR<Prisma.CampaignUpdateManyMutationInput, Prisma.CampaignUncheckedUpdateManyInput>
+  /**
+   * Filter which Campaigns to update
+   */
+  where?: Prisma.CampaignWhereInput
+  /**
+   * Limit how many Campaigns to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

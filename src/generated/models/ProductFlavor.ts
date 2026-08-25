@@ -189,7 +189,7 @@ export type ProductFlavorGroupByOutputType = {
   _max: ProductFlavorMaxAggregateOutputType | null
 }
 
-type GetProductFlavorGroupByPayload<T extends ProductFlavorGroupByArgs> = Prisma.PrismaPromise<
+export type GetProductFlavorGroupByPayload<T extends ProductFlavorGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<ProductFlavorGroupByOutputType, T['by']> &
       {
@@ -789,7 +789,23 @@ export type ProductFlavorSelect<ExtArgs extends runtime.Types.Extensions.Interna
   _count?: boolean | Prisma.ProductFlavorCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["productFlavor"]>
 
+export type ProductFlavorSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  productId?: boolean
+  flavorId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  flavor?: boolean | Prisma.FlavorDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["productFlavor"]>
 
+export type ProductFlavorSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  productId?: boolean
+  flavorId?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  flavor?: boolean | Prisma.FlavorDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["productFlavor"]>
 
 export type ProductFlavorSelectScalar = {
   productId?: boolean
@@ -805,6 +821,14 @@ export type ProductFlavorInclude<ExtArgs extends runtime.Types.Extensions.Intern
   images?: boolean | Prisma.ProductFlavor$imagesArgs<ExtArgs>
   sizes?: boolean | Prisma.ProductFlavor$sizesArgs<ExtArgs>
   _count?: boolean | Prisma.ProductFlavorCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ProductFlavorIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  flavor?: boolean | Prisma.FlavorDefaultArgs<ExtArgs>
+}
+export type ProductFlavorIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+  flavor?: boolean | Prisma.FlavorDefaultArgs<ExtArgs>
 }
 
 export type $ProductFlavorPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -938,6 +962,30 @@ export interface ProductFlavorDelegate<ExtArgs extends runtime.Types.Extensions.
   createMany<T extends ProductFlavorCreateManyArgs>(args?: Prisma.SelectSubset<T, ProductFlavorCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many ProductFlavors and returns the data saved in the database.
+   * @param {ProductFlavorCreateManyAndReturnArgs} args - Arguments to create many ProductFlavors.
+   * @example
+   * // Create many ProductFlavors
+   * const productFlavor = await prisma.productFlavor.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many ProductFlavors and only return the `productId`
+   * const productFlavorWithProductIdOnly = await prisma.productFlavor.createManyAndReturn({
+   *   select: { productId: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends ProductFlavorCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, ProductFlavorCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductFlavorPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a ProductFlavor.
    * @param {ProductFlavorDeleteArgs} args - Arguments to delete one ProductFlavor.
    * @example
@@ -1000,6 +1048,36 @@ export interface ProductFlavorDelegate<ExtArgs extends runtime.Types.Extensions.
    * 
    */
   updateMany<T extends ProductFlavorUpdateManyArgs>(args: Prisma.SelectSubset<T, ProductFlavorUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more ProductFlavors and returns the data updated in the database.
+   * @param {ProductFlavorUpdateManyAndReturnArgs} args - Arguments to update many ProductFlavors.
+   * @example
+   * // Update many ProductFlavors
+   * const productFlavor = await prisma.productFlavor.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more ProductFlavors and only return the `productId`
+   * const productFlavorWithProductIdOnly = await prisma.productFlavor.updateManyAndReturn({
+   *   select: { productId: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends ProductFlavorUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, ProductFlavorUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductFlavorPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one ProductFlavor.
@@ -1393,6 +1471,11 @@ export type ProductFlavorFindManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Skip the first `n` ProductFlavors.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of ProductFlavors.
+   */
   distinct?: Prisma.ProductFlavorScalarFieldEnum | Prisma.ProductFlavorScalarFieldEnum[]
 }
 
@@ -1427,6 +1510,29 @@ export type ProductFlavorCreateManyArgs<ExtArgs extends runtime.Types.Extensions
    */
   data: Prisma.ProductFlavorCreateManyInput | Prisma.ProductFlavorCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * ProductFlavor createManyAndReturn
+ */
+export type ProductFlavorCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductFlavor
+   */
+  select?: Prisma.ProductFlavorSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductFlavor
+   */
+  omit?: Prisma.ProductFlavorOmit<ExtArgs> | null
+  /**
+   * The data used to create many ProductFlavors.
+   */
+  data: Prisma.ProductFlavorCreateManyInput | Prisma.ProductFlavorCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductFlavorIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1471,6 +1577,36 @@ export type ProductFlavorUpdateManyArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many ProductFlavors to update.
    */
   limit?: number
+}
+
+/**
+ * ProductFlavor updateManyAndReturn
+ */
+export type ProductFlavorUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductFlavor
+   */
+  select?: Prisma.ProductFlavorSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductFlavor
+   */
+  omit?: Prisma.ProductFlavorOmit<ExtArgs> | null
+  /**
+   * The data used to update ProductFlavors.
+   */
+  data: Prisma.XOR<Prisma.ProductFlavorUpdateManyMutationInput, Prisma.ProductFlavorUncheckedUpdateManyInput>
+  /**
+   * Filter which ProductFlavors to update
+   */
+  where?: Prisma.ProductFlavorWhereInput
+  /**
+   * Limit how many ProductFlavors to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductFlavorIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

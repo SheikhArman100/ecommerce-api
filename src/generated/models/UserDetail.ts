@@ -203,7 +203,7 @@ export type UserDetailGroupByOutputType = {
   _max: UserDetailMaxAggregateOutputType | null
 }
 
-type GetUserDetailGroupByPayload<T extends UserDetailGroupByArgs> = Prisma.PrismaPromise<
+export type GetUserDetailGroupByPayload<T extends UserDetailGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<UserDetailGroupByOutputType, T['by']> &
       {
@@ -241,7 +241,6 @@ export type UserDetailOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   image?: Prisma.FileOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
-  _relevance?: Prisma.UserDetailOrderByRelevanceInput
 }
 
 export type UserDetailWhereUniqueInput = Prisma.AtLeast<{
@@ -350,12 +349,6 @@ export type UserDetailUncheckedUpdateManyInput = {
 export type UserDetailNullableScalarRelationFilter = {
   is?: Prisma.UserDetailWhereInput | null
   isNot?: Prisma.UserDetailWhereInput | null
-}
-
-export type UserDetailOrderByRelevanceInput = {
-  fields: Prisma.UserDetailOrderByRelevanceFieldEnum | Prisma.UserDetailOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type UserDetailCountOrderByAggregateInput = {
@@ -560,7 +553,25 @@ export type UserDetailSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userDetail"]>
 
+export type UserDetailSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  profileImage?: boolean
+  address?: boolean
+  city?: boolean
+  road?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["userDetail"]>
 
+export type UserDetailSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  profileImage?: boolean
+  address?: boolean
+  city?: boolean
+  road?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["userDetail"]>
 
 export type UserDetailSelectScalar = {
   id?: boolean
@@ -574,6 +585,12 @@ export type UserDetailSelectScalar = {
 export type UserDetailOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "profileImage" | "address" | "city" | "road" | "userId", ExtArgs["result"]["userDetail"]>
 export type UserDetailInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   image?: boolean | Prisma.UserDetail$imageArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type UserDetailIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type UserDetailIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
@@ -708,6 +725,30 @@ export interface UserDetailDelegate<ExtArgs extends runtime.Types.Extensions.Int
   createMany<T extends UserDetailCreateManyArgs>(args?: Prisma.SelectSubset<T, UserDetailCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many UserDetails and returns the data saved in the database.
+   * @param {UserDetailCreateManyAndReturnArgs} args - Arguments to create many UserDetails.
+   * @example
+   * // Create many UserDetails
+   * const userDetail = await prisma.userDetail.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many UserDetails and only return the `id`
+   * const userDetailWithIdOnly = await prisma.userDetail.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends UserDetailCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, UserDetailCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserDetailPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a UserDetail.
    * @param {UserDetailDeleteArgs} args - Arguments to delete one UserDetail.
    * @example
@@ -770,6 +811,36 @@ export interface UserDetailDelegate<ExtArgs extends runtime.Types.Extensions.Int
    * 
    */
   updateMany<T extends UserDetailUpdateManyArgs>(args: Prisma.SelectSubset<T, UserDetailUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more UserDetails and returns the data updated in the database.
+   * @param {UserDetailUpdateManyAndReturnArgs} args - Arguments to update many UserDetails.
+   * @example
+   * // Update many UserDetails
+   * const userDetail = await prisma.userDetail.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more UserDetails and only return the `id`
+   * const userDetailWithIdOnly = await prisma.userDetail.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends UserDetailUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, UserDetailUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserDetailPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one UserDetail.
@@ -1163,6 +1234,11 @@ export type UserDetailFindManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Skip the first `n` UserDetails.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of UserDetails.
+   */
   distinct?: Prisma.UserDetailScalarFieldEnum | Prisma.UserDetailScalarFieldEnum[]
 }
 
@@ -1197,6 +1273,29 @@ export type UserDetailCreateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   data: Prisma.UserDetailCreateManyInput | Prisma.UserDetailCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * UserDetail createManyAndReturn
+ */
+export type UserDetailCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserDetail
+   */
+  select?: Prisma.UserDetailSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserDetail
+   */
+  omit?: Prisma.UserDetailOmit<ExtArgs> | null
+  /**
+   * The data used to create many UserDetails.
+   */
+  data: Prisma.UserDetailCreateManyInput | Prisma.UserDetailCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserDetailIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1241,6 +1340,36 @@ export type UserDetailUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many UserDetails to update.
    */
   limit?: number
+}
+
+/**
+ * UserDetail updateManyAndReturn
+ */
+export type UserDetailUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserDetail
+   */
+  select?: Prisma.UserDetailSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserDetail
+   */
+  omit?: Prisma.UserDetailOmit<ExtArgs> | null
+  /**
+   * The data used to update UserDetails.
+   */
+  data: Prisma.XOR<Prisma.UserDetailUpdateManyMutationInput, Prisma.UserDetailUncheckedUpdateManyInput>
+  /**
+   * Filter which UserDetails to update
+   */
+  where?: Prisma.UserDetailWhereInput
+  /**
+   * Limit how many UserDetails to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserDetailIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

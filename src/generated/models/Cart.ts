@@ -189,7 +189,7 @@ export type CartGroupByOutputType = {
   _max: CartMaxAggregateOutputType | null
 }
 
-type GetCartGroupByPayload<T extends CartGroupByArgs> = Prisma.PrismaPromise<
+export type GetCartGroupByPayload<T extends CartGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<CartGroupByOutputType, T['by']> &
       {
@@ -520,7 +520,21 @@ export type CartSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   _count?: boolean | Prisma.CartCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["cart"]>
 
+export type CartSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["cart"]>
 
+export type CartSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  userId?: boolean
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["cart"]>
 
 export type CartSelectScalar = {
   id?: boolean
@@ -534,6 +548,12 @@ export type CartInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Cart$itemsArgs<ExtArgs>
   _count?: boolean | Prisma.CartCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type CartIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+}
+export type CartIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $CartPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -665,6 +685,30 @@ export interface CartDelegate<ExtArgs extends runtime.Types.Extensions.InternalA
   createMany<T extends CartCreateManyArgs>(args?: Prisma.SelectSubset<T, CartCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Carts and returns the data saved in the database.
+   * @param {CartCreateManyAndReturnArgs} args - Arguments to create many Carts.
+   * @example
+   * // Create many Carts
+   * const cart = await prisma.cart.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Carts and only return the `id`
+   * const cartWithIdOnly = await prisma.cart.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends CartCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, CartCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CartPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Cart.
    * @param {CartDeleteArgs} args - Arguments to delete one Cart.
    * @example
@@ -727,6 +771,36 @@ export interface CartDelegate<ExtArgs extends runtime.Types.Extensions.InternalA
    * 
    */
   updateMany<T extends CartUpdateManyArgs>(args: Prisma.SelectSubset<T, CartUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Carts and returns the data updated in the database.
+   * @param {CartUpdateManyAndReturnArgs} args - Arguments to update many Carts.
+   * @example
+   * // Update many Carts
+   * const cart = await prisma.cart.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Carts and only return the `id`
+   * const cartWithIdOnly = await prisma.cart.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends CartUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, CartUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CartPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Cart.
@@ -1118,6 +1192,11 @@ export type CartFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Skip the first `n` Carts.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Carts.
+   */
   distinct?: Prisma.CartScalarFieldEnum | Prisma.CartScalarFieldEnum[]
 }
 
@@ -1152,6 +1231,29 @@ export type CartCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   data: Prisma.CartCreateManyInput | Prisma.CartCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Cart createManyAndReturn
+ */
+export type CartCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Cart
+   */
+  select?: Prisma.CartSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Cart
+   */
+  omit?: Prisma.CartOmit<ExtArgs> | null
+  /**
+   * The data used to create many Carts.
+   */
+  data: Prisma.CartCreateManyInput | Prisma.CartCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CartIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1196,6 +1298,36 @@ export type CartUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Carts to update.
    */
   limit?: number
+}
+
+/**
+ * Cart updateManyAndReturn
+ */
+export type CartUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Cart
+   */
+  select?: Prisma.CartSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Cart
+   */
+  omit?: Prisma.CartOmit<ExtArgs> | null
+  /**
+   * The data used to update Carts.
+   */
+  data: Prisma.XOR<Prisma.CartUpdateManyMutationInput, Prisma.CartUncheckedUpdateManyInput>
+  /**
+   * Filter which Carts to update
+   */
+  where?: Prisma.CartWhereInput
+  /**
+   * Limit how many Carts to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CartIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

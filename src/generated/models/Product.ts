@@ -239,7 +239,7 @@ export type ProductGroupByOutputType = {
   _max: ProductMaxAggregateOutputType | null
 }
 
-type GetProductGroupByPayload<T extends ProductGroupByArgs> = Prisma.PrismaPromise<
+export type GetProductGroupByPayload<T extends ProductGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<ProductGroupByOutputType, T['by']> &
       {
@@ -299,7 +299,6 @@ export type ProductOrderByWithRelationInput = {
   cartItems?: Prisma.CartItemOrderByRelationAggregateInput
   orderItems?: Prisma.OrderItemOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignProductOrderByRelationAggregateInput
-  _relevance?: Prisma.ProductOrderByRelevanceInput
 }
 
 export type ProductWhereUniqueInput = Prisma.AtLeast<{
@@ -478,12 +477,6 @@ export type ProductListRelationFilter = {
 
 export type ProductOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
-}
-
-export type ProductOrderByRelevanceInput = {
-  fields: Prisma.ProductOrderByRelevanceFieldEnum | Prisma.ProductOrderByRelevanceFieldEnum[]
-  sort: Prisma.SortOrder
-  search: string
 }
 
 export type ProductCountOrderByAggregateInput = {
@@ -1745,7 +1738,37 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["product"]>
 
+export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  title?: boolean
+  slug?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  categoryId?: boolean
+  category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Product$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["product"]>
 
+export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  title?: boolean
+  slug?: boolean
+  description?: boolean
+  isActive?: boolean
+  createdBy?: boolean
+  updatedBy?: boolean
+  createdAt?: boolean
+  updatedAt?: boolean
+  categoryId?: boolean
+  category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Product$updaterArgs<ExtArgs>
+}, ExtArgs["result"]["product"]>
 
 export type ProductSelectScalar = {
   id?: boolean
@@ -1772,6 +1795,16 @@ export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   orderItems?: boolean | Prisma.Product$orderItemsArgs<ExtArgs>
   campaigns?: boolean | Prisma.Product$campaignsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type ProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Product$updaterArgs<ExtArgs>
+}
+export type ProductIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
+  creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  updater?: boolean | Prisma.Product$updaterArgs<ExtArgs>
 }
 
 export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1916,6 +1949,30 @@ export interface ProductDelegate<ExtArgs extends runtime.Types.Extensions.Intern
   createMany<T extends ProductCreateManyArgs>(args?: Prisma.SelectSubset<T, ProductCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many Products and returns the data saved in the database.
+   * @param {ProductCreateManyAndReturnArgs} args - Arguments to create many Products.
+   * @example
+   * // Create many Products
+   * const product = await prisma.product.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many Products and only return the `id`
+   * const productWithIdOnly = await prisma.product.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends ProductCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, ProductCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a Product.
    * @param {ProductDeleteArgs} args - Arguments to delete one Product.
    * @example
@@ -1978,6 +2035,36 @@ export interface ProductDelegate<ExtArgs extends runtime.Types.Extensions.Intern
    * 
    */
   updateMany<T extends ProductUpdateManyArgs>(args: Prisma.SelectSubset<T, ProductUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more Products and returns the data updated in the database.
+   * @param {ProductUpdateManyAndReturnArgs} args - Arguments to update many Products.
+   * @example
+   * // Update many Products
+   * const product = await prisma.product.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more Products and only return the `id`
+   * const productWithIdOnly = await prisma.product.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends ProductUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, ProductUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one Product.
@@ -2382,6 +2469,11 @@ export type ProductFindManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Skip the first `n` Products.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Products.
+   */
   distinct?: Prisma.ProductScalarFieldEnum | Prisma.ProductScalarFieldEnum[]
 }
 
@@ -2416,6 +2508,29 @@ export type ProductCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    */
   data: Prisma.ProductCreateManyInput | Prisma.ProductCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * Product createManyAndReturn
+ */
+export type ProductCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Product
+   */
+  select?: Prisma.ProductSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Product
+   */
+  omit?: Prisma.ProductOmit<ExtArgs> | null
+  /**
+   * The data used to create many Products.
+   */
+  data: Prisma.ProductCreateManyInput | Prisma.ProductCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -2460,6 +2575,36 @@ export type ProductUpdateManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Products to update.
    */
   limit?: number
+}
+
+/**
+ * Product updateManyAndReturn
+ */
+export type ProductUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Product
+   */
+  select?: Prisma.ProductSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the Product
+   */
+  omit?: Prisma.ProductOmit<ExtArgs> | null
+  /**
+   * The data used to update Products.
+   */
+  data: Prisma.XOR<Prisma.ProductUpdateManyMutationInput, Prisma.ProductUncheckedUpdateManyInput>
+  /**
+   * Filter which Products to update
+   */
+  where?: Prisma.ProductWhereInput
+  /**
+   * Limit how many Products to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

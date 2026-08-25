@@ -197,7 +197,7 @@ export type CampaignProductGroupByOutputType = {
   _max: CampaignProductMaxAggregateOutputType | null
 }
 
-type GetCampaignProductGroupByPayload<T extends CampaignProductGroupByArgs> = Prisma.PrismaPromise<
+export type GetCampaignProductGroupByPayload<T extends CampaignProductGroupByArgs> = Prisma.PrismaPromise<
   Array<
     Prisma.PickEnumerable<CampaignProductGroupByOutputType, T['by']> &
       {
@@ -587,7 +587,23 @@ export type CampaignProductSelect<ExtArgs extends runtime.Types.Extensions.Inter
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["campaignProduct"]>
 
+export type CampaignProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  campaignId?: boolean
+  productId?: boolean
+  customDiscountPercentage?: boolean
+  campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["campaignProduct"]>
 
+export type CampaignProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
+  id?: boolean
+  campaignId?: boolean
+  productId?: boolean
+  customDiscountPercentage?: boolean
+  campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}, ExtArgs["result"]["campaignProduct"]>
 
 export type CampaignProductSelectScalar = {
   id?: boolean
@@ -598,6 +614,14 @@ export type CampaignProductSelectScalar = {
 
 export type CampaignProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "campaignId" | "productId" | "customDiscountPercentage", ExtArgs["result"]["campaignProduct"]>
 export type CampaignProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}
+export type CampaignProductIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
+  product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
+}
+export type CampaignProductIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   campaign?: boolean | Prisma.CampaignDefaultArgs<ExtArgs>
   product?: boolean | Prisma.ProductDefaultArgs<ExtArgs>
 }
@@ -731,6 +755,30 @@ export interface CampaignProductDelegate<ExtArgs extends runtime.Types.Extension
   createMany<T extends CampaignProductCreateManyArgs>(args?: Prisma.SelectSubset<T, CampaignProductCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
 
   /**
+   * Create many CampaignProducts and returns the data saved in the database.
+   * @param {CampaignProductCreateManyAndReturnArgs} args - Arguments to create many CampaignProducts.
+   * @example
+   * // Create many CampaignProducts
+   * const campaignProduct = await prisma.campaignProduct.createManyAndReturn({
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Create many CampaignProducts and only return the `id`
+   * const campaignProductWithIdOnly = await prisma.campaignProduct.createManyAndReturn({
+   *   select: { id: true },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  createManyAndReturn<T extends CampaignProductCreateManyAndReturnArgs>(args?: Prisma.SelectSubset<T, CampaignProductCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignProductPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+  /**
    * Delete a CampaignProduct.
    * @param {CampaignProductDeleteArgs} args - Arguments to delete one CampaignProduct.
    * @example
@@ -793,6 +841,36 @@ export interface CampaignProductDelegate<ExtArgs extends runtime.Types.Extension
    * 
    */
   updateMany<T extends CampaignProductUpdateManyArgs>(args: Prisma.SelectSubset<T, CampaignProductUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<Prisma.BatchPayload>
+
+  /**
+   * Update zero or more CampaignProducts and returns the data updated in the database.
+   * @param {CampaignProductUpdateManyAndReturnArgs} args - Arguments to update many CampaignProducts.
+   * @example
+   * // Update many CampaignProducts
+   * const campaignProduct = await prisma.campaignProduct.updateManyAndReturn({
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * 
+   * // Update zero or more CampaignProducts and only return the `id`
+   * const campaignProductWithIdOnly = await prisma.campaignProduct.updateManyAndReturn({
+   *   select: { id: true },
+   *   where: {
+   *     // ... provide filter here
+   *   },
+   *   data: [
+   *     // ... provide data here
+   *   ]
+   * })
+   * Note, that providing `undefined` is treated as the value not being there.
+   * Read more here: https://pris.ly/d/null-undefined
+   * 
+   */
+  updateManyAndReturn<T extends CampaignProductUpdateManyAndReturnArgs>(args: Prisma.SelectSubset<T, CampaignProductUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignProductPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
   /**
    * Create or update one CampaignProduct.
@@ -1184,6 +1262,11 @@ export type CampaignProductFindManyArgs<ExtArgs extends runtime.Types.Extensions
    * Skip the first `n` CampaignProducts.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of CampaignProducts.
+   */
   distinct?: Prisma.CampaignProductScalarFieldEnum | Prisma.CampaignProductScalarFieldEnum[]
 }
 
@@ -1218,6 +1301,29 @@ export type CampaignProductCreateManyArgs<ExtArgs extends runtime.Types.Extensio
    */
   data: Prisma.CampaignProductCreateManyInput | Prisma.CampaignProductCreateManyInput[]
   skipDuplicates?: boolean
+}
+
+/**
+ * CampaignProduct createManyAndReturn
+ */
+export type CampaignProductCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignProduct
+   */
+  select?: Prisma.CampaignProductSelectCreateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignProduct
+   */
+  omit?: Prisma.CampaignProductOmit<ExtArgs> | null
+  /**
+   * The data used to create many CampaignProducts.
+   */
+  data: Prisma.CampaignProductCreateManyInput | Prisma.CampaignProductCreateManyInput[]
+  skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignProductIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1262,6 +1368,36 @@ export type CampaignProductUpdateManyArgs<ExtArgs extends runtime.Types.Extensio
    * Limit how many CampaignProducts to update.
    */
   limit?: number
+}
+
+/**
+ * CampaignProduct updateManyAndReturn
+ */
+export type CampaignProductUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignProduct
+   */
+  select?: Prisma.CampaignProductSelectUpdateManyAndReturn<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignProduct
+   */
+  omit?: Prisma.CampaignProductOmit<ExtArgs> | null
+  /**
+   * The data used to update CampaignProducts.
+   */
+  data: Prisma.XOR<Prisma.CampaignProductUpdateManyMutationInput, Prisma.CampaignProductUncheckedUpdateManyInput>
+  /**
+   * Filter which CampaignProducts to update
+   */
+  where?: Prisma.CampaignProductWhereInput
+  /**
+   * Limit how many CampaignProducts to update.
+   */
+  limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignProductIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
