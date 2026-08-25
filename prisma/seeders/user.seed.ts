@@ -12,7 +12,7 @@ export async function seedUsers() {
   const users = [
     {
       name: 'Sheikh Arman',
-      email: 'sheikharman@softograph.com',
+      email: 'sheikharman100@gmail.com',
       phoneNumber: '+1234567890',
       password: defaultPassword,
       isVerified: true,
@@ -20,7 +20,7 @@ export async function seedUsers() {
     },
     {
       name: 'Demo User',
-      email: 'demo@softograph.com',
+      email: 'sheikharman69@gmail.com',
       phoneNumber: '+1234567890',
       password: defaultPassword,
       isVerified: true,
