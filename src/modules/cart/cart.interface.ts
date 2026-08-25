@@ -1,4 +1,5 @@
-import { Product, ProductFlavorSize, User } from "@prisma/client";
+import { Product, ProductFlavorSize, User } from "../../generated/client";
+
 
 
 // Interface for the Cart entity
