@@ -35,7 +35,7 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getUserByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.getUserByID(req.params.id);
+    const result = await UserService.getUserByID(req.params.id as string);
 
     sendResponse(res, {
         statusCode: status.OK,
@@ -46,7 +46,7 @@ const getUserByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.updateUser(req.params.id, req.body, req.user as UserInfoFromToken,req.file);
+    const result = await UserService.updateUser(req.params.id as string, req.body, req.user as UserInfoFromToken,req.file);
 
     sendResponse(res, {
         statusCode: status.OK,
@@ -57,7 +57,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteUserByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.deleteUserByID(req.params.id, req.user as UserInfoFromToken);
+    const result = await UserService.deleteUserByID(req.params.id as string, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         statusCode: status.OK,

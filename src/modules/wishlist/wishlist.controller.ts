@@ -55,7 +55,7 @@ const getWishlistByUser = catchAsync(async (req: Request, res: Response) => {
 
 const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
   const result = await WishlistService.getWishlistByID(
-    req.params.id,
+    req.params.id as string,
     req.user as UserInfoFromToken
   );
 
@@ -69,7 +69,7 @@ const getWishlistByID = catchAsync(async (req: Request, res: Response) => {
 
 const updateWishlist = catchAsync(async (req: Request, res: Response) => {
   const result = await WishlistService.updateWishlist(
-    req.params.id,
+    req.params.id as string,
     req.body,
     req.user as UserInfoFromToken
   );
@@ -83,7 +83,7 @@ const updateWishlist = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteWishlistByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await WishlistService.deleteWishlistByID(req.params.id,req.user as UserInfoFromToken);
+  const result = await WishlistService.deleteWishlistByID(req.params.id as string,req.user as UserInfoFromToken);
 
   sendResponse(res, {
     success: true,

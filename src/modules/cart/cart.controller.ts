@@ -49,7 +49,7 @@ const getSingleCart = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCartItemByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.updateCartItemByID(req.params.cartItemId, req.body, req.user as UserInfoFromToken);
+    const result = await CartService.updateCartItemByID(req.params.cartItemId as string, req.body, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,
@@ -60,7 +60,7 @@ const updateCartItemByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getCartByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.getCartByID(req.params.cartId, req.user as UserInfoFromToken);
+    const result = await CartService.getCartByID(req.params.cartId as string, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,
@@ -71,7 +71,7 @@ const getCartByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCartItemByID = catchAsync(async (req: Request, res: Response) => {
-    const result = await CartService.deleteCartItemByID(req.params.cartItemId, req.user as UserInfoFromToken);
+    const result = await CartService.deleteCartItemByID(req.params.cartItemId as string, req.user as UserInfoFromToken);
 
     sendResponse(res, {
         success:true,

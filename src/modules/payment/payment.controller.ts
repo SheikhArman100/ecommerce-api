@@ -76,7 +76,7 @@ const getAllPayments = catchAsync(async (req: Request, res: Response) => {
 
 const getSinglePayment = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await PaymentService.getSinglePayment(id);
+  const result = await PaymentService.getSinglePayment(id as string);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -88,7 +88,7 @@ const getSinglePayment = catchAsync(async (req: Request, res: Response) => {
 
 const updatePayment = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await PaymentService.updatePayment(id, req.body);
+  const result = await PaymentService.updatePayment(id as string, req.body);
 
   sendResponse(res, {
     statusCode: status.OK,

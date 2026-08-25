@@ -38,7 +38,7 @@ const getAllFlavors = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getFlavorByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await FlavorService.getFlavorByID(req.params.id);
+  const result = await FlavorService.getFlavorByID(req.params.id as string);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -49,7 +49,7 @@ const getFlavorByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateFlavor = catchAsync(async (req: Request, res: Response) => {
-  const result = await FlavorService.updateFlavor(req.params.id, req.body,req.user as UserInfoFromToken);
+  const result = await FlavorService.updateFlavor(req.params.id as string, req.body,req.user as UserInfoFromToken);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -60,7 +60,7 @@ const updateFlavor = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteFlavorByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await FlavorService.deleteFlavorByID(req.params.id,req.user as UserInfoFromToken);
+  const result = await FlavorService.deleteFlavorByID(req.params.id as string,req.user as UserInfoFromToken);
 
   sendResponse(res, {
     statusCode: status.OK,

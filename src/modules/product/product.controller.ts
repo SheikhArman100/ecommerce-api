@@ -37,7 +37,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   });
 
   const getSingleProduct=catchAsync(async (req: Request, res: Response) => {
-    const result=await ProductService.getSingleProduct(req.params.productId)
+    const result=await ProductService.getSingleProduct(req.params.productId as string)
     sendResponse(res, {
       statusCode: status.OK,
       success: true,
@@ -46,7 +46,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
     });
   })
   const getSingleProductBySlug=catchAsync(async (req: Request, res: Response) => {
-    const result=await ProductService.getSingleProductBySlug(req.params.slug)
+    const result=await ProductService.getSingleProductBySlug(req.params.slug as string)
     sendResponse(res, {
       statusCode: status.OK,
       success: true,
@@ -57,7 +57,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
 
   const updateProduct = catchAsync(async (req: Request, res: Response) => {
     const result = await ProductService.updateProduct(
-      req.params.productId,
+      req.params.productId as string,
       req.body,
       req.user as UserInfoFromToken,
       req.files as any,
@@ -72,7 +72,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
 
   const deleteProduct = catchAsync(async (req: Request, res: Response) => {
     const result = await ProductService.deleteProduct(
-      req.params.productId,
+      req.params.productId as string,
       req.user as UserInfoFromToken,
     );
     sendResponse(res, {

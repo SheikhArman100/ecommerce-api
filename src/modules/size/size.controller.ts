@@ -38,7 +38,7 @@ const getAllSizes = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSizeByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await SizeService.getSizeByID(req.params.id);
+  const result = await SizeService.getSizeByID(req.params.id as string);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -49,7 +49,7 @@ const getSizeByID = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateSize = catchAsync(async (req: Request, res: Response) => {
-  const result = await SizeService.updateSize(req.params.id, req.body,req.user as UserInfoFromToken);
+  const result = await SizeService.updateSize(req.params.id as string, req.body,req.user as UserInfoFromToken);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -60,7 +60,7 @@ const updateSize = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteSizeByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await SizeService.deleteSizeByID(req.params.id,req.user as UserInfoFromToken);
+  const result = await SizeService.deleteSizeByID(req.params.id as string,req.user as UserInfoFromToken);
 
   sendResponse(res, {
     statusCode: status.OK,

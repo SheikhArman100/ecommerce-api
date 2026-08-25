@@ -39,7 +39,7 @@ const getAllOrders = catchAsync(async (req: Request, res: Response) => {
 
 const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderService.getSingleOrder(
-    req.params.orderId,
+    req.params.orderId as string,
     req.user as UserInfoFromToken,
   );
 
@@ -69,7 +69,7 @@ const getUserOrders = catchAsync(async (req: Request, res: Response) => {
 
 const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderService.updateOrderStatus(
-    req.params.orderId,
+    req.params.orderId as string,
     req.body,
     req.user as UserInfoFromToken,
   );

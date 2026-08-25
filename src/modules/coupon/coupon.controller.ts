@@ -32,7 +32,7 @@ const getAllCoupons = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getCouponByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await CouponService.getCouponByID(req.params.id);
+  const result = await CouponService.getCouponByID(req.params.id as string);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -43,7 +43,7 @@ const getCouponByID = catchAsync(async (req: Request, res: Response) => {
 
 const updateCoupon = catchAsync(async (req: Request, res: Response) => {
   const result = await CouponService.updateCoupon(
-    req.params.id,
+    req.params.id as string,
     req.body,
     req.user as UserInfoFromToken
   );
@@ -56,7 +56,7 @@ const updateCoupon = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCouponByID = catchAsync(async (req: Request, res: Response) => {
-  const result = await CouponService.deleteCouponByID(req.params.id, req.user as UserInfoFromToken);
+  const result = await CouponService.deleteCouponByID(req.params.id as string, req.user as UserInfoFromToken);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
