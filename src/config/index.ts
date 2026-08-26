@@ -30,6 +30,5 @@ export default {
   ssl_store_id: process.env.SSL_STORE_ID,
   ssl_store_pass: process.env.SSL_STORE_PASS,
   ssl_is_sandbox: process.env.SSL_IS_SANDBOX,
-  app_base_url: process.env.APP_BASE_URL,
   delivery_charge: Number(process.env.DELIVERY_CHARGE) || 60,
 };
