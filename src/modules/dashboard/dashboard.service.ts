@@ -57,19 +57,22 @@ const getCategoryRevenueTrend = async (startDate?: Date, endDate?: Date): Promis
       orders: number;
     }>
   >`
-    SELECT
-      c.id as categoryId,
-      c.name as categoryName,
-      DATE_FORMAT(o.createdAt, '%Y-%m') as month,
-      SUM(oi.price * oi.quantity) as revenue,
-      SUM(oi.quantity) as orders
-    FROM categories c
-    JOIN products p ON p.categoryId = c.id
-    JOIN order_items oi ON oi.productId = p.id
-    JOIN orders o ON o.id = oi.orderId
-    WHERE o.createdAt >= ${effectiveStartDate} AND o.createdAt <= ${effectiveEndDate}
-    GROUP BY c.id, c.name, DATE_FORMAT(o.createdAt, '%Y-%m')
-    ORDER BY c.id, month ASC
+    SELECT "categoryId", "categoryName", "month", "revenue", "orders"
+    FROM (
+      SELECT
+        c.id as "categoryId",
+        c.name as "categoryName",
+        TO_CHAR(o."createdAt", 'YYYY-MM') as "month",
+        SUM(oi.price * oi.quantity) as "revenue",
+        SUM(oi.quantity) as "orders"
+      FROM "categories" c
+      JOIN "products" p ON p."categoryId" = c.id
+      JOIN "order_items" oi ON oi."productId" = p.id
+      JOIN "orders" o ON o.id = oi."orderId"
+      WHERE o."createdAt" >= ${effectiveStartDate} AND o."createdAt" <= ${effectiveEndDate}
+      GROUP BY c.id, c.name, TO_CHAR(o."createdAt", 'YYYY-MM')
+    ) AS grouped
+    ORDER BY "categoryId" ASC, "month" ASC
   `;
 
   // Group by category
@@ -281,7 +284,7 @@ const getRevenueTrend = async (filters: IDashboardFilters = {}): Promise<IRevenu
       hourDate.setHours(startDate.getHours() + i, 0, 0, 0);
       periods.push(hourDate.toISOString().slice(0, 13) + ':00:00'); // YYYY-MM-DD HH:00:00
     }
-    periodFormat = '%Y-%m-%d %H:00:00';
+    periodFormat = 'YYYY-MM-DD HH24:00:00';
   } else if (filters.period === 'weekly') {
     // Show last 7 days, grouped by day
     startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -291,7 +294,7 @@ const getRevenueTrend = async (filters: IDashboardFilters = {}): Promise<IRevenu
       dayDate.setDate(startDate.getDate() + i);
       periods.push(dayDate.toISOString().slice(0, 10)); // YYYY-MM-DD
     }
-    periodFormat = '%Y-%m-%d';
+    periodFormat = 'YYYY-MM-DD';
   } else if (filters.period === 'monthly') {
     // Show last 30 days, grouped by day
     startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -301,7 +304,7 @@ const getRevenueTrend = async (filters: IDashboardFilters = {}): Promise<IRevenu
       dayDate.setDate(startDate.getDate() + i);
       periods.push(dayDate.toISOString().slice(0, 10)); // YYYY-MM-DD
     }
-    periodFormat = '%Y-%m-%d';
+    periodFormat = 'YYYY-MM-DD';
   } else {
     // Default yearly: Show last 12 months, grouped by month
     startDate = new Date();
@@ -312,7 +315,7 @@ const getRevenueTrend = async (filters: IDashboardFilters = {}): Promise<IRevenu
       monthDate.setMonth(startDate.getMonth() + i);
       periods.push(monthDate.toISOString().slice(0, 7)); // YYYY-MM
     }
-    periodFormat = '%Y-%m';
+    periodFormat = 'YYYY-MM';
   }
 
   // Get actual data from database
@@ -323,14 +326,17 @@ const getRevenueTrend = async (filters: IDashboardFilters = {}): Promise<IRevenu
       orders: number;
     }>
   >`
-    SELECT
-      DATE_FORMAT(createdAt, ${periodFormat}) as period,
-      SUM(totalAmount) as revenue,
-      COUNT(*) as orders
-    FROM orders
-    WHERE createdAt >= ${startDate}
-    GROUP BY DATE_FORMAT(createdAt, ${periodFormat})
-    ORDER BY period ASC
+    SELECT "period", "revenue", "orders"
+    FROM (
+      SELECT
+        TO_CHAR("createdAt"::timestamp, ${periodFormat}) as "period",
+        SUM("totalAmount") as "revenue",
+        COUNT(*) as "orders"
+      FROM "orders"
+      WHERE "createdAt" >= ${startDate}
+      GROUP BY "period"
+    ) AS grouped
+    ORDER BY "period" ASC
   `;
 
   // Create a map of actual data
@@ -501,18 +507,21 @@ const getLowStockItems = async (): Promise<ILowStockItem[]> => {
       categoryName: string;
     }>
   >`
-    SELECT
-      p.id as productId,
-      p.title as productName,
-      SUM(pfs.stock) as currentStock,
-      c.name as categoryName
-    FROM products p
-    JOIN categories c ON c.id = p.categoryId
-    JOIN product_flavor_sizes pfs ON pfs.productId = p.id
-    WHERE p.isActive = true
-    GROUP BY p.id, p.title, c.name
-    HAVING currentStock <= ${LOW_STOCK_THRESHOLD}
-    ORDER BY currentStock ASC
+    SELECT "productId", "productName", "currentStock", "categoryName"
+    FROM (
+      SELECT
+        p.id as "productId",
+        p.title as "productName",
+        SUM(pfs.stock) as "currentStock",
+        c.name as "categoryName"
+      FROM "products" p
+      JOIN "categories" c ON c.id = p."categoryId"
+      JOIN "product_flavor_sizes" pfs ON pfs."productId" = p.id
+      WHERE p."isActive" = true
+      GROUP BY p.id, p.title, c.name
+      HAVING SUM(pfs.stock) <= ${LOW_STOCK_THRESHOLD}
+    ) AS grouped
+    ORDER BY "currentStock" ASC
     LIMIT 10
   `;
 
@@ -718,14 +727,17 @@ const getHourlySalesDistribution = async (startDate?: Date, endDate?: Date): Pro
       orders: number;
     }>
   >`
-    SELECT
-      HOUR(createdAt) as hour,
-      SUM(totalAmount) as revenue,
-      COUNT(*) as orders
-    FROM orders
-    WHERE createdAt >= ${startDate} AND createdAt <= ${endDate}
-    GROUP BY HOUR(createdAt)
-    ORDER BY hour ASC
+    SELECT "hour", "revenue", "orders"
+    FROM (
+      SELECT
+        EXTRACT(HOUR FROM "createdAt")::int as "hour",
+        SUM("totalAmount") as "revenue",
+        COUNT(*) as "orders"
+      FROM "orders"
+      WHERE "createdAt" >= ${startDate} AND "createdAt" <= ${endDate}
+      GROUP BY "hour"
+    ) AS grouped
+    ORDER BY "hour" ASC
   `;
 
   // Create array for all 24 hours with default values
