@@ -10,6 +10,33 @@ import config from '../../config';
 import { ENUM_COOKIE_NAME } from '../../enum/user';
 import { UserInfoFromToken } from '../../types/common';
 
+// Cross-site cookies (netlify admin -> render api) require SameSite=None + Secure.
+const isProduction = config.env === 'production';
+
+type SameSiteMode = 'none' | 'lax' | 'strict';
+
+const cookieOptions: {
+  secure: boolean;
+  httpOnly: boolean;
+  sameSite: SameSiteMode;
+  maxAge: number;
+} = {
+  secure: isProduction,
+  httpOnly: true,
+  sameSite: isProduction ? 'none' : 'lax',
+  maxAge: 1000 * 60 * 60 * 24 * 365,
+};
+
+const cookieClearOptions: {
+  secure: boolean;
+  httpOnly: boolean;
+  sameSite: SameSiteMode;
+} = {
+  secure: isProduction,
+  httpOnly: true,
+  sameSite: isProduction ? 'none' : 'lax',
+};
+
 const signup = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.signup(req.body);
 
@@ -63,11 +90,6 @@ const signin = catchAsync(async (req: Request, res: Response) => {
     req.user as IUser,
     req.ip as string,
   );
-  const cookieOptions = {
-    secure: config.env === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-  };
 
   res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
 
@@ -88,11 +110,6 @@ const googleSignIn = catchAsync(async (req: Request, res: Response) => {
     req.user as IUser,
     req.ip as string,
   );
-  const cookieOptions = {
-    secure: config.env === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-  };
 
   res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
 
@@ -111,19 +128,11 @@ const updateToken = catchAsync(async (req: Request, res: Response) => {
   }
 
   const { refreshToken, ...result } = await AuthService.updateToken(cookies, req.ip as string);
-  const cookieOptions = {
-    secure: config.env === 'production',
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-  };
 
   res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
 
   if (!result) {
-    res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, {
-      secure: config.env === 'production',
-      httpOnly: true,
-    });
+    res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, cookieClearOptions);
 
     throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
   }
@@ -148,10 +157,7 @@ const signOut = catchAsync(async (req: Request, res: Response) => {
   if (!result) {
     throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
   }
-  res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, {
-    secure: config.env === 'production',
-    httpOnly: true,
-  });
+  res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, cookieClearOptions);
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -170,10 +176,7 @@ const checkUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.checkUser(cookies);
 
   if (!result) {
-    res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, {
-      secure: config.env === 'production',
-      httpOnly: true,
-    });
+    res.clearCookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, cookieClearOptions);
 
     throw new ApiError(status.FORBIDDEN, 'You are not authorized');
   }
