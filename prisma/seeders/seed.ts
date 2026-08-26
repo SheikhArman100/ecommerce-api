@@ -1,30 +1,11 @@
 
 import { seedUsers } from './user.seed';
-import { seedProducts } from './product.seed';
-import { seedCarts } from './cart.seed';
-import { seedWishlists } from './wishlist.seed';
-import { seedOrders } from './order.seed';
-import { seedReviews } from './review.seed';
-import { seedCoupons } from './coupon.seed';
-import {prisma} from "../../src/client"
-
+import { prisma } from '../../src/client';
 
 async function main() {
   try {
-    // First seed users
+    // Seed users only
     await seedUsers();
-    // Then seed products
-    await seedProducts();
-    // Then seed coupons
-    await seedCoupons();
-    // Then seed carts (needs users and products)
-    await seedCarts();
-    // Then seed wishlists (needs users and products)
-    await seedWishlists();
-    // Then seed orders (needs users and products)
-    await seedOrders();
-    // Finally seed reviews (needs users, products, and orders)
-    await seedReviews();
 
     console.log('\nAll seeds completed successfully');
   } catch (error) {
