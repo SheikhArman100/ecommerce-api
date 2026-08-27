@@ -895,6 +895,22 @@ const deleteProduct = async (
   // Use transaction to ensure data consistency
   return prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
+      // Order history must block product deletion (OrderItem → Product is restricted)
+      const orderItemCount = await tx.orderItem.count({
+        where: { productId: Number(productId) },
+      });
+      if (orderItemCount > 0) {
+        throw new ApiError(
+          status.CONFLICT,
+          'Cannot delete product: it is referenced by existing orders',
+        );
+      }
+
+      // Clean up cart items referencing this product (FK restrict would fail otherwise)
+      await tx.cartItem.deleteMany({
+        where: { productId: Number(productId) },
+      });
+
       // Get all product images for cleanup
       const productImages = await tx.file.findMany({
         where: { productId: Number(productId) },

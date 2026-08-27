@@ -232,6 +232,23 @@ export const handleSizeOperationsForUpdate = async (
 
   if (removeSizeIds.length > 0) {
     const numericSizeIds = removeSizeIds.map((id: string) => Number(id)).filter(id => !isNaN(id));
+
+    // Order history must block size deletion (OrderItem → ProductFlavorSize is restricted)
+    const orderItemCount = await tx.orderItem.count({
+      where: { productId, flavorId, sizeId: { in: numericSizeIds } },
+    });
+    if (orderItemCount > 0) {
+      throw new ApiError(
+        status.CONFLICT,
+        'Cannot remove size(s): they are referenced by existing orders',
+      );
+    }
+
+    // Clean up cart items referencing these flavor-size rows (FK restrict would fail otherwise)
+    await tx.cartItem.deleteMany({
+      where: { productId, flavorId, sizeId: { in: numericSizeIds } },
+    });
+
     await tx.productFlavorSize.deleteMany({
       where: {
         sizeId: { in: numericSizeIds },
@@ -345,6 +362,22 @@ export const handleFlavorRemovals = async (
 ) => {
   await Promise.all(
     flavorIds.map(async (flavorId) => {
+      // Order history must block flavor deletion (OrderItem → ProductFlavorSize is restricted)
+      const orderItemCount = await tx.orderItem.count({
+        where: { productId, flavorId: Number(flavorId) },
+      });
+      if (orderItemCount > 0) {
+        throw new ApiError(
+          status.CONFLICT,
+          `Cannot remove flavor ${flavorId}: it is referenced by existing orders`,
+        );
+      }
+
+      // Clean up cart items referencing this product+flavor (FK restrict would fail otherwise)
+      await tx.cartItem.deleteMany({
+        where: { productId, flavorId: Number(flavorId) },
+      });
+
       // Get images for cleanup before deletion
       const flavorImages = await tx.file.findMany({
         where: {
@@ -433,21 +466,11 @@ export const handleFlavorUpdates = async (
         throw new ApiError(status.NOT_FOUND, `Product flavor not found`);
       }
 
-      // Update basic flavor info
-      const updateData: any = {};
-      if (flavor.soldByQuantity !== undefined) updateData.soldByQuantity = flavor.soldByQuantity;
-
-      if (Object.keys(updateData).length > 0) {
-        await tx.productFlavor.update({
-          where: {
-            productId_flavorId: {
-              productId: Number(productId),
-              flavorId: existingProductFlavor.flavorId,
-            },
-          },
-          data: updateData,
-        });
-      }
+      // NOTE: `soldByQuantity` is a field of ProductFlavorSize, NOT ProductFlavor.
+      // It must NOT be set on the ProductFlavor join table — Prisma rejects it.
+      // - For quantity-based flavors it's set on the ProductFlavorSize row by
+      //   handleQuantityBasedFlavorUpdate() below.
+      // - For size-based flavors it's set to false when the size rows are created.
 
       // Handle size operations
       if (flavor.sizes) {
