@@ -63,7 +63,7 @@ const signup = async (payload: IUser) => {
         <p>Hi, ${newUser.name}</p>
         <p>Welcome to E-Commerce! Please verify your email address by clicking the link below:</p>
         <p>
-          <a href="${config.admin_client_url}/auth/verify-email?token=${emailVerifyToken}">
+          <a href="${config.frontend_url}/auth/verify-email?token=${emailVerifyToken}">
             Verify Email
           </a>
         </p>
@@ -135,7 +135,7 @@ const resendVerification = async (email: string) => {
       <p>Hi, ${user.name}</p>
       <p>Please verify your email address by clicking the link below:</p>
       <p>
-        <a href="${config.admin_client_url}/auth/verify-email?token=${emailVerifyToken}">
+        <a href="${config.frontend_url}/auth/verify-email?token=${emailVerifyToken}">
           Verify Email
         </a>
       </p>
@@ -393,7 +393,7 @@ const forgetPassword = async (payload: { email: string }) => {
       <p>Hi, ${findUser.name} </p>
       <p>We are from E-commerce team. We noticed that you've requested a password reset for your account. If you've forgotten your password, please follow the link below within the next 3 minutes to set a new one: </p>
       <p>
-        <span style="color:#000;text-align:center;font-weight:900">Reset password link: </span> <a href=${config.admin_client_url}/auth/reset-password?token=${forgetPasswordToken}>Click Here</a>
+        <span style="color:#000;text-align:center;font-weight:900">Reset password link: </span> <a href=${config.frontend_url}/auth/reset-password?token=${forgetPasswordToken}>Click Here</a>
       </p>
       <p>If you did not request a password reset, you can safely ignore this email.</p>
       <p>Thank you <br> E-commerce</p>

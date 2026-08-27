@@ -18,6 +18,59 @@ import fs from 'fs';
 import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
 
+// Shared select for UserDetail with image (used by all routes except getAllUsers & deleteUser)
+const userDetailWithImageSelect = {
+  detail: {
+    select: {
+      id: true,
+      profileImage: true,
+      address: true,
+      city: true,
+      road: true,
+      image: {
+        select: {
+          path: true,
+          originalName: true,
+          modifiedName: true,
+          type: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.UserSelect;
+
+// Fetch a user with detail (and image). Ensures a UserDetail row exists so
+// `detail` (with image) is always returned instead of null.
+const getUserWithDetail = async (userId: number) => {
+  // Ensure UserDetail exists (creates empty detail so image can be attached later)
+  await prisma.userDetail.upsert({
+    where: { userId },
+    update: {},
+    create: {
+      userId,
+      address: '',
+      city: '',
+      road: '',
+    },
+  });
+
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      role: true,
+      isVerified: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      ...userDetailWithImageSelect,
+    },
+  });
+};
+
 const createUser = async (
   adminInfo: UserInfoFromToken,
   payload: ICreateUserPayload,
@@ -60,15 +113,23 @@ const createUser = async (
       role: payload.role || ENUM_USER_ROLE.USER,
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      role: true,
-      isVerified: true,
-      createdAt: true,
+      detail: {
+        create: {
+          address: '',
+          city: '',
+          road: '',
+          ...(multerFile && {
+            image: {
+              create: {
+                diskType: 'LOCAL',
+                path: `user/images/${multerFile.filename}`,
+                originalName: multerFile.originalname,
+                modifiedName: multerFile.filename,
+              },
+            },
+          }),
+        },
+      },
     },
   });
 
@@ -76,26 +137,8 @@ const createUser = async (
     throw new ApiError(status.BAD_REQUEST, 'Failed to create user');
   }
 
-  if (multerFile) {
-    await prisma.userDetail.create({
-      data: {
-        userId: data.id,
-        address: '',
-        city: '',
-        road: '',
-        image: {
-          create: {
-            diskType: 'LOCAL',
-            path: `user/images/${multerFile.filename}`,
-            originalName: multerFile.originalname,
-            modifiedName: multerFile.filename,
-          },
-        },
-      },
-    });
-  }
-
-  return data;
+  // Return the created user with detail (including image)
+  return getUserWithDetail(data.id);
 };
 
 const getAllUsers = async (
@@ -208,22 +251,7 @@ const getUserByID = async (id: string) => {
       isActive: true, 
       createdAt: true,
       updatedAt: true,
-      detail: {
-        select: {
-          profileImage: true,
-          address: true,
-          city: true,
-          road: true,
-          image: {
-            select: {
-              path: true,
-              originalName: true,
-              modifiedName: true,
-              type: true
-            }
-          }
-        },
-      },
+      ...userDetailWithImageSelect,
       creator: {
         select: {
           name: true,
@@ -283,15 +311,6 @@ const updateUser = async (
       ...typeof payload.isActive === 'boolean' && { isActive: payload.isActive },
       updatedBy: Number(checkAdmin.id),
       updatedAt: new Date(),
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      role: true,
-      isVerified: true,
-      updatedAt: true,
     },
   });
 
@@ -360,7 +379,8 @@ const updateUser = async (
     }
   }
 
-  return data;
+  // Return the updated user with detail (including image)
+  return getUserWithDetail(Number(id));
 };
 
 const deleteUserByID = async (id: string, adminInfo: UserInfoFromToken) => {
@@ -418,22 +438,7 @@ const getMyProfile = async (userInfo: UserInfoFromToken) => {
       isActive: true,
       createdAt: true,
       updatedAt: true,
-      detail: {
-        select: {
-          profileImage: true,
-          address: true,
-          city: true,
-          road: true,
-          image: {
-            select: {
-              path: true,
-              originalName: true,
-              modifiedName: true,
-              type: true
-            }
-          }
-        },
-      },
+      ...userDetailWithImageSelect,
     },
   });
 
@@ -471,15 +476,6 @@ const updateMyProfile = async (
       ...userFields,
       updatedBy: Number(userInfo.id),
       updatedAt: new Date(),
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      role: true,
-      isVerified: true,
-      updatedAt: true,
     },
   });
 
@@ -553,7 +549,8 @@ const updateMyProfile = async (
     }
   }
 
-  return data;
+  // Return the updated profile with detail (including image)
+  return getUserWithDetail(Number(userInfo.id));
 };
 
 export const UserService = {
