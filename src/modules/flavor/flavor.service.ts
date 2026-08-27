@@ -55,7 +55,7 @@ const getAllFlavors = async (
       OR: flavorSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
-          // mode: 'insensitive',
+          mode: 'insensitive' as const
         },
       })),
     };

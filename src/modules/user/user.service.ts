@@ -97,6 +97,14 @@ const createUser = async (
     throw new ApiError(status.CONFLICT, 'Email already exists');
   }
 
+  // Check if phone number already exists
+  const existingPhone = await prisma.user.findFirst({
+    where: { phoneNumber: payload.phoneNumber },
+  });
+  if (existingPhone) {
+    throw new ApiError(status.CONFLICT, 'Phone number already exists');
+  }
+
   // Hash password
   const hashedPassword = await bcrypt.hash(
     payload.password,
@@ -156,7 +164,7 @@ const getAllUsers = async (
       OR: userSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
-          // mode: 'insensitive',
+          mode: 'insensitive' as const,
         },
       })),
     };
@@ -298,6 +306,19 @@ const updateUser = async (
   });
   if (!checkUser) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
+  // Check if phone number already exists (excluding the user being updated)
+  if (payload.phoneNumber) {
+    const existingPhone = await prisma.user.findFirst({
+      where: {
+        phoneNumber: payload.phoneNumber,
+        id: { not: Number(id) },
+      },
+    });
+    if (existingPhone) {
+      throw new ApiError(status.CONFLICT, 'Phone number already exists');
+    }
   }
 
   const data = await prisma.user.update({
@@ -463,6 +484,19 @@ const updateMyProfile = async (
   });
   if (!checkUser) {
     throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
+  // Check if phone number already exists (excluding the current user)
+  if (payload.phoneNumber && payload.phoneNumber !== checkUser.phoneNumber) {
+    const existingPhone = await prisma.user.findFirst({
+      where: {
+        phoneNumber: payload.phoneNumber,
+        id: { not: Number(userInfo.id) },
+      },
+    });
+    if (existingPhone) {
+      throw new ApiError(status.CONFLICT, 'Phone number already exists');
+    }
   }
 
   // Separate User and UserDetail fields

@@ -54,7 +54,7 @@ const getAllSizes = async (
       OR: sizeSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
-          // mode: 'insensitive',
+          mode: 'insensitive' as const,
         },
       })),
     };

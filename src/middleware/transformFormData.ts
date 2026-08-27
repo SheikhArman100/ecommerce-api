@@ -159,6 +159,33 @@ const transformFormData = (req: Request, res: Response, next: NextFunction) => {
     };
 
     req.body = ensureNestedArrays(req.body);
+
+    // Deep coercion: multipart form-data sends everything as strings. Values that
+    // came through JSON.parse (e.g. flavors sent as a JSON string field) skip the
+    // per-key coercion above, so walk the tree and convert remaining
+    // "true"/"false" strings to booleans. Numeric strings are left untouched
+    // because validation schemas intentionally expect them as strings.
+    const deepCoerceBooleans = (obj: any): any => {
+      if (typeof obj === 'string') {
+        if (obj === 'true') return true;
+        if (obj === 'false') return false;
+        return obj;
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(deepCoerceBooleans);
+      }
+      if (typeof obj === 'object' && obj !== null) {
+        const result: any = {};
+        for (const key in obj) {
+          result[key] = deepCoerceBooleans(obj[key]);
+        }
+        return result;
+      }
+      return obj;
+    };
+
+    req.body = deepCoerceBooleans(req.body);
+
     console.log("req body after nested array fix", JSON.stringify(req.body, null, 2));
     next();
   } catch (error) {
