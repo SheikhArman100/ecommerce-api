@@ -224,6 +224,7 @@ const getAllProducts = async (
       OR: productSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
+          mode:'insensitive' as const,
           // mode: 'insensitive', // Uncomment if case-insensitive search is needed
         },
       })),

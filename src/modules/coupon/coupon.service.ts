@@ -61,6 +61,7 @@ const getAllCoupons = async (
       OR: couponSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
+          mode: 'insensitive' as const,
         },
       })),
     };

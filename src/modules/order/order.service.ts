@@ -374,14 +374,16 @@ const getAllOrders = async (
         {
           user: {
             name: {
-              contains: searchTerm
+              contains: searchTerm,
+              mode: 'insensitive'
             }
           }
         },
         {
           user: {
             email: {
-              contains: searchTerm
+              contains: searchTerm,
+              mode: 'insensitive'
             }
           }
         }

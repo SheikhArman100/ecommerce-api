@@ -431,6 +431,7 @@ const getAllPayments = async (
       OR: paymentSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
+          mode: 'insensitive' as const,
         },
       })),
     };

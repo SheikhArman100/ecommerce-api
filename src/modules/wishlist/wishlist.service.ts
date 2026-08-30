@@ -95,6 +95,7 @@ const getAllWishlists = async (
       product: {
         title: {
           contains: searchTerm,
+          mode: 'insensitive',
         },
       },
     };

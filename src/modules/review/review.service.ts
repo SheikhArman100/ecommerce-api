@@ -131,6 +131,7 @@ const getAllReviews = async (
       OR: reviewSearchableFields.map(field => ({
         [field]: {
           contains: searchTerm,
+          mode: 'insensitive' as const,
         },
       })),
     };

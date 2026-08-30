@@ -83,7 +83,7 @@ const getAllCampaigns = async (
   if (searchTerm) {
     andConditions.push({
       OR: campaignSearchableFields.map(field => ({
-        [field]: { contains: searchTerm },
+        [field]: { contains: searchTerm,mode: 'insensitive' as const },
       })),
     });
   }
