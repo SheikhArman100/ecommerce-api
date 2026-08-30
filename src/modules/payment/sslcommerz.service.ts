@@ -90,15 +90,16 @@ const verifyPayment = async (val_id: string) => {
 };
 
 const initiateRefund = async (data: {
-  bank_tran_id: string;
+  refund_trans_id: string; // The val_id returned by the payment verification
   refund_amount: number;
-  refund_remark: string;
+  refund_remarks: string;
+  bank_tran_id?: string;
 }) => {
   try {
     const isSandbox = config.ssl_is_sandbox === 'true';
     const baseUrl = isSandbox
-      ? 'https://sandbox.sslcommerz.com/validator/api/reFenD.php'
-      : 'https://securepay.sslcommerz.com/validator/api/reFenD.php';
+      ? 'https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php'
+      : 'https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php';
 
     const response = await axios({
       method: 'get',
@@ -109,7 +110,14 @@ const initiateRefund = async (data: {
         store_passwd: config.ssl_store_pass,
         format: 'json',
       },
+      validateStatus: () => true, // let us inspect non-200 bodies ourselves
     });
+
+    if (response.status >= 400) {
+      throw new Error(
+        `SSLCommerz refund request failed with status ${response.status}`,
+      );
+    }
 
     return response.data;
   } catch (error) {
@@ -122,19 +130,27 @@ const queryRefundStatus = async (refund_ref_id: string) => {
   try {
     const isSandbox = config.ssl_is_sandbox === 'true';
     const baseUrl = isSandbox
-      ? 'https://sandbox.sslcommerz.com/validator/api/queryRefund.php'
-      : 'https://securepay.sslcommerz.com/validator/api/queryRefund.php';
+      ? 'https://sandbox.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php'
+      : 'https://securepay.sslcommerz.com/validator/api/merchantTransIDvalidationAPI.php';
 
     const response = await axios({
       method: 'get',
       url: baseUrl,
       params: {
         refund_ref_id,
+        op: 'val_ref',
         store_id: config.ssl_store_id,
         store_passwd: config.ssl_store_pass,
         format: 'json',
       },
+      validateStatus: () => true,
     });
+
+    if (response.status >= 400) {
+      throw new Error(
+        `SSLCommerz refund status request failed with status ${response.status}`,
+      );
+    }
 
     return response.data;
   } catch (error) {

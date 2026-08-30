@@ -8,6 +8,20 @@ import pick from '../../helpers/pick';
 import { paymentFilterableFields } from './payment.constant';
 import { paginationFields } from '../../constant';
 
+const initiatePayment = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.initiatePayment(
+    Number(req.body.orderId),
+    req.user as any,
+  );
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Payment initiated successfully',
+    data: result,
+  });
+});
+
 const handleSuccess = catchAsync(async (req: Request, res: Response) => {
   const { tran_id, val_id } = req.body.tran_id ? req.body : req.query;
   const result = await PaymentService.handleSuccess(tran_id as string, val_id as string);
@@ -59,6 +73,17 @@ const initiateRefund = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getRefundStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await PaymentService.getRefundStatus(req.params.transactionId as string);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Refund status retrieved successfully',
+    data: result,
+  });
+});
+
 const getAllPayments = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, paymentFilterableFields);
   const paginationOptions = pick(req.query, paginationFields);
@@ -99,11 +124,13 @@ const updatePayment = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const PaymentController = {
+  initiatePayment,
   handleSuccess,
   handleFail,
   handleCancel,
   handleIPN,
   initiateRefund,
+  getRefundStatus,
   getAllPayments,
   getSinglePayment,
   updatePayment,

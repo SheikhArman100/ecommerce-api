@@ -458,6 +458,7 @@ const getAllProducts = async (
       },
       flavors: {
         select: {
+          flavorId: true,
           flavor: {
             select: {
               name: true,
@@ -466,6 +467,8 @@ const getAllProducts = async (
           },
           sizes: {
             select: {
+              id: true,
+              sizeId: true,
               size: {
                 select: {
                   name: true,

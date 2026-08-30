@@ -10,8 +10,145 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { paymentSearchableFields } from './payment.constant';
 import { OrderService } from '../order/order.service';
 import { NotificationService } from '../notification/notification.service';
+import { UserInfoFromToken } from '../../types/common';
+import { ENUM_USER_ROLE } from '../../enum/user';
+import config from '../../config';
+import { nanoid } from 'nanoid';
+
+const initiatePayment = async (
+  orderId: number,
+  userInfo: UserInfoFromToken,
+) => {
+  // Fetch the order with its user (order is a "shell" until payment succeeds)
+  const order: any = await (prisma as any).order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: {
+        include: { detail: true },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new ApiError(status.NOT_FOUND, 'Order not found');
+  }
+
+  // Only the order owner (or an admin) can initiate its payment
+  const isAdmin = userInfo.role === ENUM_USER_ROLE.ADMIN;
+  if (!isAdmin && order.userId !== Number(userInfo.id)) {
+    throw new ApiError(
+      status.FORBIDDEN,
+      'You are not authorized to pay for this order',
+    );
+  }
+
+  // Order must still be payable
+  if (order.status === 'Paid' || order.paymentStatus === PaymentStatus.PAID) {
+    throw new ApiError(status.BAD_REQUEST, 'Order is already paid');
+  }
+  if (order.status === 'Failed' || order.status === 'Cancelled') {
+    throw new ApiError(status.BAD_REQUEST, `Order is ${order.status.toLowerCase()} and cannot be paid`);
+  }
+
+  // SSLCommerz gateway sessions expire after a short while — reusing a stale
+  // GatewayPageURL shows "There is an error to process your payment!". So any
+  // previous PENDING payment for this order is superseded (marked FAILED) and
+  // a fresh session is created below.
+  const previousPendingPayments: any[] = await (prisma as any).payment.findMany({
+    where: { orderId, paymentStatus: PaymentStatus.PENDING },
+  });
+  await (prisma as any).payment.updateMany({
+    where: { orderId, paymentStatus: PaymentStatus.PENDING },
+    data: { paymentStatus: PaymentStatus.FAILED },
+  });
+
+  // Carry over the cart snapshot from the superseded payment (if any) — it is
+  // required later by createOrderItemsFromSnapshot() when payment succeeds.
+  const carriedSnapshot = previousPendingPayments.find(
+    (p) => (p.gatewayResponse as any)?.cartSnapshot?.items?.length > 0,
+  )?.gatewayResponse?.cartSnapshot;
+
+  // Generate transaction ID
+  const tranId = `TRAN-${nanoid(10)}`;
+
+  // Build SSLCommerz payload from order + user
+  const sslPaymentData = {
+    total_amount: order.payableAmount ?? order.totalAmount,
+    currency: 'BDT' as const,
+    tran_id: tranId,
+    success_url: `${config.backend_url}/api/v1/payment/success`,
+    fail_url: `${config.backend_url}/api/v1/payment/fail`,
+    cancel_url: `${config.backend_url}/api/v1/payment/cancel`,
+    ipn_url: `${config.backend_url}/api/v1/payment/ipn`,
+    shipping_method: 'Courier' as const,
+    product_name: `Order #${order.id}`,
+    product_category: 'Ecommerce',
+    product_profile: 'general',
+    cus_name: order.user.name,
+    cus_email: order.user.email,
+    cus_add1: order.user.detail?.address || 'N/A',
+    cus_add2: order.user.detail?.address || 'N/A',
+    cus_city: order.user.detail?.city || 'N/A',
+    cus_state: order.user.detail?.city || 'N/A',
+    cus_postcode: '1000',
+    cus_country: 'Bangladesh',
+    cus_phone: order.user.phoneNumber,
+    cus_fax: order.user.phoneNumber,
+    ship_name: order.user.name,
+    ship_add1: order.user.detail?.address || 'N/A',
+    ship_add2: order.user.detail?.address || 'N/A',
+    ship_city: order.user.detail?.city || 'N/A',
+    ship_state: order.user.detail?.city || 'N/A',
+    ship_postcode: '1000',
+    ship_country: 'Bangladesh',
+  };
+
+  const sslResponse = await SSLCommerzService.initiatePayment(sslPaymentData) as any;
+
+  console.log('SSLCommerz Initiation Response:', sslResponse);
+
+  if (sslResponse?.status !== 'SUCCESS') {
+    throw new ApiError(status.BAD_REQUEST, 'Payment initiation failed');
+  }
+
+  // Create the payment record for this order (carry over cart snapshot if the
+  // session was re-initiated, so createOrderItemsFromSnapshot still works)
+  const payment = await (prisma as any).payment.create({
+    data: {
+      orderId: order.id,
+      transactionId: tranId,
+      amount: order.payableAmount ?? order.totalAmount,
+      paymentStatus: PaymentStatus.PENDING,
+      gatewayResponse: {
+        ...sslResponse,
+        ...(carriedSnapshot && { cartSnapshot: carriedSnapshot }),
+      },
+    },
+  });
+
+  return {
+    GatewayPageURL: sslResponse.GatewayPageURL,
+    transactionId: payment.transactionId,
+    paymentId: payment.id,
+    orderId: order.id,
+    amount: payment.amount,
+  };
+};
 
 const handleSuccess = async (tran_id: string, val_id: string) => {
+  // Idempotency guard: /success (browser redirect) and /ipn (server-to-server,
+  // possibly retried) can both fire for the same tran_id. If this payment was
+  // already processed, do nothing so order items/emails are never duplicated.
+  const existingPayment: any = await (prisma as any).payment.findUnique({
+    where: { transactionId: tran_id },
+  });
+  if (!existingPayment) {
+    return { success: false };
+  }
+  if (existingPayment.paymentStatus === PaymentStatus.PAID) {
+    return { success: true };
+  }
+
   const verificationResponse = await SSLCommerzService.verifyPayment(val_id) as any;
 
   if (verificationResponse?.status === 'VALID' || verificationResponse?.status === 'AUTHENTICATED') {
@@ -181,6 +318,32 @@ const cleanupFailedPayment = async (tran_id: string) => {
   });
 };
 
+const getRefundStatus = async (tranId: string) => {
+  const payment: any = await (prisma as any).payment.findUnique({
+    where: { transactionId: tranId },
+  });
+
+  if (!payment) {
+    throw new ApiError(status.NOT_FOUND, 'Payment not found');
+  }
+
+  const refundRefId = (payment.gatewayResponse as any)?.refund_response?.refund_ref_id;
+  if (!refundRefId) {
+    throw new ApiError(
+      status.BAD_REQUEST,
+      'No refund has been initiated for this payment',
+    );
+  }
+
+  const refundStatus = await SSLCommerzService.queryRefundStatus(refundRefId) as any;
+
+  return {
+    transactionId: payment.transactionId,
+    paymentStatus: payment.paymentStatus,
+    gatewayRefundStatus: refundStatus,
+  };
+};
+
 const refundPayment = async (orderId: number, refundAmount: number, refundRemark: string) => {
   const payment = await (prisma as any).payment.findFirst({
     where: { 
@@ -193,15 +356,34 @@ const refundPayment = async (orderId: number, refundAmount: number, refundRemark
     throw new ApiError(status.NOT_FOUND, 'Paid payment not found for this order');
   }
 
-  if (!payment.bankTranId) {
-    throw new ApiError(status.BAD_REQUEST, 'Bank transaction ID missing for this payment');
+  if (payment.paymentStatus === PaymentStatus.REFUNDED) {
+    throw new ApiError(status.BAD_REQUEST, 'This payment has already been refunded');
+  }
+
+  // Refund amount must not exceed the amount actually paid
+  if (refundAmount > payment.amount) {
+    throw new ApiError(
+      status.BAD_REQUEST,
+      `Refund amount (${refundAmount}) must not be more than the customer's transaction amount (${payment.amount})`,
+    );
+  }
+
+  const valId = (payment.validationResponse as any)?.val_id;
+  if (!valId) {
+    throw new ApiError(
+      status.BAD_REQUEST,
+      'Validation data missing for this payment (val_id not found)',
+    );
   }
 
   const refundResponse = await SSLCommerzService.initiateRefund({
-    bank_tran_id: payment.bankTranId,
+    refund_trans_id: valId,
     refund_amount: refundAmount,
-    refund_remark: refundRemark,
+    refund_remarks: refundRemark,
+    bank_tran_id: payment.bankTranId,
   }) as any;
+
+  
 
   if (refundResponse?.status === 'success') {
     await prisma.$transaction(async (tx: any) => {
@@ -225,7 +407,13 @@ const refundPayment = async (orderId: number, refundAmount: number, refundRemark
     });
     return refundResponse;
   } else {
-    throw new ApiError(status.BAD_REQUEST, refundResponse?.error || 'Refund initiation failed');
+    console.error('SSLCommerz Refund Rejected:', refundResponse);
+    throw new ApiError(
+      status.BAD_REQUEST,
+      refundResponse?.error ||
+        refundResponse?.failedreason ||
+        `Refund initiation failed (gateway status: ${refundResponse?.status ?? 'unknown'})`,
+    );
   }
 };
 
@@ -335,10 +523,12 @@ const updatePayment = async (id: string, payload: IPaymentUpdate) => {
 };
 
 export const PaymentService = {
+  initiatePayment,
   handleSuccess,
   handleFail,
   handleCancel,
   refundPayment,
+  getRefundStatus,
   getAllPayments,
   getSinglePayment,
   updatePayment,
