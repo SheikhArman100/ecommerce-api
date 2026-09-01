@@ -279,9 +279,11 @@ const createOrderFromCart = async (
   };
 };
 
-const createOrderItemsFromSnapshot = async (tran_id: string) => {
+const createOrderItemsFromSnapshot = async (tran_id: string, txClient?: any) => {
+  const client = txClient ?? prisma;
+
   // Find the payment record with cart snapshot
-  const payment = await (prisma as any).payment.findUnique({
+  const payment = await client.payment.findUnique({
     where: { transactionId: tran_id },
   });
 
@@ -309,8 +311,8 @@ const createOrderItemsFromSnapshot = async (tran_id: string) => {
     where: { userId: order.userId },
   });
 
-  // Create order items and decrement stock in a transaction
-  await prisma.$transaction(async (tx: any) => {
+  // Create order items and decrement stock
+  const run = async (tx: any) => {
     // 1. Create order items from snapshot
     for (const item of cartSnapshot.items) {
       await tx.orderItem.create({
@@ -355,7 +357,16 @@ const createOrderItemsFromSnapshot = async (tran_id: string) => {
         where: { cartId: userCart.id },
       });
     }
-  });
+  };
+
+  // When a transaction client is passed (payment success flow), run on it so a
+  // failure rolls back the payment/order updates as well. Otherwise run in our
+  // own transaction (standalone usage).
+  if (txClient) {
+    return run(txClient);
+  }
+
+  return prisma.$transaction(run);
 };
 
 const getAllOrders = async (

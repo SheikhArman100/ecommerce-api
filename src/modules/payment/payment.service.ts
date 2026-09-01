@@ -156,7 +156,13 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
     let orderInfo: any = null;
 
     await prisma.$transaction(async (tx: any) => {
-      // 1. Update payment record
+      // 1. Create order items from cart snapshot, decrement stock, clear cart.
+      // Runs FIRST and inside the transaction: if the snapshot is missing or
+      // stock fails, everything rolls back — so an order can never end up
+      // marked PAID with empty items.
+      await OrderService.createOrderItemsFromSnapshot(tran_id, tx);
+
+      // 2. Update payment record
       const payment = await tx.payment.update({
         where: { transactionId: tran_id },
         data: {
@@ -182,7 +188,7 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
         transactionId: payment.transactionId,
       };
 
-      // 2. Update order status to Paid
+      // 3. Update order status to Paid
       await tx.order.update({
         where: { id: payment.orderId },
         data: {
@@ -192,7 +198,7 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
       });
     });
 
-    // 3. Send payment success email (after transaction committed)
+    // 4. Send payment success email (after transaction committed)
     if (orderInfo) {
       NotificationService.sendPaymentSuccessEmail(orderInfo.userEmail, {
         userName: orderInfo.userName,
@@ -201,9 +207,6 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
         transactionId: orderInfo.transactionId,
       }).catch(err => console.error('Payment Success Email Error:', err));
     }
-
-    // 4. Create order items from cart snapshot, decrement stock, clear cart
-    await OrderService.createOrderItemsFromSnapshot(tran_id);
 
     // 5. Send order confirmation emails (async, non-blocking)
     if (orderInfo) {
