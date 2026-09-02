@@ -25,6 +25,19 @@ const createFlavor = async (
       'You are not authorized to perform this action',
     );
   }
+  // Check if a flavor with the same name or color already exists (case-insensitive)
+  const existingFlavor = await prisma.flavor.findFirst({
+    where: {
+      OR: [
+        { name: { equals: payload.name as string, mode: 'insensitive' } },
+        { color: payload.color as string },
+      ],
+    },
+  });
+  if (existingFlavor) {
+    throw new ApiError(status.CONFLICT, 'Flavor with this name or color already exists');
+  }
+  
   const data = await prisma.flavor.create({
     data: {
       name: payload.name as string,
@@ -141,6 +154,22 @@ const updateFlavor = async (
   if (!checkFlavor) {
     throw new ApiError(status.NOT_FOUND, 'Flavor not found');
   }
+  // Check if a flavor with the same name or color already exists (excluding the current flavor, case-insensitive)
+  if ((payload.name && payload.name.toLowerCase() !== checkFlavor.name.toLowerCase()) || (payload.color && payload.color !== checkFlavor.color)) {
+    const existingFlavor = await prisma.flavor.findFirst({
+      where: {
+        id: { not: Number(id) },
+        OR: [
+          ...(payload.name ? [{ name: { equals: payload.name, mode: 'insensitive' as const } }] : []),
+          ...(payload.color ? [{ color: payload.color }] : []),
+        ],
+      },
+    });
+    if (existingFlavor) {
+      throw new ApiError(status.CONFLICT, 'Flavor with this name or color already exists');
+    }
+  }
+  
   const data = await prisma.flavor.update({
     where: {
       id: Number(id),

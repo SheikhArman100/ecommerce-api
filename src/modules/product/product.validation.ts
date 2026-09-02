@@ -37,7 +37,7 @@ const sizeDataSchema = z.object({
 
 export const createProductSchema = z.object({
   body: z.object({
-    title: z.string().min(3, 'Title must be at least 3 characters'),
+    title: z.string().min(3, 'Title must be at least 3 characters').trim(),
     description: z
       .string()
       .min(10, 'Description must be at least 10 characters'),
@@ -196,7 +196,7 @@ const flavorUpdateSchema = z.object({
 
 const updateProductSchemaNew = z.object({
   body: z.object({
-    title: z.string().min(3, 'Title must be at least 3 characters').optional(),
+    title: z.string().min(3, 'Title must be at least 3 characters').trim().optional(),
     description: z
       .string()
       .min(10, 'Description must be at least 10 characters')

@@ -64,6 +64,20 @@ const createProduct = async (
     throw new ApiError(status.BAD_REQUEST, 'Missing required product details');
   }
 
+  // Check if a product with the same title already exists (case-insensitive)
+  const duplicateProduct = await prisma.product.findFirst({
+    where: {
+      title: { equals: title, mode: 'insensitive' },
+    },
+    select: { id: true, title: true },
+  });
+  if (duplicateProduct) {
+    throw new ApiError(
+      status.CONFLICT,
+      `Product title "${title}" already exists`,
+    );
+  }
+
   // Use transaction to ensure data consistency
   return prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -819,6 +833,23 @@ const updateProduct = async (
   return prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
       const { title, description, categoryId, isActive, flavors } = payload;
+
+      // Check for duplicate title (case-insensitive), excluding this product
+      if (title !== undefined && title.toLowerCase() !== existingProduct.title.toLowerCase()) {
+        const duplicateProduct = await tx.product.findFirst({
+          where: {
+            title: { equals: title, mode: 'insensitive' },
+            id: { not: Number(productId) },
+          },
+          select: { id: true, title: true },
+        });
+        if (duplicateProduct) {
+          throw new ApiError(
+            status.CONFLICT,
+            `Product title "${title}" already exists`,
+          );
+        }
+      }
 
       // Update basic product info
       const updateData: any = {

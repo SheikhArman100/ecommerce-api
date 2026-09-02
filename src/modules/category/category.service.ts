@@ -34,6 +34,20 @@ const createCategory = async (
   if (!multerFile) {
     throw new ApiError(status.BAD_REQUEST, 'Category image is required');
   }
+  // Check if a category with the same name or slug already exists (case-insensitive)
+  const existingCategory = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { name: { equals: payload.name, mode: 'insensitive' } },
+        { slug: payload.slug },
+      ],
+    },
+  });
+  if (existingCategory) {
+    throw new ApiError(status.CONFLICT, 'Category with this name or slug already exists');
+  }
+ 
+
   const data = await prisma.category.create({
     data: {
       name: payload.name as string,
@@ -168,6 +182,23 @@ const updateCategory = async (
   if (!checkCategory) {
     throw new ApiError(status.NOT_FOUND, 'Category not found');
   }
+
+  // Check if a category with the same name or slug already exists (excluding the current category, case-insensitive)
+  if ((payload.name && payload.name.toLowerCase() !== checkCategory.name.toLowerCase()) || (payload.slug && payload.slug !== checkCategory.slug)) {
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        id: { not: Number(id) },
+        OR: [
+          ...(payload.name ? [{ name: { equals: payload.name, mode: 'insensitive' as const } }] : []),
+          ...(payload.slug ? [{ slug: payload.slug }] : []),
+        ],
+      },
+    });
+    if (existingCategory) {
+      throw new ApiError(status.CONFLICT, 'Category with this name or slug already exists');
+    }
+  }
+
   const data = await prisma.category.update({
     where: {
       id: Number(id),

@@ -5,7 +5,7 @@ const createFlavorSchema = z.object({
     .object({
       name: z
         .string()
-        .min(3, { message: 'Name must be at least 3 characters long' }),
+        .min(3, { message: 'Name must be at least 3 characters long' }).trim(),
       color: z
         .string()
         .regex(
@@ -13,7 +13,7 @@ const createFlavorSchema = z.object({
           {
             message: 'Color must be a valid RGB color format (hex: #FF0000, rgb: rgb(255,0,0), rgba: rgba(255,0,0,1), hsl: hsl(0,100%,50%), hsla: hsla(0,100%,50%,1), or named color: red)'
           }
-        ),
+        ).trim(),
       description: z
         .string()
         .max(200, { message: 'Description must be at most 200 characters long' })
@@ -30,6 +30,7 @@ const updateFlavorSchema = z.object({
       name: z
         .string()
         .min(3, { message: 'Name must be at least 3 characters long' })
+        .trim()
         .optional(),
       color: z
         .string()
@@ -39,6 +40,7 @@ const updateFlavorSchema = z.object({
             message: 'Color must be a valid RGB color format (hex: #FF0000, rgb: rgb(255,0,0), rgba: rgba(255,0,0,1), hsl: hsl(0,100%,50%), hsla: hsla(0,100%,50%,1), or named color: red)'
           }
         )
+        .trim()
         .optional(),
       description: z
         .string()
