@@ -4,7 +4,7 @@ const createSizeSchema = z.object({
   body: z.object({
     name: z
       .string()
-      .min(1, { message: 'Name must be at least 3 characters long' }),
+      .min(1, { message: 'Name must be at least 1 characters long' }).trim(),
     description: z
       .string()
       .max(200, { message: 'Description must be at most 200 characters long' })

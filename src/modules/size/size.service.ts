@@ -25,6 +25,13 @@ const createSize = async (
       'You are not authorized to perform this action',
     );
   }
+  // Check if a size with the same name already exists
+  const existingSize = await prisma.size.findUnique({
+    where: { name: payload.name as string },
+  });
+  if (existingSize) {
+    throw new ApiError(status.BAD_REQUEST, 'Size with this name already exists');
+  }
   const data = await prisma.size.create({
     data: {
       name: payload.name as string,
@@ -140,6 +147,17 @@ const updateSize = async (
   if (!checkSize) {
     throw new ApiError(status.NOT_FOUND, 'Size not found');
   }
+
+  // Check if a size with the same name already exists (excluding the current size)
+  if (payload.name && payload.name !== checkSize.name) {
+    const existingSize = await prisma.size.findUnique({
+      where: { name: payload.name },
+    });
+    if (existingSize) {
+      throw new ApiError(status.BAD_REQUEST, 'Size with this name already exists');
+    }
+  }
+  
   const data = await prisma.size.update({
     where: {
       id: Number(id),
