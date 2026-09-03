@@ -2,13 +2,13 @@ import { prisma } from '../../client';
 import { SSLCommerzService } from './sslcommerz.service';
 import ApiError from '../../errors/ApiError';
 import status from 'http-status';
-import { PaymentStatus } from '../../generated/enums';
+import { PaymentStatus, OrderStatus } from '../../generated/enums';
 import { Prisma } from '../../generated/client';
 import { IPaymentFilters, IPaymentUpdate } from './payment.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { paymentSearchableFields } from './payment.constant';
-import { OrderService } from '../order/order.service';
+import { OrderService, createStatusHistory } from '../order/order.service';
 import { NotificationService } from '../notification/notification.service';
 import { UserInfoFromToken } from '../../types/common';
 import { ENUM_USER_ROLE } from '../../enum/user';
@@ -196,6 +196,9 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
           paymentStatus: PaymentStatus.PAID,
         },
       });
+
+      // Record Paid in the status timeline
+      await createStatusHistory(tx, payment.orderId, OrderStatus.Paid);
     });
 
     // 4. Send payment success email (after transaction committed)
@@ -268,6 +271,9 @@ const handleFail = async (tran_id: string) => {
         status: 'Failed',
       },
     });
+
+    // Record Failed in the status timeline
+    await createStatusHistory(tx, payment.orderId, OrderStatus.Failed);
   });
 };
 

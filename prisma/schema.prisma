@@ -373,8 +373,25 @@ model Order {
   reviews  Review[] // Reviews for this order
   coupon   Coupon?   @relation(fields: [couponId], references: [id])
   payments Payment[]
+  statusHistory OrderStatusHistory[]
 
   @@map("orders")
+}
+
+// Tracks every status change so each status has its own timestamp (timeline)
+model OrderStatusHistory {
+  id        Int         @id @default(autoincrement())
+  orderId   Int
+  status    OrderStatus
+  changedAt DateTime    @default(now())
+  changedBy Int? // Admin id who changed the status (null = system/payment flow)
+
+  // Relations
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([orderId])
+  @@map("order_status_history")
 }
 
 model Payment {

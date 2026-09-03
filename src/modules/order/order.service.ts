@@ -15,6 +15,27 @@ import { CouponService } from '../coupon/coupon.service';
 import { SSLCommerzService } from '../payment/sslcommerz.service';
 import { NotificationService } from '../notification/notification.service';
 
+/**
+ * Append a row to the order status timeline. Called whenever an order's status
+ * is set (on creation and on every transition). changedBy is the acting user
+ * (null when changed by the system/payment flow).
+ */
+export const createStatusHistory = async (
+  tx: any,
+  orderId: number,
+  status: OrderStatus,
+  changedBy?: number,
+): Promise<void> => {
+  await tx.orderStatusHistory.create({
+    data: {
+      orderId,
+      status,
+      changedAt: new Date(),
+      ...(changedBy ? { changedBy } : {}),
+    },
+  });
+};
+
 const createOrderFromCart = async (
   userInfo: UserInfoFromToken,
   payload: IOrderCreate
@@ -203,6 +224,9 @@ const createOrderFromCart = async (
         paymentStatus: PaymentStatus.PENDING,
       },
     });
+
+    // Record the initial status in the timeline
+    await createStatusHistory(tx, shellOrder.id, OrderStatus.Pending, checkUser.id);
 
     // Increment coupon used count if applicable
     if (couponId) {
@@ -497,6 +521,9 @@ const getAllOrders = async (
             }
           }
         }
+      },
+      statusHistory: {
+        orderBy: { changedAt: 'asc' },
       }
     },
   });
@@ -534,6 +561,9 @@ const getSingleOrder = async (
           email: true,
           createdAt:true,
         }
+      },
+      statusHistory: {
+        orderBy: { changedAt: 'asc' },
       },
       items: {
         include: {
@@ -648,6 +678,9 @@ const getUserOrders = async (
     skip,
     take: limit,
     include: {
+      statusHistory: {
+        orderBy: { changedAt: 'asc' },
+      },
       items: {
         include: {
           product: {
@@ -773,22 +806,26 @@ const updateOrderStatus = async (
     }
   }
 
-  // Update order status
-  const updatedOrder = await prisma.order.update({
-    where: { id: Number(orderId) },
-    data: {
-      status: payload.status,
-      updatedAt: new Date(),
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
+  // Update order status + append timeline entry (atomically)
+  const updatedOrder = await prisma.$transaction(async (tx: any) => {
+    const updated = await tx.order.update({
+      where: { id: Number(orderId) },
+      data: {
+        status: payload.status,
+        updatedAt: new Date(),
       },
-      items: {
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        statusHistory: {
+          orderBy: { changedAt: 'asc' },
+        },
+        items: {
         include: {
           product: {
             include: {
@@ -842,6 +879,13 @@ const updateOrderStatus = async (
         }
       }
     },
+  });
+
+    if (payload.status) {
+      await createStatusHistory(tx, Number(orderId), payload.status, checkUser.id);
+    }
+
+    return updated;
   });
 
   // Handle variant resolution fallback for quantity products

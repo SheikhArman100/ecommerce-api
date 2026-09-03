@@ -70,6 +70,16 @@ export interface IOrder {
     email: string;
   };
   items?: IOrderItem[];
+  statusHistory?: IOrderStatusHistory[];
+}
+
+// Order status timeline entry — one record per status change (with timestamp)
+export interface IOrderStatusHistory {
+  id: number;
+  orderId: number;
+  status: OrderStatus;
+  changedAt: Date;
+  changedBy?: number | null;
 }
 
 // Interface for OrderItem

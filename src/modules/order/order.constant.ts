@@ -27,10 +27,12 @@ export const ORDER_STATUSES = [
   OrderStatus.Failed,
 ] as const;
 
-// Status transition validation
+// Status transition validation — one step at a time: an order must pass through
+// each status sequentially (no skipping). Cancelled/Failed are deviations the
+// admin may apply directly; Failed can be retried back to Paid.
 export const ALLOWED_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.Pending]: [OrderStatus.Paid, OrderStatus.Cancelled, OrderStatus.Failed],
-  [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Delivered, OrderStatus.Cancelled],
+  [OrderStatus.Paid]: [OrderStatus.Shipped, OrderStatus.Cancelled],
   [OrderStatus.Shipped]: [OrderStatus.Delivered, OrderStatus.Cancelled],
   [OrderStatus.Delivered]: [],
   [OrderStatus.Cancelled]: [],
