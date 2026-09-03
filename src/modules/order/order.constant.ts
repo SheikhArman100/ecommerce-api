@@ -14,7 +14,8 @@ export const orderFilterableFields: string[] = [
 // Define searchable fields for Order
 export const orderSearchableFields: string[] = [
   'user.name',
-  'user.email'
+  'user.email',
+  'orderNumber'
 ];
 
 // Order status options

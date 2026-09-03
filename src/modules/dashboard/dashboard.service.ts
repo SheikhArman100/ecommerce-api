@@ -490,7 +490,7 @@ const getRecentOrders = async (): Promise<IRecentOrder[]> => {
 
   return recentOrdersData.map(order => ({
     id: order.id,
-    orderId: `ORD-${order.id.toString().padStart(6, '0')}`,
+    orderId: order.orderNumber,
     customerName: order.user.name,
     amount: order.totalAmount,
     status: order.status,

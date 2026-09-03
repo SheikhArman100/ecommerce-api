@@ -55,6 +55,7 @@ export interface IOrderInitiationResponse {
 // Interface for Order response
 export interface IOrder {
   id: number;
+  orderNumber: string; // Human-friendly: ORD-YYYYMMDD-XXXXXX
   status: OrderStatus;
   totalAmount: number;
   discountAmount: number;

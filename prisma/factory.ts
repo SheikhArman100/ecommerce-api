@@ -1,7 +1,11 @@
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
-import { UserRole, OrderStatus } from '../src/generated/enums';
+import { customAlphabet } from 'nanoid';
+import { UserRole, OrderStatus, PaymentStatus } from '../src/generated/enums';
 import { prisma } from '../src/client';
+
+// Unambiguous charset for order numbers (no 0/O, 1/I/L confusion) — same as order.service
+const orderNumberId = customAlphabet('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
 
 // Factory class for generating fake data
 export class DataFactory {
@@ -238,6 +242,127 @@ export class DataFactory {
     return products;
   }
 
+  // Generate fake coupons
+  async createCoupons(count: number = 10) {
+    const coupons = [];
+    const adminUser = await prisma.user.findFirst({ where: { role: UserRole.admin } });
+    if (!adminUser) throw new Error('Admin user not found');
+
+    const couponNames = ['SAVE10', 'SWEET15', 'TASTY20', 'CAKE25', 'FRESH5', 'YUMMY10', 'BAKE15', 'TREAT20', 'SUGAR10', 'DELIGHT5'];
+    const now = Date.now();
+
+    for (let i = 0; i < Math.min(count, couponNames.length); i++) {
+      // Mix of percentage and fixed discounts
+      const isPercentage = i % 2 === 0;
+      const discountValue = isPercentage
+        ? faker.helpers.arrayElement([5, 10, 15, 20, 25])
+        : faker.number.int({ min: 50, max: 300 });
+
+      // ~20% expired, ~15% inactive, rest active and valid
+      const roll = faker.number.float({ min: 0, max: 1 });
+      const expiryDate =
+        roll < 0.2
+          ? new Date(now - faker.number.int({ min: 5, max: 60 }) * 24 * 60 * 60 * 1000) // expired
+          : new Date(now + faker.number.int({ min: 30, max: 180 }) * 24 * 60 * 60 * 1000); // valid
+
+      const coupon = await prisma.coupon.upsert({
+        where: { code: couponNames[i] },
+        update: {},
+        create: {
+          code: couponNames[i],
+          discountType: isPercentage ? 'PERCENTAGE' : 'FIXED',
+          discountValue,
+          minOrderAmount: faker.helpers.arrayElement([0, 200, 500, 1000]),
+          maxDiscountAmount: isPercentage
+            ? faker.helpers.arrayElement([null, 100, 200, 500])
+            : null,
+          expiryDate,
+          isActive: roll >= 0.35,
+          usageLimit: faker.helpers.arrayElement([null, 50, 100, 500]),
+          usedCount: faker.number.int({ min: 0, max: 40 }),
+          createdBy: adminUser.id,
+          updatedBy: adminUser.id,
+        },
+      });
+      coupons.push(coupon);
+    }
+
+    console.log(`✅ Created ${coupons.length} coupons`);
+    return coupons;
+  }
+
+  // Generate fake campaigns (with product links)
+  async createCampaigns(count: number = 5) {
+    const campaigns = [];
+    const adminUser = await prisma.user.findFirst({ where: { role: UserRole.admin } });
+    if (!adminUser) throw new Error('Admin user not found');
+
+    const products = await prisma.product.findMany();
+    if (products.length === 0) {
+      throw new Error('Products must be created first');
+    }
+
+    const campaignNames = [
+      'Eid Special', 'Pohela Boishakh', 'Christmas Delight', 'Valentine Treat',
+      'Winter Warmup', 'Summer Sale', 'Anniversary Blast', 'Weekend Offer'
+    ];
+    const now = Date.now();
+
+    for (let i = 0; i < Math.min(count, campaignNames.length); i++) {
+      const name = campaignNames[i];
+      const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+      // ~70% currently active (started in the past, ends in the future), rest past/future
+      const roll = faker.number.float({ min: 0, max: 1 });
+      let startDate: Date;
+      let endDate: Date;
+      if (roll < 0.7) {
+        startDate = new Date(now - faker.number.int({ min: 5, max: 30 }) * 24 * 60 * 60 * 1000);
+        endDate = new Date(now + faker.number.int({ min: 15, max: 60 }) * 24 * 60 * 60 * 1000);
+      } else if (roll < 0.85) {
+        // Already ended
+        endDate = new Date(now - faker.number.int({ min: 5, max: 30 }) * 24 * 60 * 60 * 1000);
+        startDate = new Date(endDate.getTime() - faker.number.int({ min: 15, max: 45 }) * 24 * 60 * 60 * 1000);
+      } else {
+        // Upcoming
+        startDate = new Date(now + faker.number.int({ min: 5, max: 30 }) * 24 * 60 * 60 * 1000);
+        endDate = new Date(startDate.getTime() + faker.number.int({ min: 15, max: 45 }) * 24 * 60 * 60 * 1000);
+      }
+
+      // 2-8 products per campaign, some with a custom discount override
+      const campaignProducts = faker.helpers.arrayElements(products, { min: 2, max: 8 });
+
+      const campaign = await prisma.campaign.upsert({
+        where: { slug },
+        update: {},
+        create: {
+          title: name,
+          slug,
+          description: faker.lorem.sentence(),
+          bannerImage: null,
+          discountDefault: faker.helpers.arrayElement([5, 10, 15, 20, 25, 30]),
+          startDate,
+          endDate,
+          isActive: roll < 0.7,
+          createdBy: adminUser.id,
+          updatedBy: adminUser.id,
+          products: {
+            create: campaignProducts.map(product => ({
+              productId: product.id,
+              customDiscountPercentage: faker.datatype.boolean({ probability: 0.3 })
+                ? faker.number.int({ min: 5, max: 40 })
+                : null,
+            })),
+          },
+        },
+      });
+      campaigns.push(campaign);
+    }
+
+    console.log(`✅ Created ${campaigns.length} campaigns`);
+    return campaigns;
+  }
+
   // Generate fake orders
   async createOrders(count: number = 50) {
     const orders = [];
@@ -253,6 +378,10 @@ export class DataFactory {
           }
         }
       }
+    });
+    // Only active, unexpired coupons can be applied to orders
+    const availableCoupons = await prisma.coupon.findMany({
+      where: { isActive: true, expiryDate: { gte: new Date() } },
     });
 
     if (users.length === 0 || products.length === 0) {
@@ -302,11 +431,39 @@ export class DataFactory {
         orderStatuses.map((status, index) => ({ weight: statusWeights[index], value: status }))
       );
 
+      // Payment status must align with the order status
+      const paymentStatus =
+        status === OrderStatus.Pending
+          ? PaymentStatus.PENDING
+          : status === OrderStatus.Cancelled
+            ? PaymentStatus.CANCELLED
+            : PaymentStatus.PAID;
+
+      // ~20% of orders use a coupon (with consistent discount amounts)
+      let couponId: number | null = null;
+      let discountAmount = 0;
+      if (availableCoupons.length > 0 && faker.datatype.boolean({ probability: 0.2 })) {
+        const coupon = faker.helpers.arrayElement(availableCoupons);
+        couponId = coupon.id;
+        discountAmount =
+          coupon.discountType === 'PERCENTAGE'
+            ? Math.min((totalAmount * coupon.discountValue) / 100, coupon.maxDiscountAmount ?? Infinity)
+            : Math.min(coupon.discountValue, totalAmount);
+        discountAmount = Math.round(discountAmount * 100) / 100;
+      }
+      const payableAmount = Math.max(totalAmount - discountAmount, 0);
+
       const order = await prisma.order.create({
         data: {
+          orderNumber: `ORD-${orderDate.toISOString().slice(0, 10).replace(/-/g, '')}-${orderNumberId()}`,
           userId: user.id,
           status,
           totalAmount,
+          discountAmount,
+          payableAmount,
+          deliveryCharge: 0,
+          paymentStatus,
+          couponId,
           createdAt: orderDate,
           updatedAt: orderDate,
           items: {
@@ -314,6 +471,32 @@ export class DataFactory {
           }
         }
       });
+
+      const statusFlow: OrderStatus[] = [OrderStatus.Pending, OrderStatus.Paid, OrderStatus.Shipped, OrderStatus.Delivered];
+      const flowIndex = statusFlow.indexOf(status);
+      const stages = status === OrderStatus.Cancelled
+        ? [OrderStatus.Pending, OrderStatus.Cancelled]
+        : flowIndex >=  0
+          ? statusFlow.slice(0, flowIndex + 1)
+          : [status];
+
+      const orderTime = orderDate.getTime();
+      const nowTime = Date.now();
+      const rangeMillis = nowTime - orderTime;
+
+      for (let s =  0; s < stages.length; s++) {
+        const changedAt =
+          stages.length === 1
+            ? orderDate // Order stays in its initial status if never moved
+            : new Date(Math.min(orderTime + ((rangeMillis * (s + 1)) / stages.length), nowTime));
+        await prisma.orderStatusHistory.create({
+          data: {
+            orderId: order.id,
+            status: stages[s],
+            changedAt,
+          },
+        });
+      }
 
       orders.push(order);
     }
@@ -514,6 +697,8 @@ export class DataFactory {
     reviews?: number;
     cartItems?: number;
     wishlistItems?: number;
+    coupons?: number;
+    campaigns?: number;
   } = {}) {
     console.log('🚀 Starting fake data generation for dashboard testing...');
 
@@ -524,6 +709,8 @@ export class DataFactory {
       await this.createFlavors(Math.max(options.flavors || 12, 8));
       await this.createSizes(Math.max(options.sizes || 8, 6));
       await this.createProducts(Math.max(options.products || 120, 100)); // At least 100 products
+      await this.createCampaigns(options.campaigns || 5);
+      await this.createCoupons(options.coupons || 10);
       await this.createOrders(Math.max(options.orders || 500, 300)); // At least 300 orders for good analytics
       await this.createReviews(Math.max(options.reviews || 200, 150)); // At least 150 reviews
       await this.createCartItems(Math.max(options.cartItems || 150, 100)); // At least 100 cart items
@@ -541,7 +728,12 @@ export class DataFactory {
   async cleanAllData() {
     console.log('🧹 Cleaning all data...');
 
+    await prisma.campaignProduct.deleteMany();
+    await prisma.campaign.deleteMany();
+    await prisma.coupon.deleteMany();
     await prisma.review.deleteMany();
+    await prisma.payment.deleteMany();
+    await prisma.orderStatusHistory.deleteMany();
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
     await prisma.wishList.deleteMany();

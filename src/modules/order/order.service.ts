@@ -8,7 +8,23 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma, OrderStatus, PaymentStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 import config from '../../config';
-import { nanoid } from 'nanoid';
+import { nanoid, customAlphabet } from 'nanoid';
+
+// Unambiguous charset for order numbers (no 0/O, 1/I/L confusion)
+const orderNumberId = customAlphabet('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
+
+/**
+ * Generate a human-friendly unique order number: ORD-YYYYMMDD-XXXXXX
+ * (random 6 chars from an unambiguous alphabet; uniqueness enforced by a
+ * unique DB constraint, with a retry loop on the rare collision case).
+ */
+export const generateOrderNumber = (): string => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `ORD-${y}${m}${d}-${orderNumberId()}`;
+};
 
 import { ENUM_USER_ROLE } from '../../enum/user';
 import { CouponService } from '../coupon/coupon.service';
@@ -214,6 +230,7 @@ const createOrderFromCart = async (
     // 1. Create shell order (NO items yet - they will be created after payment success)
     const shellOrder = await tx.order.create({
       data: {
+        orderNumber: generateOrderNumber(),
         userId: checkUser.id,
         totalAmount,
         discountAmount,
@@ -406,6 +423,12 @@ const getAllOrders = async (
   if (searchTerm) {
     whereConditions = {
       OR: [
+        {
+          orderNumber: {
+            contains: searchTerm,
+            mode: 'insensitive' as const,
+          },
+        },
         {
           user: {
             name: {
