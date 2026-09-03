@@ -13,7 +13,7 @@ import { NotificationService } from '../notification/notification.service';
 import { UserInfoFromToken } from '../../types/common';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import config from '../../config';
-import { nanoid } from 'nanoid';
+import { generateTransactionId } from '../../helpers/transactionId';
 
 const initiatePayment = async (
   orderId: number,
@@ -68,8 +68,8 @@ const initiatePayment = async (
     (p) => (p.gatewayResponse as any)?.cartSnapshot?.items?.length > 0,
   )?.gatewayResponse?.cartSnapshot;
 
-  // Generate transaction ID
-  const tranId = `TRAN-${nanoid(10)}`;
+  // Generate transaction ID (Tran-YYYYMMDD-XXXXXX)
+  const tranId = generateTransactionId();
 
   // Build SSLCommerz payload from order + user
   const sslPaymentData = {
@@ -111,8 +111,10 @@ const initiatePayment = async (
     throw new ApiError(status.BAD_REQUEST, 'Payment initiation failed');
   }
 
-  // Create the payment record for this order (carry over cart snapshot if the
-  // session was re-initiated, so createOrderItemsFromSnapshot still works)
+  // Store only what we need from the initiation response — the full response
+  // (gateway list, logos, session URLs) is heavy and useless after redirect.
+  // cartSnapshot is REQUIRED: createOrderItemsFromSnapshot() reads it when the
+  // payment succeeds. GatewayPageURL kept for debugging re-initiation issues.
   const payment = await (prisma as any).payment.create({
     data: {
       orderId: order.id,
@@ -120,7 +122,7 @@ const initiatePayment = async (
       amount: order.payableAmount ?? order.totalAmount,
       paymentStatus: PaymentStatus.PENDING,
       gatewayResponse: {
-        ...sslResponse,
+        GatewayPageURL: sslResponse.GatewayPageURL,
         ...(carriedSnapshot && { cartSnapshot: carriedSnapshot }),
       },
     },
@@ -402,8 +404,9 @@ const refundPayment = async (orderId: number, refundAmount: number, refundRemark
         where: { id: payment.id },
         data: {
           paymentStatus: PaymentStatus.REFUNDED,
+          // Replace with just the refund response — the cart snapshot is no
+          // longer needed once order items have been created.
           gatewayResponse: {
-            ...(payment.gatewayResponse as object),
             refund_response: refundResponse,
           },
         },
@@ -513,13 +516,23 @@ const getAllPayments = async (
     },
   });
 
+  // Strip the heavy JSON blobs from list responses — they're multi-KB each and
+  // only needed in the single-payment detail view (gateway audit log).
+  // Keep a lightweight `paymentMethod` derived from the validation response
+  // (SSLCommerz `card_type`, e.g. BKASH / VISA / BANKASIA-...), set after a
+  // successful payment; null for pending/failed attempts.
+  const data = result.map(({ gatewayResponse, validationResponse, ...rest }: any) => ({
+    ...rest,
+    paymentMethod: validationResponse?.card_type ?? null,
+  }));
+
   return {
     meta: {
       page,
       limit,
       count,
     },
-    data: result,
+    data,
   };
 };
 
@@ -538,6 +551,18 @@ const getSinglePayment = async (id: string) => {
   return result;
 };
 
+// Manual override policy: admins may only move a payment to statuses that are
+// honest about money. PAID requires the order-completion flow (or a real
+// gateway callback); REFUNDED must go through the SSLCommerz S2S refund flow,
+// never a hand-edit. PAID/REFUNDED payments are frozen — no status override.
+const ALLOWED_MANUAL_STATUS_CHANGES: Record<PaymentStatus, PaymentStatus[]> = {
+  [PaymentStatus.PENDING]: [PaymentStatus.FAILED, PaymentStatus.CANCELLED, PaymentStatus.PAID],
+  [PaymentStatus.FAILED]: [PaymentStatus.CANCELLED, PaymentStatus.PAID],
+  [PaymentStatus.CANCELLED]: [PaymentStatus.PAID],
+  [PaymentStatus.PAID]: [],
+  [PaymentStatus.REFUNDED]: [],
+};
+
 const updatePayment = async (id: string, payload: IPaymentUpdate) => {
   const isExist = await (prisma as any).payment.findUnique({
     where: { id },
@@ -547,6 +572,71 @@ const updatePayment = async (id: string, payload: IPaymentUpdate) => {
     throw new ApiError(status.NOT_FOUND, 'Payment not found');
   }
 
+  // Enforce the manual override policy (the UI only offers valid options, but
+  // the API is the source of truth — a crafted request must not bypass it).
+  if (
+    payload.paymentStatus &&
+    payload.paymentStatus !== isExist.paymentStatus &&
+    !ALLOWED_MANUAL_STATUS_CHANGES[isExist.paymentStatus as PaymentStatus]?.includes(
+      payload.paymentStatus,
+    )
+  ) {
+    const hint =
+      isExist.paymentStatus === PaymentStatus.PAID
+        ? 'Paid payments cannot be manually overridden — use the refund flow instead'
+        : isExist.paymentStatus === PaymentStatus.REFUNDED
+          ? 'Refunded payments are final and cannot be overridden'
+          : `Manual override from ${isExist.paymentStatus} to ${payload.paymentStatus} is not allowed`;
+    throw new ApiError(status.BAD_REQUEST, hint);
+  }
+
+  // Manually marking a payment PAID completes the (shell) order atomically —
+  // otherwise the order would become "paid" with no items and its cart never
+  // cleared. Reuses the exact same logic as the real gateway success path.
+  if (payload.paymentStatus === PaymentStatus.PAID) {
+    const order: any = await (prisma as any).order.findUnique({
+      where: { id: isExist.orderId },
+    });
+
+    if (order.paymentStatus === PaymentStatus.PAID || order.status === OrderStatus.Paid) {
+      throw new ApiError(status.BAD_REQUEST, 'Order is already paid');
+    }
+
+    await prisma.$transaction(async (tx: any) => {
+      // 1. Create order items from cart snapshot, decrement stock, clear cart.
+      // Throws + rolls back if the snapshot is missing, so we never end up
+      // with a manually-paid order that has no items.
+      await OrderService.createOrderItemsFromSnapshot(isExist.transactionId, tx);
+
+      // 2. Update payment record to PAID
+      await tx.payment.update({
+        where: { id: isExist.id },
+        data: {
+          paymentStatus: PaymentStatus.PAID,
+          ...(payload.bankTranId ? { bankTranId: payload.bankTranId } : {}),
+        },
+      });
+
+      // 3. Mark the order Paid
+      await tx.order.update({
+        where: { id: isExist.orderId },
+        data: {
+          status: OrderStatus.Paid,
+          paymentStatus: PaymentStatus.PAID,
+        },
+      });
+
+      // 4. Record Paid in the status timeline
+      await createStatusHistory(tx, isExist.orderId, OrderStatus.Paid);
+    });
+
+    return await (prisma as any).payment.findUnique({
+      where: { id: isExist.id },
+    });
+  }
+
+  // Non-PAID manual overrides are pure record-keeping (e.g. correcting a bank
+  // tran id, or flipping a genuinely-dead session to FAILED/CANCELLED).
   const result = await (prisma as any).payment.update({
     where: { id },
     data: payload,

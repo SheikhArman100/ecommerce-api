@@ -8,7 +8,8 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma, OrderStatus, PaymentStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 import config from '../../config';
-import { nanoid, customAlphabet } from 'nanoid';
+import { customAlphabet } from 'nanoid';
+import { generateTransactionId } from '../../helpers/transactionId';
 
 // Unambiguous charset for order numbers (no 0/O, 1/I/L confusion)
 const orderNumberId = customAlphabet('ABCDEFGHJKMNPQRSTUVWXYZ23456789', 6);
@@ -217,8 +218,8 @@ const createOrderFromCart = async (
   const deliveryCharge = config.delivery_charge;
   const payableAmount = totalAmount - discountAmount + deliveryCharge;
 
-  // Generate transaction ID
-  const tranId = `TRAN-${nanoid(10)}`;
+  // Generate transaction ID (Tran-YYYYMMDD-XXXXXX)
+  const tranId = generateTransactionId();
 
   // Build cart snapshot to store in payment record
   const cartSnapshot = {
@@ -293,7 +294,11 @@ const createOrderFromCart = async (
       throw new ApiError(status.BAD_REQUEST, 'Payment initiation failed');
     }
 
-    // 3. Create payment record with cart snapshot stored in gatewayResponse
+    // 3. Create payment record with cart snapshot stored in gatewayResponse.
+    // Store ONLY what's needed: the cart snapshot is REQUIRED later by
+    // createOrderItemsFromSnapshot() when payment succeeds. The full initiation
+    // response (gateway list, logos, session URLs) is heavy and useless after
+    // the redirect, so it is intentionally not persisted.
     await tx.payment.create({
       data: {
         orderId: shellOrder.id,
@@ -301,7 +306,7 @@ const createOrderFromCart = async (
         amount: payableAmount,
         paymentStatus: PaymentStatus.PENDING,
         gatewayResponse: {
-          ...sslResponse,
+          GatewayPageURL: sslResponse.GatewayPageURL,
           cartSnapshot, // Store cart snapshot for deferred order item creation
         },
       },

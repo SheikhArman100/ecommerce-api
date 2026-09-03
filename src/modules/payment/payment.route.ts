@@ -31,8 +31,18 @@ router.get(
   PaymentController.getRefundStatus,
 );
 
+// Admin-only payments list/detail/update. PATCH is the Manual Override:
+// setting paymentStatus=PAID atomically completes the related (shell) order —
+// order items from the cart snapshot, stock decrement, cart cleared, order
+// marked Paid + timeline entry (see PaymentService.updatePayment). Non-PAID
+// overrides are record-keeping only.
 router.get('/', auth('admin'), PaymentController.getAllPayments);
 router.get('/:id', auth('admin'), PaymentController.getSinglePayment);
-router.patch('/:id', auth('admin'), validateRequest(PaymentValidation.updatePayment), PaymentController.updatePayment);
+router.patch(
+  '/:id',
+  auth('admin'),
+  validateRequest(PaymentValidation.updatePayment),
+  PaymentController.updatePayment,
+);
 
 export const paymentRoute = router;
