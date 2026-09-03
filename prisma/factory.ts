@@ -72,7 +72,7 @@ export class DataFactory {
     const categories = [];
     const categoryNames = [
       'Cakes', 'Pastries', 'Cookies', 'Bread', 'Desserts',
-      'Beverages', 'Snacks', 'Breakfast', 'Lunch', 'Dinner'
+      'Beverages', 'Snacks'
     ];
 
     const adminUser = await prisma.user.findFirst({ where: { role: UserRole.admin } });
@@ -210,11 +210,8 @@ export class DataFactory {
             create: flavorSizes.map(size => ({
               sizeId: size.id,
               stock: faker.number.int({ min: 5, max: 50 }),
-              price: faker.number.float({
-                min: 10,
-                max: 100,
-                fractionDigits: 2
-              })
+              // Prices in Bangladeshi Taka (৳300–৳2000, whole Taka — no decimals)
+              price: faker.number.int({ min: 300, max: 2000 })
             }))
           }
         };
@@ -252,11 +249,11 @@ export class DataFactory {
     const now = Date.now();
 
     for (let i = 0; i < Math.min(count, couponNames.length); i++) {
-      // Mix of percentage and fixed discounts
+      // Mix of percentage and fixed discounts (fixed amounts in Taka)
       const isPercentage = i % 2 === 0;
       const discountValue = isPercentage
         ? faker.helpers.arrayElement([5, 10, 15, 20, 25])
-        : faker.number.int({ min: 50, max: 300 });
+        : faker.number.int({ min: 100, max: 500 });
 
       // ~20% expired, ~15% inactive, rest active and valid
       const roll = faker.number.float({ min: 0, max: 1 });
@@ -272,9 +269,9 @@ export class DataFactory {
           code: couponNames[i],
           discountType: isPercentage ? 'PERCENTAGE' : 'FIXED',
           discountValue,
-          minOrderAmount: faker.helpers.arrayElement([0, 200, 500, 1000]),
+          minOrderAmount: faker.helpers.arrayElement([0, 500, 1000, 2000]),
           maxDiscountAmount: isPercentage
-            ? faker.helpers.arrayElement([null, 100, 200, 500])
+            ? faker.helpers.arrayElement([null, 200, 500, 1000])
             : null,
           expiryDate,
           isActive: roll >= 0.35,
@@ -447,11 +444,13 @@ export class DataFactory {
         couponId = coupon.id;
         discountAmount =
           coupon.discountType === 'PERCENTAGE'
-            ? Math.min((totalAmount * coupon.discountValue) / 100, coupon.maxDiscountAmount ?? Infinity)
+            ? Math.min(Math.round((totalAmount * coupon.discountValue) / 100), coupon.maxDiscountAmount ?? Infinity)
             : Math.min(coupon.discountValue, totalAmount);
-        discountAmount = Math.round(discountAmount * 100) / 100;
       }
-      const payableAmount = Math.max(totalAmount - discountAmount, 0);
+      // Delivery charge in Taka (৳60–৳150 depending on area)
+      const deliveryCharge = faker.helpers.arrayElement([60, 80, 100, 120, 150]);
+      // Same formula as order.service: payable = total - discount + delivery
+      const payableAmount = Math.max(totalAmount - discountAmount + deliveryCharge, 0);
 
       const order = await prisma.order.create({
         data: {
@@ -461,7 +460,7 @@ export class DataFactory {
           totalAmount,
           discountAmount,
           payableAmount,
-          deliveryCharge: 0,
+          deliveryCharge,
           paymentStatus,
           couponId,
           createdAt: orderDate,
