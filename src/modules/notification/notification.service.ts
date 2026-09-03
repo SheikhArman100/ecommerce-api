@@ -49,7 +49,7 @@ const sendAdminOrderAlert = async (orderDetails: any) => {
       <h2>New Order Received!</h2>
       <p>A new order has been placed on the store.</p>
       <ul>
-        <li><strong>Order ID:</strong> #${orderDetails.orderId}</li>
+        <li><strong>Order Number:</strong> ${orderDetails.orderNumber}</li>
         <li><strong>Customer:</strong> ${orderDetails.userName} (${orderDetails.userEmail})</li>
         <li><strong>Total Amount:</strong> ${orderDetails.payableAmount} BDT</li>
       </ul>
@@ -57,7 +57,7 @@ const sendAdminOrderAlert = async (orderDetails: any) => {
     </div>
   `;
 
-  await sendEmail(config.softograph_email as string, html, `NEW ORDER - #${orderDetails.orderId}`);
+  await sendEmail(config.softograph_email as string, html, `NEW ORDER - ${orderDetails.orderNumber}`);
 };
 
 const sendPaymentSuccessEmail = async (to: string, orderDetails: any) => {

@@ -1,6 +1,7 @@
 export const paymentFilterableFields: string[] = [
   'searchTerm',
   'orderId',
+  'orderNumber',
   'transactionId',
   'paymentStatus',
   'paymentGateway',
@@ -11,4 +12,5 @@ export const paymentFilterableFields: string[] = [
 export const paymentSearchableFields: string[] = [
   'transactionId',
   'bankTranId',
+  'order.orderNumber', // handled specially in the service (relation field)
 ];

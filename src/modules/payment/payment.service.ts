@@ -81,7 +81,7 @@ const initiatePayment = async (
     cancel_url: `${config.backend_url}/api/v1/payment/cancel`,
     ipn_url: `${config.backend_url}/api/v1/payment/ipn`,
     shipping_method: 'Courier' as const,
-    product_name: `Order #${order.id}`,
+    product_name: `Order ${order.orderNumber}`,
     product_category: 'Ecommerce',
     product_profile: 'general',
     cus_name: order.user.name,
@@ -182,6 +182,7 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
       // Capture order/user info for emails before transaction closes
       orderInfo = {
         orderId: payment.orderId,
+        orderNumber: payment.order.orderNumber,
         userEmail: payment.order.user.email,
         userName: payment.order.user.name,
         payableAmount: payment.order.payableAmount,
@@ -205,7 +206,7 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
     if (orderInfo) {
       NotificationService.sendPaymentSuccessEmail(orderInfo.userEmail, {
         userName: orderInfo.userName,
-        orderId: orderInfo.orderId,
+        orderId: orderInfo.orderNumber,
         payableAmount: orderInfo.payableAmount,
         transactionId: orderInfo.transactionId,
       }).catch(err => console.error('Payment Success Email Error:', err));
@@ -223,7 +224,7 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
       if (completedOrder) {
         NotificationService.sendOrderConfirmationEmail(orderInfo.userEmail, {
           userName: orderInfo.userName,
-          orderId: completedOrder.id,
+          orderId: completedOrder.orderNumber,
           payableAmount: completedOrder.payableAmount,
           discountAmount: completedOrder.discountAmount,
           deliveryCharge: completedOrder.deliveryCharge,
@@ -231,7 +232,8 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
         }).catch(err => console.error('Order Confirmation Email Error:', err));
 
         NotificationService.sendAdminOrderAlert({
-          orderId: completedOrder.id,
+          orderId: completedOrder.id, // numeric id — used for the admin panel link
+          orderNumber: completedOrder.orderNumber, // shown in the email
           userName: orderInfo.userName,
           userEmail: orderInfo.userEmail,
           payableAmount: completedOrder.payableAmount,
@@ -437,12 +439,26 @@ const getAllPayments = async (
 
   if (searchTerm) {
     whereConditions = {
-      OR: paymentSearchableFields.map(field => ({
-        [field]: {
-          contains: searchTerm,
-          mode: 'insensitive' as const,
+      OR: [
+        // Relation field — searched via the related order
+        {
+          order: {
+            orderNumber: {
+              contains: searchTerm,
+              mode: 'insensitive' as const,
+            },
+          },
         },
-      })),
+        // Flat fields on the payment record itself
+        ...paymentSearchableFields
+          .filter((field) => field !== 'order.orderNumber')
+          .map((field) => ({
+            [field]: {
+              contains: searchTerm,
+              mode: 'insensitive' as const,
+            },
+          })),
+      ],
     };
   }
 
@@ -450,6 +466,13 @@ const getAllPayments = async (
 
   if (filtersData.orderId) {
     andConditions.push({ orderId: Number(filtersData.orderId) });
+  }
+
+  // Allow admins to find payments by the human-friendly order number
+  if (filtersData.orderNumber) {
+    andConditions.push({
+      order: { orderNumber: { contains: filtersData.orderNumber, mode: 'insensitive' as const } },
+    });
   }
 
   if (filtersData.transactionId) {
