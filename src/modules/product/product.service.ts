@@ -508,15 +508,14 @@ const getAllProducts = async (
         where: {
           campaign: {
             isActive: true,
-            startDate: { lte: new Date() },
-            endDate: { gte: new Date() },
           },
         },
         select: {
           customDiscountPercentage: true,
           campaign: {
-            select: {
-              discountDefault: true,
+            select: {discountDefault: true,
+
+              discountType: true,
             },
           },
         },
@@ -524,22 +523,28 @@ const getAllProducts = async (
     },
   });
 
-  // Calculate campaign-aware prices
+  // Calculate campaign-aware prices — pick whichever campaign yields the
+  // LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
   const resultWithPricing = result.map(product => {
-    let maxDiscount = 0;
-    product.campaigns.forEach(cp => {
-      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount > maxDiscount) maxDiscount = discount;
-    });
-
     const flavorsWithPricing = product.flavors.map(flavor => ({
       ...flavor,
-      sizes: flavor.sizes.map(size => ({
-        ...size,
-        originalPrice: size.price,
-        salesPrice: maxDiscount > 0 ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2)) : size.price,
-        discountPercentage: maxDiscount,
-      })),
+      sizes: flavor.sizes.map((size: any) => {
+        const base = size.price;
+        let best = base;
+        product.campaigns.forEach((cp: any) => {
+          const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+          if (discount <= 0) return;
+          const candidate = cp.campaign.discountType === 'FIXED'
+            ? Math.max(base - discount, 0)
+            : base * (1 - discount / 100);
+          if (candidate < best) best = candidate;
+        });
+        return {
+          ...size,
+          originalPrice: base,
+          salesPrice: parseFloat(best.toFixed(2)),
+        };
+      }),
     }));
 
     return {
@@ -626,8 +631,6 @@ const getSingleProduct = async (productId: string) => {
         where: {
           campaign: {
             isActive: true,
-            startDate: { lte: new Date() },
-            endDate: { gte: new Date() },
           },
         },
         select: {
@@ -635,8 +638,9 @@ const getSingleProduct = async (productId: string) => {
           campaign: {
             select: {
               id: true,
-              title: true,
-              discountDefault: true,
+              title: true,discountDefault: true,
+
+              discountType: true,
             },
           },
         },
@@ -747,8 +751,6 @@ const getSingleProductBySlug = async (slug: string) => {
         where: {
           campaign: {
             isActive: true,
-            startDate: { lte: new Date() },
-            endDate: { gte: new Date() },
           },
         },
         select: {
@@ -756,8 +758,9 @@ const getSingleProductBySlug = async (slug: string) => {
           campaign: {
             select: {
               id: true,
-              title: true,
-              discountDefault: true,
+              title: true,discountDefault: true,
+
+              discountType: true,
             },
           },
         },

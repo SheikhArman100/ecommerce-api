@@ -90,15 +90,14 @@ const createOrderFromCart = async (
                 where: {
                   campaign: {
                     isActive: true,
-                    startDate: { lte: new Date() },
-                    endDate: { gte: new Date() },
                   },
                 },
                 select: {
                   customDiscountPercentage: true,
                   campaign: {
-                    select: {
-                      discountDefault: true,
+                    select: {discountDefault: true,
+
+                      discountType: true,
                     },
                   },
                 },
@@ -170,17 +169,19 @@ const createOrderFromCart = async (
       );
     }
 
-    // Calculate campaign discount
-    let maxDiscount = 0;
+    // Calculate campaign discount — pick whichever campaign yields the LOWEST
+    // final price. PERCENTAGE campaigns take custom ?? default %; FIXED
+    // campaigns take a flat ৳ amount off per unit.
+    let discountedPrice = productVariant?.price || 0;
     cartItem.product.campaigns.forEach((cp: any) => {
-      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount > maxDiscount) maxDiscount = discount;
+      const basePrice = productVariant?.price || 0;
+      const candidatePrice =
+        cp.campaign.discountType === 'FIXED'
+          ? Math.max(basePrice - cp.campaign.discountDefault, 0) // custom % overrides don't apply to FIXED campaigns
+          : basePrice * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
+      if (candidatePrice < discountedPrice) discountedPrice = candidatePrice;
     });
-
-    const basePrice = productVariant?.price || 0;
-    const discountedPrice = maxDiscount > 0 
-      ? parseFloat((basePrice * (1 - maxDiscount / 100)).toFixed(2)) 
-      : basePrice;
+    discountedPrice = parseFloat(discountedPrice.toFixed(2));
 
     const itemPrice = discountedPrice * cartItem.quantity;
     totalAmount += itemPrice;

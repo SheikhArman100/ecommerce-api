@@ -77,6 +77,16 @@ const validateCoupon = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getCouponRedemptions = catchAsync(async (req: Request, res: Response) => {
+  const result = await CouponService.getCouponRedemptions(req.params.id as string);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Coupon redemptions fetched successfully',
+    data: result,
+  });
+});
+
 export const CouponController = {
   createCoupon,
   getAllCoupons,
@@ -84,4 +94,5 @@ export const CouponController = {
   updateCoupon,
   deleteCouponByID,
   validateCoupon,
+  getCouponRedemptions,
 };

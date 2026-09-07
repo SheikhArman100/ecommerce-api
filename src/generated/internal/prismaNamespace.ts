@@ -2494,6 +2494,7 @@ export const CampaignScalarFieldEnum = {
   slug: 'slug',
   description: 'description',
   bannerImage: 'bannerImage',
+  discountType: 'discountType',
   discountDefault: 'discountDefault',
   startDate: 'startDate',
   endDate: 'endDate',

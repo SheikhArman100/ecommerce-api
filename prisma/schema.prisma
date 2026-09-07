@@ -519,7 +519,8 @@ model Campaign {
   slug             String   @unique
   description      String?  @db.Text
   bannerImage      String?
-  discountDefault  Float    @default(0) // Default percentage discount
+  discountType     String   @default("PERCENTAGE") // PERCENTAGE or FIXED
+  discountDefault  Float    @default(0) // Default discount (percentage 0-100, or fixed ৳ amount)
   startDate        DateTime
   endDate          DateTime
   isActive         Boolean  @default(true)

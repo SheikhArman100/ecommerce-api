@@ -15,6 +15,12 @@ router.post(
   CouponController.validateCoupon
 );
 
+router.get(
+  '/:id/redemptions',
+  auth(ENUM_USER_ROLE.ADMIN),
+  CouponController.getCouponRedemptions
+);
+
 router.get('/:id', auth(ENUM_USER_ROLE.ADMIN), CouponController.getCouponByID);
 
 router.post(

@@ -309,8 +309,6 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
                 where: {
                   campaign: {
                     isActive: true,
-                    startDate: { lte: new Date() },
-                    endDate: { gte: new Date() },
                   },
                 },
                 select: {
@@ -318,8 +316,9 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
                   campaign: {
                     select: {
                       id: true,
-                      title: true,
-                      discountDefault: true,
+                      title: true,discountDefault: true,
+
+                      discountType: true,
                     },
                   },
                 },
@@ -368,15 +367,24 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
     throw new ApiError(status.NOT_FOUND, 'Cart not found');
   }
 
-  // Calculate pricing for each item
+  // Calculate pricing for each item — pick whichever campaign yields the
+  // LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
   const itemsWithPricing = checkCart.items.map((item: any) => {
-    let maxDiscount = 0;
-    let activeCampaign = null;
+    const originalPrice = item.productFlavorSize?.price || 0;
+    let bestPrice = originalPrice;
+    let activeCampaign: any = null;
 
     item.product.campaigns?.forEach((cp: any) => {
       const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount > maxDiscount) {
-        maxDiscount = discount;
+      if (discount <= 0) return;
+      let candidatePrice;
+      if (cp.campaign.discountType === 'FIXED') {
+        candidatePrice = Math.max(originalPrice - discount, 0);
+      } else {
+        candidatePrice = originalPrice * (1 - discount / 100);
+      }
+      if (candidatePrice < bestPrice) {
+        bestPrice = candidatePrice;
         activeCampaign = cp.campaign;
       }
     });
@@ -396,17 +404,13 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
       }
     }
 
-    const originalPrice = productFlavorSize?.price || 0;
-    const salesPrice = maxDiscount > 0 
-      ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
-      : originalPrice;
+    const salesPrice = parseFloat(bestPrice.toFixed(2));
 
     return {
       ...item,
       productFlavorSize, // Update with resolved metadata
       salesPrice,
       originalPrice,
-      discountPercentage: maxDiscount,
       activeCampaign,
     };
   });
@@ -463,8 +467,6 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
                 where: {
                   campaign: {
                     isActive: true,
-                    startDate: { lte: new Date() },
-                    endDate: { gte: new Date() },
                   },
                 },
                 select: {
@@ -472,8 +474,9 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
                   campaign: {
                     select: {
                       id: true,
-                      title: true,
-                      discountDefault: true,
+                      title: true,discountDefault: true,
+
+                      discountType: true,
                     },
                   },
                 },
@@ -536,15 +539,24 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
     );
   }
 
-  // Calculate pricing for each item
+  // Calculate pricing for each item — pick whichever campaign yields the
+  // LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
   const itemsWithPricing = checkCart.items.map((item: any) => {
-    let maxDiscount = 0;
-    let activeCampaign = null;
+    const originalPrice = item.productFlavorSize?.price || 0;
+    let bestPrice = originalPrice;
+    let activeCampaign: any = null;
 
     item.product.campaigns?.forEach((cp: any) => {
       const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount > maxDiscount) {
-        maxDiscount = discount;
+      if (discount <= 0) return;
+      let candidatePrice;
+      if (cp.campaign.discountType === 'FIXED') {
+        candidatePrice = Math.max(originalPrice - discount, 0);
+      } else {
+        candidatePrice = originalPrice * (1 - discount / 100);
+      }
+      if (candidatePrice < bestPrice) {
+        bestPrice = candidatePrice;
         activeCampaign = cp.campaign;
       }
     });
@@ -564,17 +576,13 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
       }
     }
 
-    const originalPrice = productFlavorSize?.price || 0;
-    const salesPrice = maxDiscount > 0 
-      ? parseFloat((originalPrice * (1 - maxDiscount / 100)).toFixed(2)) 
-      : originalPrice;
+    const salesPrice = parseFloat(bestPrice.toFixed(2));
 
     return {
       ...item,
       productFlavorSize, // Update with resolved metadata
       salesPrice,
       originalPrice,
-      discountPercentage: maxDiscount,
       activeCampaign,
     };
   });

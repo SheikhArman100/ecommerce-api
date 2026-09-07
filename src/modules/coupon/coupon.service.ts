@@ -129,7 +129,20 @@ const getCouponByID = async (id: string): Promise<Coupon | null> => {
   const result = await prisma.coupon.findUnique({
     where: { id: Number(id) },
     include: {
-      targetUsers: { select: { userId: true } },
+      targetUsers: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              detail: {
+                select: { image: { select: { path: true } } },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -235,6 +248,37 @@ const deleteCouponByID = async (id: string, userInfo: UserInfoFromToken): Promis
   return result;
 };
 
+/**
+ * Fetches the redemption history for a coupon — which customers used it and
+ * when — newest first, with user profile data (image/name/email).
+ */
+const getCouponRedemptions = async (id: string) => {
+  const coupon = await prisma.coupon.findUnique({
+    where: { id: Number(id) },
+    select: { id: true },
+  });
+  if (!coupon) {
+    throw new ApiError(status.NOT_FOUND, 'Coupon not found');
+  }
+
+  return prisma.couponRedemption.findMany({
+    where: { couponId: Number(id) },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          detail: {
+            select: { image: { select: { path: true } } },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
 const validateCoupon = async (
   code: string,
   amount: number,
@@ -332,4 +376,5 @@ export const CouponService = {
   updateCoupon,
   deleteCouponByID,
   validateCoupon,
+  getCouponRedemptions,
 };

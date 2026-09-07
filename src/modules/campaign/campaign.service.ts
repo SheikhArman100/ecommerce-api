@@ -3,45 +3,96 @@ import path from 'path';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import httpStatus from 'http-status';
+import status from 'http-status';
 import { ICampaignCreate, ICampaignUpdate, ICampaignProductAdd, ICampaignFilters } from './campaign.interface';
 import { Prisma } from '../../generated/client';
+import { ENUM_USER_ROLE } from '../../enum/user';
+import { UserInfoFromToken } from '../../types/common';
 import { campaignSearchableFields } from './campaign.constant';
+
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { IPaginationOptions } from '../../interfaces/common';
 
-const createCampaign = async (payload: ICampaignCreate) => {
-  const result = await prisma.campaign.create({
+/**
+ * Service-level admin guard (mirrors the coupon module) — route middleware is
+ * the first line of defense, this is the second.
+ */
+const checkAdmin = async (userInfo: UserInfoFromToken) => {
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+  });
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  if (user.role !== ENUM_USER_ROLE.ADMIN) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized to perform this action');
+  }
+  return user;
+};
+
+/**
+ * Single-active rule: campaigns are activated EXCLUSIVELY via update, and only
+ * when no other campaign is active. If another one is running, the admin is
+ * told to deactivate it first — activation is never switched automatically.
+ */
+
+const createCampaign = async (payload: ICampaignCreate, userInfo: UserInfoFromToken) => {
+  await checkAdmin(userInfo);
+
+  // Friendly duplicate-slug error (slug is @unique in Prisma — a raw P2002
+  // would otherwise leak to the client)
+  const existingSlug = await prisma.campaign.findUnique({ where: { slug: payload.slug } });
+  if (existingSlug) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'A campaign with this slug already exists');
+  }
+
+  // Display-window sanity: the shown date range must go forwards
+  if (new Date(payload.endDate) <= new Date(payload.startDate)) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'End date must be after the start date');
+  }
+
+  // Campaigns are ALWAYS created inactive. Activation happens exclusively
+  // through updateCampaign — one campaign at a time, explicitly.
+  return prisma.campaign.create({
     data: {
       ...payload,
       startDate: new Date(payload.startDate),
       endDate: new Date(payload.endDate),
+      isActive: false,
     },
   });
-  return result;
 };
 
 /**
  * Calculates campaign-aware pricing for each product.
  * `originalPrice` = the base size price
- * `salesPrice`    = base * (1 - discount / 100), rounded to 2 decimals
- * `discountPercentage` = the effective discount (custom || default)
+ * `salesPrice`    = discounted price (percentage or fixed ৳ off), floored at 0
+ * `discountPercentage` = the effective discount for PERCENTAGE campaigns
  */
 const applyCampaignPricing = (
   product: any,
-  discount: number
+  discount: number,
+  discountType: string = 'PERCENTAGE'
 ) => ({
   ...product,
   flavors: product.flavors?.map((flavor: any) => ({
     ...flavor,
-    sizes: flavor.sizes?.map((size: any) => ({
-      ...size,
-      originalPrice: size.price,
-      salesPrice:
+    sizes: flavor.sizes?.map((size: any) => {
+      const base = Number(size.price);
+      const salesPrice =
         discount > 0
-          ? parseFloat((Number(size.price) * (1 - discount / 100)).toFixed(2))
-          : size.price,
-      discountPercentage: discount,
-    })),
+          ? discountType === 'FIXED'
+            ? parseFloat(Math.max(base - discount, 0).toFixed(2))
+            : parseFloat((base * (1 - discount / 100)).toFixed(2))
+          : base;
+      return {
+        ...size,
+        originalPrice: base,
+        salesPrice,
+        discountPercentage: discountType === 'PERCENTAGE' ? discount : 0,
+        discountAmount: discountType === 'FIXED' ? discount : 0,
+      };
+    }),
   })),
 });
 
@@ -88,14 +139,10 @@ const getAllCampaigns = async (
     });
   }
 
-  // Date-window filter: campaign must be live NOW (or whatever window the caller passes)
-  // - If `isActive` is set to "true", we additionally constrain to the current date.
-  // - `startDate` / `endDate` from the query act as an explicit window override.
-  const now = new Date();
+    // Date-window filter: dates are DISPLAY-ONLY. isActive is the sole driver
+  // of campaign liveness, so isActive=true must NOT be constrained by dates.
   if (isActive === 'true') {
     andConditions.push({ isActive: true });
-    andConditions.push({ startDate: { lte: now } });
-    andConditions.push({ endDate: { gte: now } });
   } else if (startDate || endDate) {
     if (startDate) andConditions.push({ startDate: { gte: new Date(startDate) } });
     if (endDate)   andConditions.push({ endDate:   { gte: new Date(endDate)   } });
@@ -160,7 +207,7 @@ const getSingleCampaign = async (id: number) => {
     const discount = cp.customDiscountPercentage ?? result.discountDefault;
     return {
       ...cp,
-      product: applyCampaignPricing(cp.product, discount),
+      product: applyCampaignPricing(cp.product, discount, result.discountType),
     };
   });
 
@@ -177,12 +224,10 @@ const getSingleCampaign = async (id: number) => {
  * Returns `null` if no campaign is currently live.
  */
 const getActiveCampaign = async () => {
-  const now = new Date();
+  // Dates are display-only — "live" is purely the isActive flag
   const result = await prisma.campaign.findFirst({
     where: {
       isActive: true,
-      startDate: { lte: now },
-      endDate:   { gte: now },
     },
     include: {
       creator: { select: { name: true, email: true } },
@@ -201,7 +246,7 @@ const getActiveCampaign = async () => {
     const discount = cp.customDiscountPercentage ?? result.discountDefault;
     return {
       ...cp,
-      product: applyCampaignPricing(cp.product, discount),
+      product: applyCampaignPricing(cp.product, discount, result.discountType),
     };
   });
 
@@ -211,42 +256,89 @@ const getActiveCampaign = async () => {
   };
 };
 
-const updateCampaign = async (id: number, payload: ICampaignUpdate) => {
+const updateCampaign = async (id: number, payload: ICampaignUpdate, userInfo: UserInfoFromToken) => {
+  await checkAdmin(userInfo);
+
   const isExist = await prisma.campaign.findUnique({ where: { id } });
   if (!isExist) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
 
-  if (payload.bannerImage && isExist.bannerImage) {
+  // Slug is the campaign's public identity/URL — locked after creation
+  // (same policy as coupon codes)
+  if (payload.slug && payload.slug !== isExist.slug) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Campaign slug cannot be changed after creation');
+  }
+  const { slug: _ignoredSlug, ...restPayload } = payload;
+
+  // Date sanity on the effective window (either date may be updated alone)
+  const effectiveStart = payload.startDate ? new Date(payload.startDate) : isExist.startDate;
+  const effectiveEnd = payload.endDate ? new Date(payload.endDate) : isExist.endDate;
+  if (effectiveEnd <= effectiveStart) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'End date must be after the start date');
+  }
+
+  if (restPayload.bannerImage && isExist.bannerImage) {
     const oldImagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
     if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
   }
 
-  const updateData: any = { ...payload };
+  const updateData: any = { ...restPayload };
   if (payload.startDate) updateData.startDate = new Date(payload.startDate);
   if (payload.endDate)   updateData.endDate   = new Date(payload.endDate);
 
-  return prisma.campaign.update({ where: { id }, data: updateData });
+  return prisma.$transaction(async (tx: any) => {
+    // Single-active rule: activating this one requires every other to be off.
+    // Tell the admin WHICH campaign is blocking instead of silently switching.
+    if (payload.isActive === true) {
+      const otherActive = await tx.campaign.findFirst({
+        where: { isActive: true, id: { not: id } },
+        select: { title: true },
+      });
+      if (otherActive) {
+        throw new ApiError(
+          httpStatus.CONFLICT,
+          `Campaign "${otherActive.title}" is currently active. Deactivate it first before activating this campaign.`
+        );
+      }
+    }
+
+    return tx.campaign.update({ where: { id }, data: updateData });
+  });
 };
 
-const deleteCampaign = async (id: number) => {
+const deleteCampaign = async (id: number, userInfo: UserInfoFromToken) => {
+  await checkAdmin(userInfo);
+
   const isExist = await prisma.campaign.findUnique({ where: { id } });
   if (!isExist) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
   }
+
+  // Delete the DB row first (transactional), then clean the banner file —
+  // a failed DB delete must not leave the image already removed.
+  const deleted = await prisma.campaign.delete({ where: { id } });
 
   if (isExist.bannerImage) {
     const imagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
     if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
   }
 
-  return prisma.campaign.delete({ where: { id } });
+  return deleted;
 };
 
-const addProductToCampaign = async (campaignId: number, payload: ICampaignProductAdd) => {
+const addProductToCampaign = async (campaignId: number, payload: ICampaignProductAdd, userInfo: UserInfoFromToken) => {
+  await checkAdmin(userInfo);
+
   const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
   if (!campaign) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Campaign not found');
+  }
+
+  // Friendly product-existence error (a raw FK violation would surface otherwise)
+  const product = await prisma.product.findUnique({ where: { id: payload.productId } });
+  if (!product) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
   }
 
   return prisma.campaignProduct.upsert({
@@ -260,7 +352,13 @@ const addProductToCampaign = async (campaignId: number, payload: ICampaignProduc
   });
 };
 
-const removeProductFromCampaign = async (campaignId: number, productId: number) => {
+const removeProductFromCampaign = async (
+  campaignId: number,
+  productId: number,
+  userInfo: UserInfoFromToken
+) => {
+  await checkAdmin(userInfo);
+
   return prisma.campaignProduct.delete({
     where: { campaignId_productId: { campaignId, productId } },
   });

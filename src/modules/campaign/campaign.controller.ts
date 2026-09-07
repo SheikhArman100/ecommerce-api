@@ -14,10 +14,10 @@ const createCampaign = catchAsync(async (req: Request, res: Response) => {
   }
 
   const user = (req as any).user;
-  const result = await CampaignService.createCampaign({
-    ...req.body,
-    createdBy: Number(user.id),
-  });
+  const result = await CampaignService.createCampaign(
+    { ...req.body, createdBy: Number(user.id) },
+    user
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -68,10 +68,11 @@ const updateCampaign = catchAsync(async (req: Request, res: Response) => {
   }
 
   const user = (req as any).user;
-  const result = await CampaignService.updateCampaign(Number(req.params.id), {
-    ...req.body,
-    updatedBy: Number(user.id),
-  });
+  const result = await CampaignService.updateCampaign(
+    Number(req.params.id),
+    { ...req.body, updatedBy: Number(user.id) },
+    user
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -81,7 +82,7 @@ const updateCampaign = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCampaign = catchAsync(async (req: Request, res: Response) => {
-  const result = await CampaignService.deleteCampaign(Number(req.params.id));
+  const result = await CampaignService.deleteCampaign(Number(req.params.id), (req as any).user);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -91,7 +92,7 @@ const deleteCampaign = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addProductToCampaign = catchAsync(async (req: Request, res: Response) => {
-  const result = await CampaignService.addProductToCampaign(Number(req.params.id), req.body);
+  const result = await CampaignService.addProductToCampaign(Number(req.params.id), req.body, (req as any).user);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -103,7 +104,8 @@ const addProductToCampaign = catchAsync(async (req: Request, res: Response) => {
 const removeProductFromCampaign = catchAsync(async (req: Request, res: Response) => {
   const result = await CampaignService.removeProductFromCampaign(
     Number(req.params.id),
-    Number(req.params.productId)
+    Number(req.params.productId),
+    (req as any).user
   );
   sendResponse(res, {
     statusCode: httpStatus.OK,

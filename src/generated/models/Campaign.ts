@@ -46,6 +46,7 @@ export type CampaignMinAggregateOutputType = {
   slug: string | null
   description: string | null
   bannerImage: string | null
+  discountType: string | null
   discountDefault: number | null
   startDate: Date | null
   endDate: Date | null
@@ -62,6 +63,7 @@ export type CampaignMaxAggregateOutputType = {
   slug: string | null
   description: string | null
   bannerImage: string | null
+  discountType: string | null
   discountDefault: number | null
   startDate: Date | null
   endDate: Date | null
@@ -78,6 +80,7 @@ export type CampaignCountAggregateOutputType = {
   slug: number
   description: number
   bannerImage: number
+  discountType: number
   discountDefault: number
   startDate: number
   endDate: number
@@ -110,6 +113,7 @@ export type CampaignMinAggregateInputType = {
   slug?: true
   description?: true
   bannerImage?: true
+  discountType?: true
   discountDefault?: true
   startDate?: true
   endDate?: true
@@ -126,6 +130,7 @@ export type CampaignMaxAggregateInputType = {
   slug?: true
   description?: true
   bannerImage?: true
+  discountType?: true
   discountDefault?: true
   startDate?: true
   endDate?: true
@@ -142,6 +147,7 @@ export type CampaignCountAggregateInputType = {
   slug?: true
   description?: true
   bannerImage?: true
+  discountType?: true
   discountDefault?: true
   startDate?: true
   endDate?: true
@@ -245,6 +251,7 @@ export type CampaignGroupByOutputType = {
   slug: string
   description: string | null
   bannerImage: string | null
+  discountType: string
   discountDefault: number
   startDate: Date
   endDate: Date
@@ -284,6 +291,7 @@ export type CampaignWhereInput = {
   slug?: Prisma.StringFilter<"Campaign"> | string
   description?: Prisma.StringNullableFilter<"Campaign"> | string | null
   bannerImage?: Prisma.StringNullableFilter<"Campaign"> | string | null
+  discountType?: Prisma.StringFilter<"Campaign"> | string
   discountDefault?: Prisma.FloatFilter<"Campaign"> | number
   startDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -303,6 +311,7 @@ export type CampaignOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountType?: Prisma.SortOrder
   discountDefault?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
@@ -325,6 +334,7 @@ export type CampaignWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Campaign"> | string
   description?: Prisma.StringNullableFilter<"Campaign"> | string | null
   bannerImage?: Prisma.StringNullableFilter<"Campaign"> | string | null
+  discountType?: Prisma.StringFilter<"Campaign"> | string
   discountDefault?: Prisma.FloatFilter<"Campaign"> | number
   startDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -344,6 +354,7 @@ export type CampaignOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   bannerImage?: Prisma.SortOrderInput | Prisma.SortOrder
+  discountType?: Prisma.SortOrder
   discountDefault?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
@@ -368,6 +379,7 @@ export type CampaignScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"Campaign"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Campaign"> | string | null
   bannerImage?: Prisma.StringNullableWithAggregatesFilter<"Campaign"> | string | null
+  discountType?: Prisma.StringWithAggregatesFilter<"Campaign"> | string
   discountDefault?: Prisma.FloatWithAggregatesFilter<"Campaign"> | number
   startDate?: Prisma.DateTimeWithAggregatesFilter<"Campaign"> | Date | string
   endDate?: Prisma.DateTimeWithAggregatesFilter<"Campaign"> | Date | string
@@ -383,6 +395,7 @@ export type CampaignCreateInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -400,6 +413,7 @@ export type CampaignUncheckedCreateInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -416,6 +430,7 @@ export type CampaignUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -433,6 +448,7 @@ export type CampaignUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -450,6 +466,7 @@ export type CampaignCreateManyInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -465,6 +482,7 @@ export type CampaignUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -479,6 +497,7 @@ export type CampaignUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -505,6 +524,7 @@ export type CampaignCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
+  discountType?: Prisma.SortOrder
   discountDefault?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
@@ -528,6 +548,7 @@ export type CampaignMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
+  discountType?: Prisma.SortOrder
   discountDefault?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
@@ -544,6 +565,7 @@ export type CampaignMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   bannerImage?: Prisma.SortOrder
+  discountType?: Prisma.SortOrder
   discountDefault?: Prisma.SortOrder
   startDate?: Prisma.SortOrder
   endDate?: Prisma.SortOrder
@@ -669,6 +691,7 @@ export type CampaignCreateWithoutCreatorInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -685,6 +708,7 @@ export type CampaignUncheckedCreateWithoutCreatorInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -710,6 +734,7 @@ export type CampaignCreateWithoutUpdaterInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -726,6 +751,7 @@ export type CampaignUncheckedCreateWithoutUpdaterInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -771,6 +797,7 @@ export type CampaignScalarWhereInput = {
   slug?: Prisma.StringFilter<"Campaign"> | string
   description?: Prisma.StringNullableFilter<"Campaign"> | string | null
   bannerImage?: Prisma.StringNullableFilter<"Campaign"> | string | null
+  discountType?: Prisma.StringFilter<"Campaign"> | string
   discountDefault?: Prisma.FloatFilter<"Campaign"> | number
   startDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
   endDate?: Prisma.DateTimeFilter<"Campaign"> | Date | string
@@ -802,6 +829,7 @@ export type CampaignCreateWithoutProductsInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -818,6 +846,7 @@ export type CampaignUncheckedCreateWithoutProductsInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -849,6 +878,7 @@ export type CampaignUpdateWithoutProductsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,6 +895,7 @@ export type CampaignUncheckedUpdateWithoutProductsInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -881,6 +912,7 @@ export type CampaignCreateManyCreatorInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -896,6 +928,7 @@ export type CampaignCreateManyUpdaterInput = {
   slug: string
   description?: string | null
   bannerImage?: string | null
+  discountType?: string
   discountDefault?: number
   startDate: Date | string
   endDate: Date | string
@@ -910,6 +943,7 @@ export type CampaignUpdateWithoutCreatorInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -926,6 +960,7 @@ export type CampaignUncheckedUpdateWithoutCreatorInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -942,6 +977,7 @@ export type CampaignUncheckedUpdateManyWithoutCreatorInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -956,6 +992,7 @@ export type CampaignUpdateWithoutUpdaterInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -972,6 +1009,7 @@ export type CampaignUncheckedUpdateWithoutUpdaterInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -988,6 +1026,7 @@ export type CampaignUncheckedUpdateManyWithoutUpdaterInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bannerImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountType?: Prisma.StringFieldUpdateOperationsInput | string
   discountDefault?: Prisma.FloatFieldUpdateOperationsInput | number
   startDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1034,6 +1073,7 @@ export type CampaignSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   slug?: boolean
   description?: boolean
   bannerImage?: boolean
+  discountType?: boolean
   discountDefault?: boolean
   startDate?: boolean
   endDate?: boolean
@@ -1054,6 +1094,7 @@ export type CampaignSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   slug?: boolean
   description?: boolean
   bannerImage?: boolean
+  discountType?: boolean
   discountDefault?: boolean
   startDate?: boolean
   endDate?: boolean
@@ -1072,6 +1113,7 @@ export type CampaignSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   slug?: boolean
   description?: boolean
   bannerImage?: boolean
+  discountType?: boolean
   discountDefault?: boolean
   startDate?: boolean
   endDate?: boolean
@@ -1090,6 +1132,7 @@ export type CampaignSelectScalar = {
   slug?: boolean
   description?: boolean
   bannerImage?: boolean
+  discountType?: boolean
   discountDefault?: boolean
   startDate?: boolean
   endDate?: boolean
@@ -1100,7 +1143,7 @@ export type CampaignSelectScalar = {
   updatedBy?: boolean
 }
 
-export type CampaignOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "description" | "bannerImage" | "discountDefault" | "startDate" | "endDate" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy", ExtArgs["result"]["campaign"]>
+export type CampaignOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "slug" | "description" | "bannerImage" | "discountType" | "discountDefault" | "startDate" | "endDate" | "isActive" | "createdAt" | "updatedAt" | "createdBy" | "updatedBy", ExtArgs["result"]["campaign"]>
 export type CampaignInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   updater?: boolean | Prisma.Campaign$updaterArgs<ExtArgs>
@@ -1129,6 +1172,7 @@ export type $CampaignPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     slug: string
     description: string | null
     bannerImage: string | null
+    discountType: string
     discountDefault: number
     startDate: Date
     endDate: Date
@@ -1568,6 +1612,7 @@ export interface CampaignFieldRefs {
   readonly slug: Prisma.FieldRef<"Campaign", 'String'>
   readonly description: Prisma.FieldRef<"Campaign", 'String'>
   readonly bannerImage: Prisma.FieldRef<"Campaign", 'String'>
+  readonly discountType: Prisma.FieldRef<"Campaign", 'String'>
   readonly discountDefault: Prisma.FieldRef<"Campaign", 'Float'>
   readonly startDate: Prisma.FieldRef<"Campaign", 'DateTime'>
   readonly endDate: Prisma.FieldRef<"Campaign", 'DateTime'>

@@ -257,8 +257,6 @@ const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
             where: {
               campaign: {
                 isActive: true,
-                startDate: { lte: new Date() },
-                endDate: { gte: new Date() },
               },
             },
             select: {
@@ -266,8 +264,9 @@ const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
               campaign: {
                 select: {
                   id: true,
-                  title: true,
-                  discountDefault: true,
+                  title: true,discountDefault: true,
+
+                  discountType: true,
                 },
               },
             },
@@ -278,25 +277,30 @@ const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
   });
 
   const resultWithPricing = result.map((wishlist: any) => {
-    let maxDiscount = 0;
-    let activeCampaign = null;
-
-    wishlist.product.campaigns?.forEach((cp: any) => {
-      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount > maxDiscount) {
-        maxDiscount = discount;
-        activeCampaign = cp.campaign;
-      }
-    });
+    let activeCampaign: any = null;
 
     const flavorsWithPricing = wishlist.product.flavors.map((flavor: any) => ({
       ...flavor,
-      sizes: flavor.sizes.map((size: any) => ({
-        ...size,
-        originalPrice: size.price,
-        salesPrice: maxDiscount > 0 ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2)) : size.price,
-        discountPercentage: maxDiscount,
-      })),
+      sizes: flavor.sizes.map((size: any) => {
+        const base = size.price;
+        let best = base;
+        wishlist.product.campaigns?.forEach((cp: any) => {
+          const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
+          if (discount <= 0) return;
+          const candidate = cp.campaign.discountType === 'FIXED'
+            ? Math.max(base - discount, 0)
+            : base * (1 - discount / 100);
+          if (candidate < best) {
+            best = candidate;
+            activeCampaign = cp.campaign;
+          }
+        });
+        return {
+          ...size,
+          originalPrice: base,
+          salesPrice: parseFloat(best.toFixed(2)),
+        };
+      }),
     }));
 
     // Remove the raw campaigns array to keep the response clean
