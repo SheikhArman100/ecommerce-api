@@ -67,7 +67,8 @@ const deleteCouponByID = catchAsync(async (req: Request, res: Response) => {
 
 const validateCoupon = catchAsync(async (req: Request, res: Response) => {
   const { code, amount } = req.body;
-  const result = await CouponService.validateCoupon(code, amount);
+  const userInfo = req.user as UserInfoFromToken;
+  const result = await CouponService.validateCoupon(code, amount, Number(userInfo?.id) || undefined);
   sendResponse(res, {
     statusCode: status.OK,
     success: true,

@@ -732,6 +732,7 @@ export class DataFactory {
 
     await prisma.campaignProduct.deleteMany();
     await prisma.campaign.deleteMany();
+    await prisma.couponRedemption.deleteMany();
     await prisma.coupon.deleteMany();
     await prisma.review.deleteMany();
     await prisma.payment.deleteMany();

@@ -4,7 +4,7 @@ const createCouponSchema = z.object({
   body: z.object({
     code: z.string({
       error: 'Coupon code is required',
-    }),
+    }).transform((val) => val.trim().toUpperCase()),
     description: z.string({
       error: 'Description is required',
     }).min(1, 'Description cannot be empty'),
@@ -21,14 +21,19 @@ const createCouponSchema = z.object({
     }),
     isActive: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
+    targetType: z.enum(['ALL', 'NEW_USERS', 'INACTIVE_USERS', 'SPECIFIC_USERS']).optional(),
+    inactiveDays: z.number().int().min(1).optional(),
+    targetUserIds: z.array(z.number().int()).optional(),
     usageLimit: z.number().optional(),
+    limitPerUser: z.number().optional(),
   }),
 });
 
 const updateCouponSchema = z.object({
   body: z.object({
-    code: z.string().optional(),
-    description: z.string().optional(),
+    code: z.string().transform((val) => val.trim().toUpperCase()).optional(),
+    // Cannot blank the description — matches the create schema's requirement
+    description: z.string().min(1, 'Description cannot be empty').optional(),
     discountType: z.enum(['FIXED', 'PERCENTAGE']).optional(),
     discountValue: z.number().optional(),
     minOrderAmount: z.number().optional(),
@@ -36,7 +41,13 @@ const updateCouponSchema = z.object({
     expiryDate: z.string().optional(),
     isActive: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
-    usageLimit: z.number().optional(),
+    targetType: z.enum(['ALL', 'NEW_USERS', 'INACTIVE_USERS', 'SPECIFIC_USERS']).optional(),
+    inactiveDays: z.number().int().min(1).optional(),
+    targetUserIds: z.array(z.number().int()).optional(),
+    // Treat 0 as "not set" — unlimited, same as null (avoids two encodings
+    // of "unlimited" in the data)
+    usageLimit: z.number().int().min(0).transform((v) => (v === 0 ? undefined : v)).optional(),
+    limitPerUser: z.number().int().min(0).transform((v) => (v === 0 ? undefined : v)).optional(),
   }),
 });
 

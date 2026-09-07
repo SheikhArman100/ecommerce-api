@@ -1,4 +1,5 @@
 import { Coupon, Prisma } from '../../generated/client';
+import { CouponTargetType } from '../../generated/enums';
 import { prisma } from '../../client';
 import { ICouponFilters } from './coupon.interface';
 import { IPaginationOptions } from '../../interfaces/common';
@@ -11,7 +12,7 @@ import { couponSearchableFields } from './coupon.constant';
 
 const createCoupon = async (
   adminInfo: UserInfoFromToken,
-  payload: Coupon
+  payload: Coupon & { targetUserIds?: number[] }
 ): Promise<Coupon> => {
   const checkAdmin = await prisma.user.findUnique({
     where: { id: Number(adminInfo.id) },
@@ -36,14 +37,37 @@ const createCoupon = async (
     throw new ApiError(status.BAD_REQUEST, 'Coupon with this code already exists');
   }
 
+  // Targeting: extract the SPECIFIC_USERS allow-list from the payload and
+  // verify every user exists before creating the coupon
+  const { targetUserIds, ...couponData } = payload as Coupon & { targetUserIds?: number[] };
+  if (targetUserIds?.length) {
+    const foundUsers = await prisma.user.findMany({
+      where: { id: { in: targetUserIds } },
+      select: { id: true },
+    });
+    if (foundUsers.length !== new Set(targetUserIds).size) {
+      throw new ApiError(status.BAD_REQUEST, 'One or more target users do not exist');
+    }
+  }
+  if ((couponData as any).targetType === CouponTargetType.SPECIFIC_USERS && !targetUserIds?.length) {
+    throw new ApiError(status.BAD_REQUEST, 'SPECIFIC_USERS coupons require at least one target user');
+  }
+
   const result = await prisma.coupon.create({
     data: {
-      ...payload,
+      ...couponData,
       expiryDate: new Date(payload.expiryDate),
       createdBy: Number(checkAdmin.id),
       updatedBy: Number(checkAdmin.id),
+      // SPECIFIC_USERS allow-list — validated users only
+      ...(targetUserIds && {
+        targetUsers: {
+          create: targetUserIds.map(userId => ({ userId })),
+        },
+      }),
     },
-  });
+    include: { targetUsers: true },
+  }) as Coupon;
   return result;
 };
 
@@ -104,6 +128,9 @@ const getAllCoupons = async (
 const getCouponByID = async (id: string): Promise<Coupon | null> => {
   const result = await prisma.coupon.findUnique({
     where: { id: Number(id) },
+    include: {
+      targetUsers: { select: { userId: true } },
+    },
   });
 
   if (!result) {
@@ -138,13 +165,44 @@ const updateCoupon = async (
     throw new ApiError(status.NOT_FOUND, 'Coupon not found');
   }
 
+  // Coupon codes are identity — past orders and redemption history reference
+  // them. Renaming is blocked once the coupon exists.
+  if (payload.code && payload.code !== checkCoupon.code) {
+    throw new ApiError(status.BAD_REQUEST, 'Coupon code cannot be changed after creation');
+  }
+  const { code: _ignoredCode, targetUserIds, ...updateData } = payload as Partial<Coupon> & { targetUserIds?: number[] };
+
+  // SPECIFIC_USERS allow-list replacement (validated users only). Passing an
+  // empty array clears the list; omitting the key leaves it untouched.
+  let targetUsersOp: Prisma.CouponTargetUserUpdateManyWithoutCouponNestedInput | undefined;
+  if (targetUserIds !== undefined) {
+    const effectiveType = (updateData.targetType as CouponTargetType) ?? checkCoupon.targetType;
+    if (effectiveType === CouponTargetType.SPECIFIC_USERS && targetUserIds.length === 0) {
+      throw new ApiError(status.BAD_REQUEST, 'SPECIFIC_USERS coupons require at least one target user');
+    }
+    if (targetUserIds.length) {
+      const foundUsers = await prisma.user.findMany({
+        where: { id: { in: targetUserIds } },
+        select: { id: true },
+      });
+      if (foundUsers.length !== new Set(targetUserIds).size) {
+        throw new ApiError(status.BAD_REQUEST, 'One or more target users do not exist');
+      }
+    }
+    targetUsersOp = {
+      deleteMany: {},
+      create: targetUserIds.map(userId => ({ userId })),
+    };
+  }
+
   const result = await prisma.coupon.update({
     where: { id: Number(id) },
     data: {
-      ...payload,
-      expiryDate: payload.expiryDate ? new Date(payload.expiryDate) : undefined,
+      ...updateData,
+      expiryDate: updateData.expiryDate ? new Date(updateData.expiryDate) : undefined,
       updatedBy: Number(checkUser.id),
       updatedAt: new Date(),
+      ...(targetUsersOp && { targetUsers: targetUsersOp }),
     },
   });
   return result;
@@ -177,9 +235,15 @@ const deleteCouponByID = async (id: string, userInfo: UserInfoFromToken): Promis
   return result;
 };
 
-const validateCoupon = async (code: string, amount: number): Promise<Coupon> => {
+const validateCoupon = async (
+  code: string,
+  amount: number,
+  userId?: number
+): Promise<Coupon> => {
+  // Normalize code — stored uppercase/trimmed, so lookups must match
+  const normalizedCode = code.trim().toUpperCase();
   const coupon = await prisma.coupon.findUnique({
-    where: { code, isActive: true },
+    where: { code: normalizedCode, isActive: true },
   });
 
   if (!coupon) {
@@ -199,6 +263,63 @@ const validateCoupon = async (code: string, amount: number): Promise<Coupon> => 
       status.BAD_REQUEST,
       `Minimum order amount of ${coupon.minOrderAmount} required for this coupon`
     );
+  }
+
+  // Targeting eligibility — targeted coupons always require a known user
+  if (coupon.targetType !== CouponTargetType.ALL) {
+    if (!userId) {
+      throw new ApiError(status.BAD_REQUEST, 'You must be logged in to use this coupon');
+    }
+
+    if (coupon.targetType === CouponTargetType.NEW_USERS) {
+      // "New" = has never placed an order
+      const orderCount = await prisma.order.count({ where: { userId } });
+      if (orderCount > 0) {
+        throw new ApiError(status.BAD_REQUEST, 'This coupon is only available for new customers');
+      }
+    }
+
+    if (coupon.targetType === CouponTargetType.INACTIVE_USERS) {
+      // "Inactive" = last order older than inactiveDays (default 365)
+      const inactiveDays = coupon.inactiveDays ?? 365;
+      const lastOrder = await prisma.order.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true },
+      });
+      if (lastOrder) {
+        const daysSince = Math.floor((Date.now() - new Date(lastOrder.createdAt).getTime()) / (24 * 60 * 60 * 1000));
+        if (daysSince < inactiveDays) {
+          throw new ApiError(
+            status.BAD_REQUEST,
+            `This coupon is for customers who haven't ordered in the last ${inactiveDays} days`
+          );
+        }
+      }
+      // No orders at all also qualifies as inactive
+    }
+
+    if (coupon.targetType === CouponTargetType.SPECIFIC_USERS) {
+      const targeted = await prisma.couponTargetUser.findUnique({
+        where: { couponId_userId: { couponId: coupon.id, userId } },
+      });
+      if (!targeted) {
+        throw new ApiError(status.BAD_REQUEST, 'This coupon is not available for your account');
+      }
+    }
+  }
+
+  // Per-user usage limit: count this user's prior redemptions of this coupon
+  if (userId && coupon.limitPerUser !== null && coupon.limitPerUser > 0) {
+    const priorUses = await prisma.couponRedemption.count({
+      where: { couponId: coupon.id, userId },
+    });
+    if (priorUses >= coupon.limitPerUser) {
+      throw new ApiError(
+        status.BAD_REQUEST,
+        `You have already used this coupon the maximum number of times (${coupon.limitPerUser})`
+      );
+    }
   }
 
   return coupon;

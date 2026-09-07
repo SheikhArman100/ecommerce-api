@@ -38,6 +38,16 @@ export const OrderStatus = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
 
 
+export const CouponTargetType = {
+  ALL: 'ALL',
+  NEW_USERS: 'NEW_USERS',
+  INACTIVE_USERS: 'INACTIVE_USERS',
+  SPECIFIC_USERS: 'SPECIFIC_USERS'
+} as const
+
+export type CouponTargetType = (typeof CouponTargetType)[keyof typeof CouponTargetType]
+
+
 export const PaymentStatus = {
   PENDING: 'PENDING',
   PAID: 'PAID',

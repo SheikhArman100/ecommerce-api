@@ -202,7 +202,7 @@ const createOrderFromCart = async (
   let couponId: number | undefined;
 
   if (payload.couponCode) {
-    const coupon = await CouponService.validateCoupon(payload.couponCode, totalAmount);
+    const coupon = await CouponService.validateCoupon(payload.couponCode, totalAmount, checkUser.id);
     couponId = coupon.id;
 
     if (coupon.discountType === 'PERCENTAGE') {
@@ -263,6 +263,17 @@ const createOrderFromCart = async (
       if (consumed.count === 0) {
         throw new ApiError(status.CONFLICT, 'Coupon usage limit has just been reached');
       }
+
+      // Record the redemption for per-user limit tracking + audit trail.
+      // Cascade-deleted with the order, so gateway cancel/fail cleanup
+      // (which deletes the shell order) automatically rolls it back.
+      await tx.couponRedemption.create({
+        data: {
+          couponId,
+          userId: checkUser.id,
+          orderId: shellOrder.id,
+        },
+      });
     }
 
     // 2. Initiate payment with SSLCommerz
@@ -925,12 +936,15 @@ const updateOrderStatus = async (
     }
 
     // Coupon rollback: a cancelled order no longer consumes its coupon —
-    // decrement usedCount (floored at 0 for safety) so the usage becomes
-    // available again. Only on transitions INTO Cancelled, never re-decremented.
+    // decrement usedCount (floored at 0 for safety) and drop the redemption
+    // row so the per-user allowance is restored too.
     if (payload.status === OrderStatus.Cancelled && existingOrder.couponId) {
       await tx.coupon.updateMany({
         where: { id: existingOrder.couponId, usedCount: { gt: 0 } },
         data: { usedCount: { decrement: 1 } },
+      });
+      await tx.couponRedemption.deleteMany({
+        where: { orderId: existingOrder.id },
       });
     }
 

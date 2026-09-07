@@ -9,10 +9,14 @@ export type ICoupon = {
   expiryDate: string | Date;
   isActive: boolean;
   isFeatured: boolean;
+  targetType: 'ALL' | 'NEW_USERS' | 'INACTIVE_USERS' | 'SPECIFIC_USERS';
+  inactiveDays?: number;
   usageLimit?: number;
+  limitPerUser?: number;
   usedCount: number;
   createdBy: number;
   updatedBy: number;
+  targetUsers?: { userId: number }[];
 };
 
 export type ICouponFilters = {

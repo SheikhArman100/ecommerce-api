@@ -108,6 +108,16 @@ export type Payment = Prisma.PaymentModel
  */
 export type Coupon = Prisma.CouponModel
 /**
+ * Model CouponRedemption
+ * 
+ */
+export type CouponRedemption = Prisma.CouponRedemptionModel
+/**
+ * Model CouponTargetUser
+ * 
+ */
+export type CouponTargetUser = Prisma.CouponTargetUserModel
+/**
  * Model OrderItem
  * 
  */

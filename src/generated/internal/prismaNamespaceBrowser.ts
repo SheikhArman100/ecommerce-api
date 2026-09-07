@@ -69,6 +69,8 @@ export const ModelName = {
   OrderStatusHistory: 'OrderStatusHistory',
   Payment: 'Payment',
   Coupon: 'Coupon',
+  CouponRedemption: 'CouponRedemption',
+  CouponTargetUser: 'CouponTargetUser',
   OrderItem: 'OrderItem',
   Campaign: 'Campaign',
   CampaignProduct: 'CampaignProduct'
@@ -346,7 +348,10 @@ export const CouponScalarFieldEnum = {
   expiryDate: 'expiryDate',
   isActive: 'isActive',
   isFeatured: 'isFeatured',
+  targetType: 'targetType',
+  inactiveDays: 'inactiveDays',
   usageLimit: 'usageLimit',
+  limitPerUser: 'limitPerUser',
   usedCount: 'usedCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -355,6 +360,26 @@ export const CouponScalarFieldEnum = {
 } as const
 
 export type CouponScalarFieldEnum = (typeof CouponScalarFieldEnum)[keyof typeof CouponScalarFieldEnum]
+
+
+export const CouponRedemptionScalarFieldEnum = {
+  id: 'id',
+  couponId: 'couponId',
+  userId: 'userId',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+} as const
+
+export type CouponRedemptionScalarFieldEnum = (typeof CouponRedemptionScalarFieldEnum)[keyof typeof CouponRedemptionScalarFieldEnum]
+
+
+export const CouponTargetUserScalarFieldEnum = {
+  id: 'id',
+  couponId: 'couponId',
+  userId: 'userId'
+} as const
+
+export type CouponTargetUserScalarFieldEnum = (typeof CouponTargetUserScalarFieldEnum)[keyof typeof CouponTargetUserScalarFieldEnum]
 
 
 export const OrderItemScalarFieldEnum = {

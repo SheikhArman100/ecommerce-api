@@ -27,6 +27,13 @@ enum OrderStatus {
   Failed
 }
 
+enum CouponTargetType {
+  ALL
+  NEW_USERS
+  INACTIVE_USERS
+  SPECIFIC_USERS
+}
+
 enum PaymentStatus {
   PENDING
   PAID
@@ -81,6 +88,8 @@ model User {
   orders            Order[]
   createdCampaigns  Campaign[]     @relation("CampaignCreator")
   updatedCampaigns  Campaign[]     @relation("CampaignUpdater")
+  couponRedemptions CouponRedemption[]
+  couponTargets     CouponTargetUser[] @relation("CouponTargetUser")
 
   // Indexes
   @@index([email])
@@ -375,6 +384,7 @@ model Order {
   coupon   Coupon?   @relation(fields: [couponId], references: [id])
   payments Payment[]
   statusHistory OrderStatusHistory[]
+  couponRedemption CouponRedemption?
 
   @@map("orders")
 }
@@ -425,7 +435,10 @@ model Coupon {
   expiryDate        DateTime
   isActive          Boolean  @default(true)
   isFeatured        Boolean  @default(false) // Highlight on storefront
-  usageLimit        Int?
+  targetType        CouponTargetType @default(ALL) // Who may redeem this coupon
+  inactiveDays      Int? // INACTIVE_USERS: no order within the last N days
+  usageLimit        Int? // Total redemptions allowed across all users
+  limitPerUser      Int? // Redemptions allowed per single user
   usedCount         Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -433,10 +446,47 @@ model Coupon {
   updatedBy         Int
 
   // Relations
-  orders Order[]
+  orders      Order[]
+  redemptions CouponRedemption[]
+  targetUsers CouponTargetUser[]
 
   @@index([isFeatured])
   @@map("coupons")
+}
+
+// One row per successful redemption — powers per-user limits and redemption audit
+model CouponRedemption {
+  id        Int      @id @default(autoincrement())
+  couponId  Int
+  userId    Int
+  orderId   Int      @unique
+  createdAt DateTime @default(now())
+
+  // Relations
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([couponId, userId])
+  @@index([userId])
+  @@map("coupon_redemptions")
+}
+
+// Explicit allow-list for SPECIFIC_USERS targeted coupons
+model CouponTargetUser {
+  id       Int @id @default(autoincrement())
+  couponId Int
+  userId   Int
+
+  // Relations
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user   User   @relation("CouponTargetUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@unique([couponId, userId])
+  @@index([userId])
+  @@map("coupon_target_users")
 }
 
 model OrderItem {
