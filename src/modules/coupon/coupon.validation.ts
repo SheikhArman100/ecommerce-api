@@ -5,6 +5,9 @@ const createCouponSchema = z.object({
     code: z.string({
       error: 'Coupon code is required',
     }),
+    description: z.string({
+      error: 'Description is required',
+    }).min(1, 'Description cannot be empty'),
     discountType: z.enum(['FIXED', 'PERCENTAGE'], {
       error: 'Discount type is required (FIXED or PERCENTAGE)',
     }),
@@ -17,6 +20,7 @@ const createCouponSchema = z.object({
       error: 'Expiry date is required',
     }),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     usageLimit: z.number().optional(),
   }),
 });
@@ -24,12 +28,14 @@ const createCouponSchema = z.object({
 const updateCouponSchema = z.object({
   body: z.object({
     code: z.string().optional(),
+    description: z.string().optional(),
     discountType: z.enum(['FIXED', 'PERCENTAGE']).optional(),
     discountValue: z.number().optional(),
     minOrderAmount: z.number().optional(),
     maxDiscountAmount: z.number().optional(),
     expiryDate: z.string().optional(),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     usageLimit: z.number().optional(),
   }),
 });

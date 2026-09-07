@@ -296,6 +296,15 @@ const handleCancel = async (tran_id: string) => {
   if (!payment || !payment.order) return;
 
   await prisma.$transaction(async (tx: any) => {
+    // Roll back the coupon consumed by this shell order (floored at 0),
+    // otherwise abandoned checkouts permanently burn coupon usage.
+    if (payment.order.couponId) {
+      await tx.coupon.updateMany({
+        where: { id: payment.order.couponId, usedCount: { gt: 0 } },
+        data: { usedCount: { decrement: 1 } },
+      });
+    }
+
     // Delete payment record
     await tx.payment.delete({
       where: { id: payment.id },
@@ -316,6 +325,20 @@ const cleanupFailedPayment = async (tran_id: string) => {
   if (!payment) return;
 
   await prisma.$transaction(async (tx: any) => {
+    // Fetch the order's coupon before deletion so usage can be rolled back
+    const order = await tx.order.findUnique({
+      where: { id: payment.orderId },
+      select: { couponId: true },
+    });
+
+    // Roll back the coupon consumed by this shell order (floored at 0)
+    if (order?.couponId) {
+      await tx.coupon.updateMany({
+        where: { id: order.couponId, usedCount: { gt: 0 } },
+        data: { usedCount: { decrement: 1 } },
+      });
+    }
+
     // Mark payment as failed
     await tx.payment.update({
       where: { id: payment.id },

@@ -211,7 +211,9 @@ const createOrderFromCart = async (
         discountAmount = coupon.maxDiscountAmount;
       }
     } else {
-      discountAmount = coupon.discountValue;
+      // Fixed discount can never exceed the cart total — otherwise
+      // payable = total - discount + delivery could go negative/nonsense
+      discountAmount = Math.min(coupon.discountValue, totalAmount);
     }
   }
 
@@ -246,12 +248,21 @@ const createOrderFromCart = async (
     // Record the initial status in the timeline
     await createStatusHistory(tx, shellOrder.id, OrderStatus.Pending, checkUser.id);
 
-    // Increment coupon used count if applicable
+    // Increment coupon used count if applicable — done conditionally so two
+    // concurrent orders can't both pass validateCoupon's read-then-check and
+    // blow past usageLimit. If the coupon hit its limit between validation and
+    // this write, the whole order transaction aborts.
     if (couponId) {
-      await tx.coupon.update({
-        where: { id: couponId },
+      const consumed = await tx.coupon.updateMany({
+        where: {
+          id: couponId,
+          OR: [{ usageLimit: null }, { usageLimit: 0 }, { usedCount: { lt: prisma.coupon.fields.usageLimit } }],
+        },
         data: { usedCount: { increment: 1 } },
       });
+      if (consumed.count === 0) {
+        throw new ApiError(status.CONFLICT, 'Coupon usage limit has just been reached');
+      }
     }
 
     // 2. Initiate payment with SSLCommerz
@@ -911,6 +922,16 @@ const updateOrderStatus = async (
 
     if (payload.status) {
       await createStatusHistory(tx, Number(orderId), payload.status, checkUser.id);
+    }
+
+    // Coupon rollback: a cancelled order no longer consumes its coupon —
+    // decrement usedCount (floored at 0 for safety) so the usage becomes
+    // available again. Only on transitions INTO Cancelled, never re-decremented.
+    if (payload.status === OrderStatus.Cancelled && existingOrder.couponId) {
+      await tx.coupon.updateMany({
+        where: { id: existingOrder.couponId, usedCount: { gt: 0 } },
+        data: { usedCount: { decrement: 1 } },
+      });
     }
 
     return updated;

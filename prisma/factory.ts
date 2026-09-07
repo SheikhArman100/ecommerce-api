@@ -267,6 +267,7 @@ export class DataFactory {
         update: {},
         create: {
           code: couponNames[i],
+          description: faker.lorem.sentence(),
           discountType: isPercentage ? 'PERCENTAGE' : 'FIXED',
           discountValue,
           minOrderAmount: faker.helpers.arrayElement([0, 500, 1000, 2000]),
@@ -275,6 +276,8 @@ export class DataFactory {
             : null,
           expiryDate,
           isActive: roll >= 0.35,
+          // ~25% featured for storefront highlighting
+          isFeatured: faker.datatype.boolean({ probability: 0.25 }),
           usageLimit: faker.helpers.arrayElement([null, 50, 100, 500]),
           usedCount: faker.number.int({ min: 0, max: 40 }),
           createdBy: adminUser.id,

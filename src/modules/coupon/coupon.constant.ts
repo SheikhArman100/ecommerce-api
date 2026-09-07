@@ -3,8 +3,10 @@ export const couponFilterableFields = [
   'code',
   'discountType',
   'isActive',
+  'isFeatured',
 ];
 
 export const couponSearchableFields = [
   'code',
+  'description',
 ];
