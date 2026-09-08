@@ -23,13 +23,13 @@ passport.use(
         const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
-          throw new ApiError(status.NOT_FOUND, 'User does not exist');
+          throw new ApiError(status.UNAUTHORIZED, 'Invalid email or password');
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-          throw new ApiError(status.UNAUTHORIZED, 'Invalid email or pasword');
+          throw new ApiError(status.UNAUTHORIZED, 'Invalid email or password');
         }
 
         return done(null, user);

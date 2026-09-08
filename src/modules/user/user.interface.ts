@@ -8,6 +8,7 @@ export interface IUser {
     password: string;
     role: ENUM_USER_ROLE;
     isVerified: boolean;
+    isActive: boolean;
     createdAt: Date;
     updatedAt?: Date;
     createdBy?: number;

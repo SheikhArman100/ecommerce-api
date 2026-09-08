@@ -160,41 +160,30 @@ const resendVerification = async (email: string) => {
 };
 
 const signin = async (payload: IUser, ipAddress: string) => {
-  const { email, password } = payload;
-
-  // Find user in database
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (!user) {
-    throw new ApiError(status.NOT_FOUND, "User doesn't exist.");
-  }
-
-  if (!user.isVerified) {
+  // Credential verification (email + password) already happened in the
+  // LocalStrategy — do NOT compare the password again here. This function
+  // only enforces account state and issues tokens.
+  if (!payload.isVerified) {
     throw new ApiError(status.FORBIDDEN, 'Your account is not verified');
   }
 
-  if(!user.isActive){
-    throw new ApiError(status.FORBIDDEN, 'Your account has been deactivated. Please contact support.');
-    }
-
-  // Verify password using bcrypt
-  const isPasswordValid = await compare(password, user.password);
-  if (!isPasswordValid) {
-    throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Password is incorrect.');
+  if (!payload.isActive) {
+    throw new ApiError(
+      status.FORBIDDEN,
+      'Your account has been deactivated. Please contact support.',
+    );
   }
 
   // Generate Access Token
   const accessToken = jwtHelpers.createToken(
-    { id: user.id, role: user.role, email: user.email },
+    { id: payload.id, role: payload.role, email: payload.email },
     config.jwt.access_secret as Secret,
     config.jwt.access_expires_in as string,
   );
 
   // Generate Refresh Token
   const refreshToken = jwtHelpers.createToken(
-    { id: user.id, role: user.role },
+    { id: payload.id, role: payload.role },
     config.jwt.refresh_secret as Secret,
     config.jwt.refresh_expires_in as string,
   );
@@ -207,7 +196,7 @@ const signin = async (payload: IUser, ipAddress: string) => {
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
-      userId: user.id,
+      userId: payload.id,
       ipAddress,
       expiresAt,
     },
@@ -216,7 +205,7 @@ const signin = async (payload: IUser, ipAddress: string) => {
   return {
     accessToken,
     refreshToken,
-    role: user.role,
+    role: payload.role,
   };
 };
 
