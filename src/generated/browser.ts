@@ -132,3 +132,8 @@ export type Campaign = Prisma.CampaignModel
  * 
  */
 export type CampaignProduct = Prisma.CampaignProductModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

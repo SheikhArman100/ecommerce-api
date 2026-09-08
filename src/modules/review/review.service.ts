@@ -8,6 +8,7 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { reviewSearchableFields } from './review.constant';
 import { Prisma, FileType, DiskType } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
+import { NotificationService } from '../notification/notification.service';
 
 const createReview = async (
   userInfo: UserInfoFromToken,
@@ -112,6 +113,15 @@ const createReview = async (
 
     await Promise.all(filePromises);
   }
+
+  // Realtime + persisted notification to admins about the new review —
+  // fire-and-forget so it never fails the review creation.
+  NotificationService.createAndNotify({
+    type: 'REVIEW',
+    title: 'New Product Review',
+    body: `${user.name} left a ${payload.rating}-star review on "${review.product?.title || 'a product'}".`,
+    link: `/products/${payload.productId}`,
+  }).catch(err => console.error('Review Notification Error:', err));
 
   return review;
 };

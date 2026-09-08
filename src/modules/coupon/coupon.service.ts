@@ -8,6 +8,7 @@ import ApiError from '../../errors/ApiError';
 import status from 'http-status';
 import { UserInfoFromToken } from '../../types/common';
 import { ENUM_USER_ROLE } from '../../enum/user';
+import { sendEmail } from '../../helpers/nodeMailer';
 import { couponSearchableFields } from './coupon.constant';
 
 const createCoupon = async (
@@ -68,6 +69,34 @@ const createCoupon = async (
     },
     include: { targetUsers: true },
   }) as Coupon;
+
+  // Notify targeted users about their new exclusive coupon — realtime (socket)
+  // + persisted. Fire-and-forget so it never fails the coupon creation.
+  if (targetUserIds?.length) {
+    // Customers are informed of targeted coupons via EMAIL (notification
+    // system is admin-only) — fire-and-forget per user.
+    const couponUsers = await prisma.user.findMany({
+      where: { id: { in: targetUserIds } },
+      select: { id: true, name: true, email: true },
+    });
+    couponUsers.forEach(user => {
+      const discountText =
+        (payload as any).discountType === 'PERCENTAGE'
+          ? `${payload.discountValue}% off`
+          : `৳${payload.discountValue} off`;
+      sendEmail(
+        user.email,
+        `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #8e44ad; text-align: center;">Exclusive Coupon For You! 🎁</h2>
+          <p>Hello ${user.name},</p>
+          <p>You've got a new coupon: <strong style="font-size: 18px; color: #8e44ad;">${payload.code}</strong> — <strong>${discountText}</strong> your order.</p>
+          <p>Valid until <strong>${new Date(payload.expiryDate).toLocaleDateString()}</strong>.</p>
+        </div>`,
+        `You've got a coupon: ${payload.code}`,
+      ).catch(err => console.error('Coupon Email Error:', err));
+    });
+  }
+
   return result;
 };
 

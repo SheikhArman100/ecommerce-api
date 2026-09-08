@@ -32,6 +32,7 @@ import { CouponService } from '../coupon/coupon.service';
 import { SSLCommerzService } from '../payment/sslcommerz.service';
 import { NotificationService } from '../notification/notification.service';
 
+
 /**
  * Append a row to the order status timeline. Called whenever an order's status
  * is set (on creation and on every transition). changedBy is the acting user
@@ -418,6 +419,18 @@ const createOrderItemsFromSnapshot = async (tran_id: string, txClient?: any) => 
           stock: { decrement: item.quantity },
         },
       });
+
+      // Low-stock alert for admins — fire-and-forget so a notification
+      // failure never rolls back the order transaction.
+      const remainingStock = productFlavorSize.stock - item.quantity;
+      if (remainingStock <= 5) {
+        NotificationService.createAndNotify({
+          type: 'STOCK',
+          title: 'Low Stock Alert',
+          body: `"${item.productTitle}" (${item.flavorName || ''}${item.sizeName ? ' - ' + item.sizeName : ''}) is running low: only ${remainingStock} left in stock.`,
+          link: `/products/${item.productId}`,
+        }).catch(err => console.error('Low Stock Notification Error:', err));
+      }
     }
 
     // 3. Clear cart if exists
@@ -951,6 +964,19 @@ const updateOrderStatus = async (
 
     return updated;
   });
+
+  // Customers are informed of status changes via EMAIL (not in-app
+  // notifications, which are admin-only) — fire-and-forget.
+  if (payload.status && updatedOrder.user?.email) {
+    NotificationService.sendOrderStatusUpdateEmail(
+      updatedOrder.user.email,
+      {
+        userName: updatedOrder.user.name,
+        orderNumber: updatedOrder.orderNumber,
+        status: payload.status,
+      },
+    ).catch(err => console.error('Order Status Email Error:', err));
+  }
 
   // Handle variant resolution fallback for quantity products
   const mappedOrder = {

@@ -49,6 +49,16 @@ enum FileType {
   OTHER
 }
 
+enum NotificationType {
+  ORDER
+  PAYMENT
+  STOCK
+  REVIEW
+  CAMPAIGN
+  COUPON
+  SYSTEM
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   name        String
@@ -66,6 +76,9 @@ model User {
   // One-to-One Relations
   detail UserDetail?
   cart   Cart?
+
+  // One-to-Many Relations
+  notifications Notification[]
 
   // Many-to-One Relations
   creator User? @relation("UserCreator", fields: [createdBy], references: [id], onDelete: SetNull)
@@ -548,4 +561,27 @@ model CampaignProduct {
 
   @@unique([campaignId, productId])
   @@map("campaign_products")
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  title     String
+  body      String           @db.Text
+  type      NotificationType @default(SYSTEM)
+  isRead    Boolean          @default(false)
+  link      String? // Deep link for the admin/user frontend
+  image     String?
+  userId    Int? // Null = admin/system broadcast notification
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@map("notifications")
 }

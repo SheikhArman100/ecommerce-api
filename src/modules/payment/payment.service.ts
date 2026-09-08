@@ -240,6 +240,14 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
           userEmail: orderInfo.userEmail,
           payableAmount: completedOrder.payableAmount,
         }).catch(err => console.error('Admin Order Alert Error:', err));
+
+        // Realtime admin notification (socket) + persisted notification record
+        NotificationService.createAndNotify({
+          type: 'ORDER',
+          title: 'New Order Received',
+          body: `New order ${completedOrder.orderNumber} by ${orderInfo.userName} — payable ৳${completedOrder.payableAmount}.`,
+          link: `${config.admin_client_url}/orders/${completedOrder.id}`,
+        }).catch(err => console.error('Realtime Admin Notification Error:', err));
       }
     }
 

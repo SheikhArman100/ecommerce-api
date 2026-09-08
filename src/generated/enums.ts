@@ -67,3 +67,16 @@ export const FileType = {
 } as const
 
 export type FileType = (typeof FileType)[keyof typeof FileType]
+
+
+export const NotificationType = {
+  ORDER: 'ORDER',
+  PAYMENT: 'PAYMENT',
+  STOCK: 'STOCK',
+  REVIEW: 'REVIEW',
+  CAMPAIGN: 'CAMPAIGN',
+  COUPON: 'COUPON',
+  SYSTEM: 'SYSTEM'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

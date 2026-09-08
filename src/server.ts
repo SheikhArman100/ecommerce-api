@@ -1,10 +1,11 @@
-import { Server } from 'http';
+import { Server, createServer } from 'http';
 
 import app from './app';
 
 import config from './config/index';
 import AppLogger from './logger/applogger'; // <-- Add this import
 import { prisma } from './client';
+import { initSocketServer } from './socket';
 
 let server: Server;
 
@@ -21,7 +22,15 @@ async function main(): Promise<void> {
     await prisma.$queryRaw`SELECT 1`;
     AppLogger.info('✅ Database health check passed');
 
-    server = app.listen(config.port, () => {
+    // Create HTTP server from the Express app
+    server = createServer(app);
+
+    // Attach Socket.IO (realtime) to the HTTP server
+    initSocketServer(server);
+
+    AppLogger.info('✅ Socket.IO server initialized');
+
+    server.listen(config.port, () => {
       AppLogger.info(`🚀 Server running on port ${config.port}`);
       AppLogger.info(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
     });

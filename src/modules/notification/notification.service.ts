@@ -1,5 +1,23 @@
 import { sendEmail } from '../../helpers/nodeMailer';
 import config from '../../config';
+import status from 'http-status';
+import { prisma } from '../../client';
+import ApiError from '../../errors/ApiError';
+import { UserInfoFromToken } from '../../types/common';
+import { Prisma, NotificationType } from '../../generated/client';
+import { IPaginationOptions } from '../../interfaces/common';
+import { calculatePagination } from '../../helpers/paginationHelper';
+import { ENUM_USER_ROLE } from '../../enum/user';
+import {
+  INotification,
+  INotificationCreate,
+  INotificationFilters,
+} from './notification.interface';
+import {
+  notificationSearchableFields,
+  NOTIFICATION_EVENT,
+} from './notification.constant';
+import { emitToAdmins } from '../../socket';
 
 const sendOrderConfirmationEmail = async (to: string, orderDetails: any) => {
   const html = `
@@ -79,8 +97,162 @@ const sendPaymentSuccessEmail = async (to: string, orderDetails: any) => {
   await sendEmail(to, html, `Payment Success - Order #${orderDetails.orderId}`);
 };
 
+const sendOrderStatusUpdateEmail = async (to: string, orderDetails: any) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+      <h2 style="color: #2c3e50; text-align: center;">Order Status Updated</h2>
+      <p>Hello ${orderDetails.userName},</p>
+      <p>The status of your order <strong>#${orderDetails.orderNumber}</strong> has been updated to
+        <strong style="color: #3498db;">${orderDetails.status}</strong>.</p>
+      <p style="text-align: center; margin-top: 30px;">
+        <a href="${config.frontend_url}/account/orders" style="color: #3498db;">Track your order status here</a>
+      </p>
+    </div>
+  `;
+
+  await sendEmail(to, html, `Order Update - #${orderDetails.orderNumber} is now ${orderDetails.status}`);
+};
+
+// ---------------------------------------------------------------------------
+// Database-backed + realtime (socket) notifications
+// ---------------------------------------------------------------------------
+
+/**
+ * Persists a notification and pushes it in realtime over the socket connection.
+ * Notifications are ADMIN-ONLY: customers are informed via email instead.
+ * Always broadcasts to all connected admins (admins room).
+ * Used by both the REST controller and internal services (e.g. order alerts).
+ */
+const createAndNotify = async (payload: INotificationCreate): Promise<INotification> => {
+  const notification = await prisma.notification.create({
+    data: {
+      title: payload.title,
+      body: payload.body,
+      type: payload.type ?? 'SYSTEM',
+      link: payload.link || null,
+      image: payload.image || null,
+    },
+  });
+
+  emitToAdmins(NOTIFICATION_EVENT, notification);
+
+  return notification;
+};
+
+const createNotification = async (
+  payload: INotificationCreate,
+  _userInfo: UserInfoFromToken,
+): Promise<INotification> => {
+  return createAndNotify(payload);
+};
+
+const getAllNotifications = async (
+  filters: INotificationFilters,
+  paginationOptions: IPaginationOptions,
+) => {
+  const { searchTerm, ...filtersData } = filters;
+  const { page, limit, skip, orderBy } = calculatePagination(paginationOptions);
+
+  const andConditions: Prisma.NotificationWhereInput[] = [];
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: notificationSearchableFields.map((field) => ({
+        [field]: { contains: searchTerm, mode: 'insensitive' as const },
+      })),
+    });
+  }
+
+  if (filtersData.type) {
+    andConditions.push({ type: filtersData.type as NotificationType });
+  }
+
+  if (filtersData.isRead === 'true') {
+    andConditions.push({ isRead: true });
+  } else if (filtersData.isRead === 'false') {
+    andConditions.push({ isRead: false });
+  }
+
+  if (filtersData.userId) {
+    const parsedUserId = parseInt(filtersData.userId as string, 10);
+    if (!isNaN(parsedUserId)) {
+      andConditions.push({ userId: parsedUserId });
+    }
+  }
+
+  const where: Prisma.NotificationWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const count = await prisma.notification.count({ where });
+
+  const result = await prisma.notification.findMany({
+    where,
+    orderBy,
+    skip,
+    take: limit,
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  return {
+    meta: {
+      page,
+      limit: limit === 0 ? count : limit,
+      count,
+    },
+    data: result,
+  };
+};
+
+const getUnreadCount = async (userInfo: UserInfoFromToken) => {
+  return prisma.notification.count({ where: { isRead: false } });
+};
+
+const markAsRead = async (id: string, userInfo: UserInfoFromToken) => {
+  const notification = await prisma.notification.findUnique({
+    where: { id: Number(id) },
+  });
+  if (!notification) {
+    throw new ApiError(status.NOT_FOUND, 'Notification not found');
+  }
+
+  return prisma.notification.update({
+    where: { id: notification.id },
+    data: { isRead: true },
+  });
+};
+
+const markAllAsRead = async (userInfo: UserInfoFromToken) => {
+  const { count = 0 } = await prisma.notification.updateMany({
+    where: { isRead: false },
+    data: { isRead: true },
+  });
+
+  return count;
+};
+
+const deleteNotification = async (id: string, userInfo: UserInfoFromToken) => {
+  const notification = await prisma.notification.findUnique({
+    where: { id: Number(id) },
+  });
+  if (!notification) {
+    throw new ApiError(status.NOT_FOUND, 'Notification not found');
+  }
+
+  return prisma.notification.delete({ where: { id: notification.id } });
+};
+
 export const NotificationService = {
   sendOrderConfirmationEmail,
   sendAdminOrderAlert,
   sendPaymentSuccessEmail,
+  sendOrderStatusUpdateEmail,
+  createNotification,
+  createAndNotify,
+  getAllNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
 };
