@@ -16241,6 +16241,325 @@
           ]
         }
       ]
+    },
+    {
+      "name": "notification",
+      "item": [
+        {
+          "name": "Get all notifications (admin)",
+          "item": [
+            {
+              "name": "Get all notifications (paginated)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{backend_url}}/notification?page=1&limit=10",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "notification"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filter by type (ORDER)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{backend_url}}/notification?type=ORDER&page=1&limit=10",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "notification"
+                  ],
+                  "query": [
+                    {
+                      "key": "type",
+                      "value": "ORDER"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filter by unread (isRead=false)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{backend_url}}/notification?isRead=false&page=1&limit=10",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "notification"
+                  ],
+                  "query": [
+                    {
+                      "key": "isRead",
+                      "value": "false"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get unread count (admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/notification/unread-count",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "notification",
+                "unread-count"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create notification (admin)",
+          "item": [
+            {
+              "name": "Create an ORDER notification (broadcast)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"New Order Received\",\n  \"body\": \"Order #ORD-20260908-123456 has been placed by a customer.\",\n  \"type\": \"ORDER\",\n  \"link\": \"/orders/1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{backend_url}}/notification",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "notification"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create a SYSTEM notification",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Maintenance Scheduled\",\n  \"body\": \"Scheduled maintenance will take place on Sunday at 2 AM.\",\n  \"type\": \"SYSTEM\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{backend_url}}/notification",
+                  "host": [
+                    "{{backend_url}}"
+                  ],
+                  "path": [
+                    "notification"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Mark all notifications as read (admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/notification/read-all",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "notification",
+                "read-all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark notification as read by ID (admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/notification/1/read",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "notification",
+                "1",
+                "read"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete notification by ID (admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{backend_url}}/notification/1",
+              "host": [
+                "{{backend_url}}"
+              ],
+              "path": [
+                "notification",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
