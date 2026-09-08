@@ -12,14 +12,21 @@ import { UserInfoFromToken } from '../../types/common';
 import { ICheckUserResponse } from './auth.interface';
 
 const signup = async (payload: IUser) => {
-  const existingUser = await prisma.user.findFirst({
-    where: {
-      email: payload.email,
-    },
-  });
+
+  // Check if the email and phone number already exists
+  const existingUser = await prisma.user.findFirst(
+    {
+      where: {
+        OR: [
+          { email: payload.email },
+          { phoneNumber: payload.phoneNumber },
+        ],
+      },
+    }
+  );
 
   if (existingUser) {
-    throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Email already exists');
+    throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Email or phone number already exists');
   }
 
   // Hash the password
@@ -173,7 +180,7 @@ const signin = async (payload: IUser, ipAddress: string) => {
     }
 
   // Verify password using bcrypt
-  const isPasswordValid = compare(password, user.password);
+  const isPasswordValid = await compare(password, user.password);
   if (!isPasswordValid) {
     throw new ApiError(status.UNPROCESSABLE_ENTITY, 'Password is incorrect.');
   }
@@ -214,7 +221,7 @@ const signin = async (payload: IUser, ipAddress: string) => {
 };
 
 const googleSignIn = async (payload: any, ipAddress: string) => {
-  const { user, password, accessToken, refreshToken } = payload as any;
+  const { user, isNewUser, accessToken, refreshToken } = payload as any;
 
   // Store refresh token in DB
   const refreshExpiresIn = Number(
@@ -230,24 +237,20 @@ const googleSignIn = async (payload: any, ipAddress: string) => {
     },
   });
 
-  try {
-    await sendEmail(
+  // Welcome email (no credentials!) — only for brand-new Google users.
+  // Fire-and-forget: an SMTP failure must never block a successful login.
+  if (isNewUser) {
+    sendEmail(
       user.email!,
       `
         <p>Hi, ${user.name}</p>
         <p>Welcome to <strong>E-Commerce</strong>!</p>
-        <p>We're excited to have you on board. Your registration has been successfully completed. Below are your signin details:</p>
-        <p><strong>Email:</strong> ${user?.email}<br>
-        <strong>Password:</strong> ${password}</p>
-        
-        
+        <p>Your account has been created successfully using Google sign-in with <strong>${user?.email}</strong>.</p>
+        <p>You can sign in anytime with your Google account — no password needed.</p>
         <p>Thank you <br> E-Commerce</p>
         `,
-      'Registration Completed Successfully',
-    );
-  } catch (error) {
-    console.error('Email sending failed:', error);
-    throw new ApiError(status.INTERNAL_SERVER_ERROR, 'failed to send mail');
+      'Welcome to E-Commerce',
+    ).catch(error => console.error('Welcome email failed:', error));
   }
 
   return {
@@ -259,11 +262,16 @@ const googleSignIn = async (payload: any, ipAddress: string) => {
 
 const updateToken = async (refreshToken: string, ipAddress: string) => {
   const checkToken = await prisma.refreshToken.findFirst({
-    where: { token: refreshToken },
+    where: { token: refreshToken, expiresAt: { gt: new Date() } },
     include: { user: true },
   });
   if (!checkToken || !checkToken.user) {
     throw new ApiError(status.UNAUTHORIZED, 'You are not authorized');
+  }
+
+  // Deactivated or unverified users cannot refresh their session
+  if (!checkToken.user.isActive || !checkToken.user.isVerified) {
+    throw new ApiError(status.FORBIDDEN, 'Your account is not active');
   }
 
   const verifiedUser = jwtHelpers.verifyToken(
@@ -327,8 +335,12 @@ const checkUser = async (refreshToken: string) => {
       refreshTokens: {
         some: {
           token: refreshToken,
+          expiresAt: { gt: new Date() },
         },
       },
+      // Deactivated or unverified users are not authorized
+      isActive: true,
+      isVerified: true,
     },
     select: {
       id: true,
@@ -441,6 +453,10 @@ const resetPassword = async (
     },
   });
 
+  // Revoke all existing sessions — the user's old refresh tokens are no
+  // longer valid after a password reset.
+  await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
   return { id: updatedUser.id };
 };
 
@@ -481,6 +497,12 @@ const changePassword = async (
       updatedBy: Number(userInfo.id),
     },
     select: { id: true },
+  });
+
+  // Revoke all other sessions — old refresh tokens are invalid after a
+  // password change.
+  await prisma.refreshToken.deleteMany({
+    where: { userId: Number(userInfo.id) },
   });
 
   return { id: updatedUser.id };

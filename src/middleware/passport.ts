@@ -62,6 +62,9 @@ passport.use(
           where: { email },
           include: { detail: true },
         });
+
+        // New visitor via Google → auto-signup; existing email → plain signin
+        const isNewUser = !user;
         let password;
 
         if (!user) {
@@ -91,6 +94,14 @@ passport.use(
               detail: true,
             },
           });
+        } else if (!user.isVerified) {
+          // Google has verified ownership of this email address — trust it and
+          // mark the account verified so sessions aren't rejected downstream.
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { isVerified: true },
+            include: { detail: true },
+          });
         }
 
         if (user) {
@@ -107,7 +118,7 @@ passport.use(
             config.jwt.refresh_secret as Secret,
             config.jwt.refresh_expires_in || '7d',
           );
-          return done(null, { user, password, accessToken, refreshToken });
+          return done(null, { user, isNewUser, accessToken, refreshToken });
         } else {
           throw new ApiError(status.INTERNAL_SERVER_ERROR, 'Server error');
         }
