@@ -532,11 +532,9 @@ const getAllProducts = async (
         const base = size.price;
         let best = base;
         product.campaigns.forEach((cp: any) => {
-          const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-          if (discount <= 0) return;
           const candidate = cp.campaign.discountType === 'FIXED'
-            ? Math.max(base - discount, 0)
-            : base * (1 - discount / 100);
+            ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+            : base * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
           if (candidate < best) best = candidate;
         });
         return {
@@ -651,32 +649,40 @@ const getSingleProduct = async (productId: string) => {
     throw new ApiError(status.NOT_FOUND, 'Product not found');
   }
 
-  // Calculate pricing
-  let maxDiscount = 0;
-  let activeCampaign = null;
-
-  (checkProduct as any).campaigns.forEach((cp: any) => {
-    const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-    if (discount > maxDiscount) {
-      maxDiscount = discount;
-      activeCampaign = cp.campaign;
-    }
-  });
+  // Calculate per-size campaign-aware pricing — pick whichever campaign yields
+  // the LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
+  const campaigns = (checkProduct as any).campaigns || [];
 
   const productWithPricing = {
     ...checkProduct,
-    activeCampaign,
     flavors: checkProduct.flavors.map(flavor => ({
       ...flavor,
-      sizes: flavor.sizes.map(size => ({
-        ...size,
-        originalPrice: size.price,
-        salesPrice:
-          maxDiscount > 0
-            ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2))
-            : size.price,
-        discountPercentage: maxDiscount,
-      })),
+      sizes: flavor.sizes.map((size: any) => {
+        const base = size.price;
+        let best = base;
+        let activeCampaign: any = null;
+
+        campaigns.forEach((cp: any) => {
+          const candidate = cp.campaign.discountType === 'FIXED'
+            ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+            : base * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
+          if (candidate < best) {
+            best = candidate;
+            activeCampaign = cp.campaign;
+          }
+        });
+
+        return {
+          ...size,
+          originalPrice: base,
+          salesPrice: parseFloat(best.toFixed(2)),
+          activeCampaign,
+          discountPercentage:
+            best < base
+              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              : 0,
+        };
+      }),
     })),
   };
 
@@ -771,32 +777,40 @@ const getSingleProductBySlug = async (slug: string) => {
     throw new ApiError(status.NOT_FOUND, 'Product not found');
   }
 
-  // Calculate pricing
-  let maxDiscount = 0;
-  let activeCampaign = null;
-
-  (checkProduct as any).campaigns.forEach((cp: any) => {
-    const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-    if (discount > maxDiscount) {
-      maxDiscount = discount;
-      activeCampaign = cp.campaign;
-    }
-  });
+  // Calculate per-size campaign-aware pricing — pick whichever campaign yields
+  // the LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
+  const campaigns = (checkProduct as any).campaigns || [];
 
   const productWithPricing = {
     ...checkProduct,
-    activeCampaign,
     flavors: checkProduct.flavors.map(flavor => ({
       ...flavor,
-      sizes: flavor.sizes.map(size => ({
-        ...size,
-        originalPrice: size.price,
-        salesPrice:
-          maxDiscount > 0
-            ? parseFloat((size.price * (1 - maxDiscount / 100)).toFixed(2))
-            : size.price,
-        discountPercentage: maxDiscount,
-      })),
+      sizes: flavor.sizes.map((size: any) => {
+        const base = size.price;
+        let best = base;
+        let activeCampaign: any = null;
+
+        campaigns.forEach((cp: any) => {
+          const candidate = cp.campaign.discountType === 'FIXED'
+            ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+            : base * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
+          if (candidate < best) {
+            best = candidate;
+            activeCampaign = cp.campaign;
+          }
+        });
+
+        return {
+          ...size,
+          originalPrice: base,
+          salesPrice: parseFloat(best.toFixed(2)),
+          activeCampaign,
+          discountPercentage:
+            best < base
+              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              : 0,
+        };
+      }),
     })),
   };
 

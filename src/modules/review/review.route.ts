@@ -18,8 +18,8 @@ router
     validateRequest(ReviewValidation.createReviewSchema),
     ReviewController.createReview
   )
-  .get('/', ReviewController.getAllReviews)
-  .get('/:id', ReviewController.getReviewByID)
+  .get('/',auth(), ReviewController.getAllReviews)
+  .get('/:id',auth(), ReviewController.getReviewByID)
   .patch(
     '/:id',
     auth(),

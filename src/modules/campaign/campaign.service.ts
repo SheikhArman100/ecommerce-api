@@ -204,7 +204,12 @@ const getSingleCampaign = async (id: number) => {
   }
 
   const productsWithPricing = result.products.map(cp => {
-    const discount = cp.customDiscountPercentage ?? result.discountDefault;
+    // FIXED campaigns apply a flat ৳ amount (discountDefault); the custom %
+    // override only applies to PERCENTAGE campaigns.
+    const discount =
+      result.discountType === 'FIXED'
+        ? result.discountDefault
+        : (cp.customDiscountPercentage ?? result.discountDefault);
     return {
       ...cp,
       product: applyCampaignPricing(cp.product, discount, result.discountType),
@@ -243,7 +248,12 @@ const getActiveCampaign = async () => {
   if (!result) return null;
 
   const productsWithPricing = result.products.map(cp => {
-    const discount = cp.customDiscountPercentage ?? result.discountDefault;
+    // FIXED campaigns apply a flat ৳ amount (discountDefault); the custom %
+    // override only applies to PERCENTAGE campaigns.
+    const discount =
+      result.discountType === 'FIXED'
+        ? result.discountDefault
+        : (cp.customDiscountPercentage ?? result.discountDefault);
     return {
       ...cp,
       product: applyCampaignPricing(cp.product, discount, result.discountType),

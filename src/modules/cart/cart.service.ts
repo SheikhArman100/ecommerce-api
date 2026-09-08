@@ -267,6 +267,29 @@ const getAllCarts = async (
       },
       items: {
         include: {
+          product: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              campaigns: {
+                where: {
+                  campaign: { isActive: true },
+                },
+                select: {
+                  customDiscountPercentage: true,
+                  campaign: {
+                    select: {
+                      id: true,
+                      title: true,
+                      discountDefault: true,
+                      discountType: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           productFlavorSize: {
             select: {
               price: true,
@@ -277,13 +300,50 @@ const getAllCarts = async (
     },
   });
 
+  // Compute campaign-aware pricing + totals for each cart so the admin list
+  // reflects the discounted amounts customers actually pay.
+  const data = result.map(cart => {
+    const items = (cart.items as any[]).map(item => {
+      const originalPrice = item.productFlavorSize?.price || 0;
+      let bestPrice = originalPrice;
+      let activeCampaign: any = null;
+
+      item.product?.campaigns?.forEach((cp: any) => {
+        const basePrice = originalPrice;
+        // FIXED = flat ৳ off (custom % override doesn't apply);
+        // PERCENTAGE = % off using custom ?? default.
+        const candidatePrice =
+          cp.campaign.discountType === 'FIXED'
+            ? Math.max(basePrice - cp.campaign.discountDefault, 0)
+            : basePrice * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
+        if (candidatePrice < bestPrice) {
+          bestPrice = candidatePrice;
+          activeCampaign = cp.campaign;
+        }
+      });
+
+      return {
+        ...item,
+        originalPrice,
+        salesPrice: parseFloat(bestPrice.toFixed(2)),
+        activeCampaign,
+      };
+    });
+
+    return {
+      ...cart,
+      items,
+      totals: calculateCartTotals(items),
+    };
+  });
+
   return {
     meta: {
       page,
       limit: limit === 0 ? count : limit,
       count,
     },
-    data: result,
+    data,
   };
 };
 
@@ -375,14 +435,11 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
     let activeCampaign: any = null;
 
     item.product.campaigns?.forEach((cp: any) => {
-      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount <= 0) return;
-      let candidatePrice;
-      if (cp.campaign.discountType === 'FIXED') {
-        candidatePrice = Math.max(originalPrice - discount, 0);
-      } else {
-        candidatePrice = originalPrice * (1 - discount / 100);
-      }
+      const basePrice = originalPrice;
+      const candidatePrice =
+        cp.campaign.discountType === 'FIXED'
+          ? Math.max(basePrice - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+          : basePrice * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
       if (candidatePrice < bestPrice) {
         bestPrice = candidatePrice;
         activeCampaign = cp.campaign;
@@ -547,14 +604,11 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
     let activeCampaign: any = null;
 
     item.product.campaigns?.forEach((cp: any) => {
-      const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-      if (discount <= 0) return;
-      let candidatePrice;
-      if (cp.campaign.discountType === 'FIXED') {
-        candidatePrice = Math.max(originalPrice - discount, 0);
-      } else {
-        candidatePrice = originalPrice * (1 - discount / 100);
-      }
+      const basePrice = originalPrice;
+      const candidatePrice =
+        cp.campaign.discountType === 'FIXED'
+          ? Math.max(basePrice - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+          : basePrice * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
       if (candidatePrice < bestPrice) {
         bestPrice = candidatePrice;
         activeCampaign = cp.campaign;

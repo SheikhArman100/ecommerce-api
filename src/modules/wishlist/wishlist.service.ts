@@ -285,11 +285,9 @@ const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
         const base = size.price;
         let best = base;
         wishlist.product.campaigns?.forEach((cp: any) => {
-          const discount = cp.customDiscountPercentage ?? cp.campaign.discountDefault;
-          if (discount <= 0) return;
           const candidate = cp.campaign.discountType === 'FIXED'
-            ? Math.max(base - discount, 0)
-            : base * (1 - discount / 100);
+            ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+            : base * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
           if (candidate < best) {
             best = candidate;
             activeCampaign = cp.campaign;
