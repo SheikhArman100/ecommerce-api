@@ -3,6 +3,7 @@ export interface IProductBody {
   description: string;
   categoryId: number;
   isActive?: boolean;
+  isFeatured?: boolean;
   flavors: {
     flavorId: number;
     soldByQuantity?: boolean; // Flag on flavor level
@@ -61,6 +62,7 @@ export interface IUpdateProductInterface {
   description?: string;
   categoryId?: string;
   isActive?: boolean;
+  isFeatured?: boolean;
 
   // ===== Flavor operations =====
   flavors?: {
@@ -76,6 +78,7 @@ export interface IProductUpdateBody {
   description?: string;
   categoryId?: number;
   isActive?: boolean;
+  isFeatured?: boolean;
   flavors?: IFlavorUpdate[];
   removeFlavors?: number[]; // Array of flavorIds to remove from the product
 }
@@ -84,6 +87,7 @@ export type IProductFilters = {
   searchTerm?: string;
   title?: string;
   isActive?: string;
+  isFeatured?: string;
   createdBy?:string
   categoryId?: string;
   categoryName?: string;

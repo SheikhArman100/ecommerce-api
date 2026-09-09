@@ -2303,6 +2303,7 @@ export const ProductScalarFieldEnum = {
   slug: 'slug',
   description: 'description',
   isActive: 'isActive',
+  isFeatured: 'isFeatured',
   createdBy: 'createdBy',
   updatedBy: 'updatedBy',
   createdAt: 'createdAt',

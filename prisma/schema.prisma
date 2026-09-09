@@ -158,6 +158,7 @@ model Product {
   slug        String   @unique
   description String   @db.Text
   isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
   createdBy   Int
   updatedBy   Int
   createdAt   DateTime @default(now())

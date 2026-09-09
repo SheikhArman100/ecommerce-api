@@ -52,7 +52,7 @@ const createProduct = async (
   }
 
   //validate payload
-  const { title, description, categoryId, flavors } = payload;
+  const { title, description, categoryId, flavors, isFeatured } = payload;
 
   if (
     !title ||
@@ -97,6 +97,7 @@ const createProduct = async (
           slug,
           description,
           categoryId: Number(categoryId),
+          isFeatured: isFeatured ?? false,
           createdBy: Number(checkAdmin.id),
           updatedBy: Number(checkAdmin.id),
         },
@@ -215,6 +216,7 @@ const getAllProducts = async (
     searchTerm,
     title,
     isActive,
+    isFeatured,
     createdBy,
     categoryId,
     categoryName,
@@ -256,6 +258,11 @@ const getAllProducts = async (
   if (isActive) {
     const parsedIsActive = isActive.toLowerCase() === 'true';
     andConditions.push({ isActive: parsedIsActive });
+  }
+
+  if (isFeatured) {
+    const parsedIsFeatured = isFeatured.toLowerCase() === 'true';
+    andConditions.push({ isFeatured: parsedIsFeatured });
   }
 
   if (createdBy) {
@@ -454,6 +461,7 @@ const getAllProducts = async (
       slug: true,
       description: true,
       isActive: true,
+      isFeatured: true,
       createdAt: true,
       updatedAt: true,
       createdBy: true,
@@ -571,6 +579,7 @@ const getSingleProduct = async (productId: string) => {
       title: true,
       slug: true,
       isActive: true,
+      isFeatured: true,
       description: true,
       createdAt: true,
       updatedAt: true,
@@ -698,6 +707,8 @@ const getSingleProductBySlug = async (slug: string) => {
       id: true,
       title: true,
       slug: true,
+      isActive: true,
+      isFeatured: true,
       description: true,
       createdAt: true,
       updatedAt: true,
@@ -849,7 +860,7 @@ const updateProduct = async (
   // Use transaction to ensure data consistency
   return prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
-      const { title, description, categoryId, isActive, flavors } = payload;
+      const { title, description, categoryId, isActive, isFeatured, flavors } = payload;
 
       // Check for duplicate title (case-insensitive), excluding this product
       if (title !== undefined && title.toLowerCase() !== existingProduct.title.toLowerCase()) {
@@ -878,6 +889,7 @@ const updateProduct = async (
       if (description !== undefined) updateData.description = description;
       if (categoryId !== undefined) updateData.categoryId = Number(categoryId);
       if (isActive !== undefined) updateData.isActive = isActive;
+      if (isFeatured !== undefined) updateData.isFeatured = isFeatured;
 
       // Update slug if title changed
       if (title && title !== existingProduct.title) {

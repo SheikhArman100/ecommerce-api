@@ -45,6 +45,7 @@ export const createProductSchema = z.object({
       error: 'Category ID must be a number',
     }),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     flavors: z
       .array(
         z.object({
@@ -205,6 +206,7 @@ const updateProductSchemaNew = z.object({
       error: 'Category ID must be a number',
     }).optional(),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     flavors: z.object({
       add: z.array(flavorAddSchema).optional(),
       update: z.array(flavorUpdateSchema).optional(),
@@ -225,6 +227,7 @@ const updateProductSchema = z.object({
       error: 'Category ID must be a number',
     }).optional(),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
     flavors: z
       .array(
         z.object({
