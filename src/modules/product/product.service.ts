@@ -1039,9 +1039,49 @@ const deleteProduct = async (
   );
 };
 
+/**
+ * Public storefront feed for the shop grid (products page).
+ *
+ * Reuses `getAllProducts` on purpose so the filter set and the campaign-aware
+ * per-size pricing are identical to GET /product — but it FORCES
+ * `isActive: 'true'` (an anonymous visitor must never browse hidden products,
+ * which the legacy endpoint happily returns) and then strips the audit/owner
+ * columns (`creator`/`createdBy` rows leak user data) plus the raw `campaigns`
+ * rows the pricing was already derived from.
+ *
+ * `limit=0` is mapped onto a generous cap: getAllProducts would otherwise turn
+ * it into `take: 0` (an empty page) instead of "everything".
+ */
+const getPublicProducts = async (
+  filters: IProductFilters,
+  paginationOptions: IPaginationOptions,
+) => {
+  const pagination: IPaginationOptions =
+    Number(paginationOptions.limit) === 0
+      ? { ...paginationOptions, limit: 100 }
+      : paginationOptions;
+
+  const result = await getAllProducts(
+    { ...filters, isActive: 'true' },
+    pagination,
+  );
+
+  return {
+    ...result,
+    data: result.data.map((product) => {
+      const copy: any = { ...product };
+      delete copy.creator;
+      delete copy.createdBy;
+      delete copy.campaigns;
+      return copy;
+    }),
+  };
+};
+
 export const ProductService = {
   createProduct,
   getAllProducts,
+  getPublicProducts,
   getFeaturedProducts,
   getSingleProduct,
   getSingleProductBySlug,

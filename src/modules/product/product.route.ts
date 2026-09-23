@@ -18,14 +18,20 @@ router.post(
   ProductController.createProduct
 );
 
-router.get('/', ProductController.getAllProducts);
+router.get('/',auth(ENUM_USER_ROLE.ADMIN), ProductController.getAllProducts);
+
+// Public storefront feed (no auth): ACTIVE products for the shop grid, with
+// display-safe fields only and the storefront's own filter set (see
+// product.constant.ts). Declared as a literal before the /id|/slug prefixes so
+// it can never be shadowed by them.
+router.get('/public', ProductController.getPublicProducts);
 
 // Public storefront feed: active + featured products (home page section).
 // Kept above the other GET routes so the literal "featured" can never be
 // swallowed by a future `/:param` route added here.
 router.get('/featured', ProductController.getFeaturedProducts);
 
-router.get('/id/:productId', ProductController.getSingleProduct);
+router.get('/id/:productId',auth(ENUM_USER_ROLE.ADMIN), ProductController.getSingleProduct);
 router.get('/slug/:slug', ProductController.getSingleProductBySlug);
 
 

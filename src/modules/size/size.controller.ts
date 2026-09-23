@@ -37,6 +37,25 @@ const getAllSizes = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Public storefront feed (no auth): ACTIVE sizes for the shop's filter chips.
+ * The admin filter set of GET /size is intentionally ignored — only pagination
+ * is picked here.
+ */
+const getPublicSizes = catchAsync(async (req: Request, res: Response) => {
+  const paginationOptions = pick(req.query, paginationFields);
+
+  const result = await SizeService.getPublicSizes(paginationOptions);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Sizes fetched successfully!',
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const getSizeByID = catchAsync(async (req: Request, res: Response) => {
   const result = await SizeService.getSizeByID(req.params.id as string);
 
@@ -73,6 +92,7 @@ const deleteSizeByID = catchAsync(async (req: Request, res: Response) => {
 export const SizeController = {
   createSize,
   getAllSizes,
+  getPublicSizes,
   getSizeByID,
   updateSize,
   deleteSizeByID,

@@ -208,9 +208,43 @@ const deleteSizeByID = async (id:string,userInfo:UserInfoFromToken) => {
   
 };
 
+/**
+ * Public storefront feed (no auth) — ACTIVE sizes for the shop's filter chips.
+ *
+ * Display-safe: id/name/description/isActive only — never the `creator`/
+ * `updater` user rows (emails AND password hashes) that GET /size ships.
+ *
+ * `limit=0` means "every size", ordered by name so the chip row is stable.
+ */
+const getPublicSizes = async (paginationOptions: IPaginationOptions) => {
+  const { page, limit, skip } = calculatePagination(paginationOptions);
+  const whereConditions: Prisma.SizeWhereInput = { isActive: true };
+
+  const count = await prisma.size.count({ where: whereConditions });
+
+  const data = await prisma.size.findMany({
+    where: whereConditions,
+    orderBy: { name: 'asc' },
+    skip,
+    ...(limit > 0 ? { take: limit } : {}),
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isActive: true,
+    },
+  });
+
+  return {
+    meta: { page, limit: limit === 0 ? count : limit, count },
+    data,
+  };
+};
+
 export const SizeService = {
   createSize,
   getAllSizes,
+  getPublicSizes,
   getSizeByID,
   updateSize,
   deleteSizeByID,

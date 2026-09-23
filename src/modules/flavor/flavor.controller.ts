@@ -37,6 +37,25 @@ const getAllFlavors = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Public storefront feed (no auth): ACTIVE flavors for the shop's filter
+ * chips. The admin filter set of GET /flavor is intentionally ignored — only
+ * pagination is picked here.
+ */
+const getPublicFlavors = catchAsync(async (req: Request, res: Response) => {
+  const paginationOptions = pick(req.query, paginationFields);
+
+  const result = await FlavorService.getPublicFlavors(paginationOptions);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Flavors fetched successfully!',
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const getFlavorByID = catchAsync(async (req: Request, res: Response) => {
   const result = await FlavorService.getFlavorByID(req.params.id as string);
 
@@ -73,6 +92,7 @@ const deleteFlavorByID = catchAsync(async (req: Request, res: Response) => {
 export const FlavorController = {
   createFlavor,
   getAllFlavors,
+  getPublicFlavors,
   getFlavorByID,
   updateFlavor,
   deleteFlavorByID,

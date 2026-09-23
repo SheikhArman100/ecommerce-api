@@ -216,9 +216,48 @@ const deleteFlavorByID = async (id:string,userInfo:UserInfoFromToken) => {
   
 };
 
+/**
+ * Public storefront feed (no auth) — ACTIVE flavors for the shop's filter
+ * chips.
+ *
+ * Display-safe by design: only id/name/color/description/isActive are
+ * selected. The `creator`/`updater` user rows that GET /flavor ships (full
+ * User models — emails AND password hashes) are never touched here.
+ *
+ * `limit=0` means "every flavor" (`take` is omitted instead of sent as 0, which
+ * would return an empty page) — a filter row must never be truncated by the
+ * backend's default page size. Ordered by name so the chip row is stable.
+ */
+const getPublicFlavors = async (paginationOptions: IPaginationOptions) => {
+  const { page, limit, skip } = calculatePagination(paginationOptions);
+  const whereConditions: Prisma.FlavorWhereInput = { isActive: true };
+
+  const count = await prisma.flavor.count({ where: whereConditions });
+
+  const data = await prisma.flavor.findMany({
+    where: whereConditions,
+    orderBy: { name: 'asc' },
+    skip,
+    ...(limit > 0 ? { take: limit } : {}),
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      description: true,
+      isActive: true,
+    },
+  });
+
+  return {
+    meta: { page, limit: limit === 0 ? count : limit, count },
+    data,
+  };
+};
+
 export const FlavorService = {
   createFlavor,
   getAllFlavors,
+  getPublicFlavors,
   getFlavorByID,
   updateFlavor,
   deleteFlavorByID,

@@ -6,7 +6,7 @@ import status from "http-status";
 import { ProductService } from "./product.service";
 import pick from "../../helpers/pick";
 import { paginationFields } from "../../constant";
-import { productFilterableFields } from "./product.constant";
+import { productFilterableFields, productPublicFilterableFields } from "./product.constant";
 import { IUpdateProductInterface } from "./product.interface";
 
 const createProduct = catchAsync(async (req: Request, res: Response) => {
@@ -48,6 +48,28 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
       statusCode: status.OK,
       success: true,
       message: 'Featured products fetched successfully!',
+      data: result.data,
+      meta: result.meta,
+    });
+  });
+
+  /**
+   * Public storefront feed for the shop grid (products page). Only the
+   * storefront's filter set is picked — the admin-facing filter list of
+   * GET /product (createdBy, isActive, stock ranges, …) is not accepted here,
+   * and the service locks the feed to active products with a display-safe
+   * payload (no creator/audit rows).
+   */
+  const getPublicProducts = catchAsync(async (req: Request, res: Response) => {
+    const filters = pick(req.query, productPublicFilterableFields);
+    const paginationOptions = pick(req.query, paginationFields);
+
+    const result = await ProductService.getPublicProducts(filters, paginationOptions);
+
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Products fetched successfully!',
       data: result.data,
       meta: result.meta,
     });
@@ -103,6 +125,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   export const ProductController = {
     createProduct,
     getAllProducts,
+    getPublicProducts,
     getFeaturedProducts,
     getSingleProduct,
     getSingleProductBySlug,
