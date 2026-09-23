@@ -568,6 +568,25 @@ const getAllProducts = async (
     data: resultWithPricing,
   };
 };
+
+/**
+ * Public storefront feed: products flagged `isFeatured` that are still active.
+ *
+ * Reuses `getAllProducts` on purpose so the payload is identical to
+ * GET /product — every size already carries campaign-aware
+ * `originalPrice` / `salesPrice`, plus flavors, images and the category image,
+ * so the storefront renders it with the very same <Card /> component.
+ */
+const getFeaturedProducts = async (paginationOptions: IPaginationOptions) => {
+  return getAllProducts(
+    {
+      isFeatured: 'true',
+      isActive: 'true',
+    },
+    paginationOptions
+  );
+};
+
 const getSingleProduct = async (productId: string) => {
   //checkProduct
   const checkProduct = await prisma.product.findUnique({
@@ -1023,6 +1042,7 @@ const deleteProduct = async (
 export const ProductService = {
   createProduct,
   getAllProducts,
+  getFeaturedProducts,
   getSingleProduct,
   getSingleProductBySlug,
   updateProduct,

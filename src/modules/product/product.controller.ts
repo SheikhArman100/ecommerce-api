@@ -36,6 +36,23 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+  /**
+   * Public storefront feed for the home page "Featured Products" section.
+   * The rich filter set of GET /product is intentionally ignored — the feed is
+   * locked to active + featured products, so only pagination is picked here.
+   */
+  const getFeaturedProducts = catchAsync(async (req: Request, res: Response) => {
+    const paginationOptions = pick(req.query, paginationFields);
+    const result = await ProductService.getFeaturedProducts(paginationOptions);
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Featured products fetched successfully!',
+      data: result.data,
+      meta: result.meta,
+    });
+  });
+
   const getSingleProduct=catchAsync(async (req: Request, res: Response) => {
     const result=await ProductService.getSingleProduct(req.params.productId as string)
     sendResponse(res, {
@@ -86,6 +103,7 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
   export const ProductController = {
     createProduct,
     getAllProducts,
+    getFeaturedProducts,
     getSingleProduct,
     getSingleProductBySlug,
     updateProduct,

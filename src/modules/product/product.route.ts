@@ -20,6 +20,11 @@ router.post(
 
 router.get('/', ProductController.getAllProducts);
 
+// Public storefront feed: active + featured products (home page section).
+// Kept above the other GET routes so the literal "featured" can never be
+// swallowed by a future `/:param` route added here.
+router.get('/featured', ProductController.getFeaturedProducts);
+
 router.get('/id/:productId', ProductController.getSingleProduct);
 router.get('/slug/:slug', ProductController.getSingleProductBySlug);
 

@@ -9,6 +9,8 @@ import transformFormData from '../../middleware/transformFormData';
 
 const router = express.Router();
 
+// Public route (no auth): the currently live campaign + its discounted
+// products, consumed by the storefront home page.
 // IMPORTANT: `/active` must be declared BEFORE `/:id` so that "active" isn't
 // parsed as a numeric id and rejected by the controller.
 router.get('/active', CampaignController.getActiveCampaign);
