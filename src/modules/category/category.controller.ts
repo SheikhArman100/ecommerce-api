@@ -37,6 +37,29 @@ const getAllCategories = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Public storefront feed for the home page "Category Section".
+ * The admin filter set of GET /category is intentionally ignored — the feed is
+ * locked to ACTIVE categories in the admin's display order, so only pagination
+ * is picked from the query string here.
+ *
+ * Each category also carries one `previewProduct` (campaign-priced), so this
+ * single request is all the section needs — no per-category product calls.
+ */
+const getPublicCategories = catchAsync(async (req: Request, res: Response) => {
+  const paginationOptions = pick(req.query, paginationFields);
+
+  const result = await CategoryService.getPublicCategories(paginationOptions);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Categories fetched successfully!',
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 const getCategoryByID = catchAsync(async (req: Request, res: Response) => {
   const result = await CategoryService.getCategoryByID(req.params.id as string);
 
@@ -73,6 +96,7 @@ const deleteCategoryByID = catchAsync(async (req: Request, res: Response) => {
 export const CategoryController = {
   createCategory,
   getAllCategories,
+  getPublicCategories,
   getCategoryByID,
   updateCategory,
   deleteCategoryByID,

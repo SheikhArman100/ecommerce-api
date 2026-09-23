@@ -9,6 +9,14 @@ import transformFormData from '../../middleware/transformFormData';
 
 const router = express.Router();
 
+// ─── Public storefront routes (no auth) ─────────────────────────────────────
+// Consumed by the storefront "Category Section"/navigation: active categories
+// in display order, display-safe fields only (see category.service.ts).
+// Declared BEFORE '/:id' so the literal "public" is never parsed as an id —
+// the same reason the campaign module declares '/active' first.
+router.get('/public', CategoryController.getPublicCategories);
+
+// ─── Category management (admin) + full reads ───────────────────────────────
 router
     .post(
         '/',
@@ -18,8 +26,8 @@ router
         validateRequest(CategoryValidation.createCategorySchema),
         CategoryController.createCategory
     )
-    .get('/', CategoryController.getAllCategories)
-    .get('/:id', CategoryController.getCategoryByID)
+    .get('/',auth(ENUM_USER_ROLE.ADMIN), CategoryController.getAllCategories)
+    .get('/:id',auth(ENUM_USER_ROLE.ADMIN), CategoryController.getCategoryByID)
     .patch(
         '/:id',
         auth(ENUM_USER_ROLE.ADMIN),

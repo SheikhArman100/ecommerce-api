@@ -2,7 +2,13 @@ import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import { UserInfoFromToken } from '../../types/common';
-import { ICategory, ICategoryFilters, ICreateCategoryPayload } from './category.interface';
+import {
+  ICategory,
+  ICategoryFilters,
+  ICreateCategoryPayload,
+  IPublicCategoryResult,
+  IPublicProductPreview,
+} from './category.interface';
 import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { categorySearchableFields } from './category.constant';
@@ -307,9 +313,212 @@ const deleteCategoryByID = async (id:string,userInfo:UserInfoFromToken) => {
   return data;
 };
 
+/**
+ * Display-safe select for the public category list — the admin-facing
+ * GET /category returns `createdBy`/`updatedBy` plus full `creator`/`updater`
+ * user rows (with email addresses); this one never does.
+ */
+const publicCategorySelect = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  isActive: true,
+  displayOrder: true,
+  createdAt: true,
+  image: {
+    select: {
+      id: true,
+      path: true,
+      originalName: true,
+      modifiedName: true,
+      type: true,
+      diskType: true,
+    },
+  },
+  // Only buyable products should be advertised on a category card
+  _count: {
+    select: {
+      products: { where: { isActive: true } },
+    },
+  },
+};
+
+/**
+ * Display-safe select for the preview product a public category carries.
+ *
+ * Mirrors the storefront-relevant fields of product.service.ts (flavors →
+ * images + sizes, category image) and drops everything an anonymous visitor
+ * must not receive: no `creator`/`updater` user rows, no audit columns.
+ *
+ * `campaigns` is fetched ONLY so the sizes can be priced campaign-aware; it is
+ * stripped again by `shapePublicPreviewProduct` before the payload is returned.
+ */
+const publicPreviewProductSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  description: true,
+  isActive: true,
+  isFeatured: true,
+  createdAt: true,
+  category: {
+    select: {
+      id: true,
+      name: true,
+      image: { select: { path: true } },
+    },
+  },
+  flavors: {
+    select: {
+      flavor: { select: { id: true, name: true, color: true } },
+      images: {
+        select: { id: true, path: true, originalName: true, modifiedName: true },
+      },
+      sizes: {
+        select: {
+          size: { select: { id: true, name: true } },
+          stock: true,
+          price: true,
+          soldByQuantity: true,
+        },
+      },
+    },
+  },
+  campaigns: {
+    where: { campaign: { isActive: true } },
+    select: {
+      customDiscountPercentage: true,
+      campaign: { select: { discountDefault: true, discountType: true } },
+    },
+  },
+};
+
+/**
+ * Turns one preview product from `publicPreviewProductSelect` into the public
+ * shape: per-size campaign pricing is applied and the `campaigns` rows it came
+ * from are dropped.
+ *
+ * Pricing rule is identical to product.service.ts so a card can never cost
+ * differently here than in the product grid: the campaign yielding the LOWEST
+ * final price wins; PERCENTAGE takes the per-product override (falling back to
+ * the campaign default), FIXED is a flat ৳ amount off per unit.
+ */
+const shapePublicPreviewProduct = (product: any): IPublicProductPreview => {
+  const campaigns = product.campaigns ?? [];
+
+  return {
+    id: product.id,
+    title: product.title,
+    slug: product.slug,
+    description: product.description,
+    isActive: product.isActive,
+    isFeatured: product.isFeatured,
+    createdAt: product.createdAt,
+    category: product.category,
+    flavors: product.flavors.map((flavor: any) => ({
+      flavor: flavor.flavor,
+      images: flavor.images,
+      sizes: flavor.sizes.map((size: any) => {
+        const base = size.price;
+        let best = base;
+
+        campaigns.forEach((cp: any) => {
+          const candidate =
+            cp.campaign.discountType === 'FIXED'
+              ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
+              : base *
+                (1 -
+                  (cp.customDiscountPercentage ?? cp.campaign.discountDefault) /
+                    100);
+          if (candidate < best) best = candidate;
+        });
+
+        return {
+          size: size.size,
+          stock: size.stock,
+          price: size.price,
+          soldByQuantity: size.soldByQuantity,
+          originalPrice: base,
+          salesPrice: parseFloat(best.toFixed(2)),
+          discountPercentage:
+            best < base
+              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              : 0,
+        };
+      }),
+    })),
+  };
+};
+
+/**
+ * Public storefront feed for the home page "Category Section".
+ *
+ * Anonymous visitors only ever get ACTIVE categories, returned in the admin's
+ * own `displayOrder` (then name, so the order never flickers between requests)
+ * instead of the newest-first default of GET /category — a showcase order is
+ * what a navigation / section actually needs.
+ *
+ * The payload is display-safe on purpose: no audit columns, no creator/updater
+ * user records, unlike the admin-facing GET /category. `_count.products` counts
+ * only ACTIVE products, so a card can show what is actually buyable.
+ *
+ * Each category also carries ONE `previewProduct` (featured first, else newest
+ * active) with its flavors/images/sizes and campaign-aware prices, so the
+ * storefront paints the section's preview card from THIS single response
+ * instead of one `GET /product?categoryId=…` round trip per category.
+ *
+ * NOTE: `limit=0` means "everything" (the `meta.limit` convention of the other
+ * list endpoints) — `take` is omitted instead of sent as 0, which would
+ * otherwise return an empty page.
+ */
+const getPublicCategories = async (
+  paginationOptions: IPaginationOptions,
+): Promise<IPublicCategoryResult> => {
+  const { page, limit, skip } = calculatePagination(paginationOptions);
+  const whereConditions: Prisma.CategoryWhereInput = { isActive: true };
+
+  const count = await prisma.category.count({ where: whereConditions });
+
+  const rows = await prisma.category.findMany({
+    where: whereConditions,
+    orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+    skip,
+    ...(limit > 0 ? { take: limit } : {}),
+    select: {
+      ...publicCategorySelect,
+      // Exactly ONE preview product per category, so the whole section renders
+      // from this response: a featured one first, otherwise the newest active.
+      products: {
+        where: { isActive: true },
+        orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+        take: 1,
+        select: publicPreviewProductSelect,
+      },
+    },
+  });
+
+  const data = rows.map(({ products, ...category }) => ({
+    ...category,
+    previewProduct: products.length
+      ? shapePublicPreviewProduct(products[0])
+      : null,
+  }));
+
+  return {
+    meta: {
+      page,
+      limit: limit === 0 ? count : limit,
+      count,
+    },
+    data,
+  };
+};
+
 export const CategoryService = {
   createCategory,
   getAllCategories,
+  getPublicCategories,
   getCategoryByID,
   updateCategory,
   deleteCategoryByID,
