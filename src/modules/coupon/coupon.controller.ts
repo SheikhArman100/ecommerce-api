@@ -77,6 +77,16 @@ const validateCoupon = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getFeaturedCoupons = catchAsync(async (_req: Request, res: Response) => {
+  const result = await CouponService.getFeaturedCoupons();
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Featured coupons fetched successfully',
+    data: result,
+  });
+});
+
 const getCouponRedemptions = catchAsync(async (req: Request, res: Response) => {
   const result = await CouponService.getCouponRedemptions(req.params.id as string);
   sendResponse(res, {
@@ -94,5 +104,6 @@ export const CouponController = {
   updateCoupon,
   deleteCouponByID,
   validateCoupon,
+  getFeaturedCoupons,
   getCouponRedemptions,
 };

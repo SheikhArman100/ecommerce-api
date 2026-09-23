@@ -11,7 +11,7 @@ router.get('/', auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER), CouponControlle
 
 router.post(
   '/validate',
-  auth(),
+  auth(ENUM_USER_ROLE.ADMIN, ENUM_USER_ROLE.USER),
   CouponController.validateCoupon
 );
 
@@ -20,6 +20,10 @@ router.get(
   auth(ENUM_USER_ROLE.ADMIN),
   CouponController.getCouponRedemptions
 );
+
+// Public endpoint — no auth. Declared before '/:id' so it isn't captured by
+// the id param. Returns display-safe fields only (see coupon.service.ts).
+router.get('/featured', CouponController.getFeaturedCoupons);
 
 router.get('/:id', auth(ENUM_USER_ROLE.ADMIN), CouponController.getCouponByID);
 

@@ -281,6 +281,46 @@ const deleteCouponByID = async (id: string, userInfo: UserInfoFromToken): Promis
  * Fetches the redemption history for a coupon — which customers used it and
  * when — newest first, with user profile data (image/name/email).
  */
+/**
+ * Public endpoint for storefront banners (e.g. homepage marquee) — visitors
+ * are anonymous, so no auth and no sensitive fields. Returns ONLY display
+ * fields: no usage stats, no targeting lists, no audit columns.
+ */
+const getFeaturedCoupons = async (): Promise<
+  Array<{
+    id: number;
+    code: string;
+    description: string;
+    discountType: string;
+    discountValue: number;
+    minOrderAmount: number;
+    maxDiscountAmount: number | null;
+    expiryDate: Date;
+  }>
+> => {
+  const coupons = await prisma.coupon.findMany({
+    where: {
+      isActive: true,
+      isFeatured: true,
+      // Expired coupons must never appear on the public banner
+      expiryDate: { gt: new Date() },
+    },
+    select: {
+      id: true,
+      code: true,
+      description: true,
+      discountType: true,
+      discountValue: true,
+      minOrderAmount: true,
+      maxDiscountAmount: true,
+      expiryDate: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  });
+  return coupons;
+};
+
 const getCouponRedemptions = async (id: string) => {
   const coupon = await prisma.coupon.findUnique({
     where: { id: Number(id) },
@@ -405,5 +445,6 @@ export const CouponService = {
   updateCoupon,
   deleteCouponByID,
   validateCoupon,
+  getFeaturedCoupons,
   getCouponRedemptions,
 };
