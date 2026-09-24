@@ -717,7 +717,10 @@ const getSingleProduct = async (productId: string) => {
   return productWithPricing;
 };
 const getSingleProductBySlug = async (slug: string) => {
-  //checkProduct
+  // Storefront detail feed (public): anonymous visitors must never open
+  // hidden products, and the payload must stay display-safe (no creator /
+  // updater user rows — those hold emails). Campaign rows are selected only
+  // to derive per-size prices, then stripped before returning.
   const checkProduct = await prisma.product.findUnique({
     where: {
       slug: slug,
@@ -743,7 +746,7 @@ const getSingleProductBySlug = async (slug: string) => {
             select: {
               id: true,
               name: true,
-              color:true,
+              color: true,
             },
           },
           images: {
@@ -769,20 +772,6 @@ const getSingleProductBySlug = async (slug: string) => {
           },
         },
       },
-      creator: {
-        select: {
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
-      updater: {
-        select: {
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
       campaigns: {
         where: {
           campaign: {
@@ -803,7 +792,7 @@ const getSingleProductBySlug = async (slug: string) => {
       },
     },
   });
-  if (!checkProduct) {
+  if (!checkProduct || !checkProduct.isActive) {
     throw new ApiError(status.NOT_FOUND, 'Product not found');
   }
 
@@ -811,8 +800,10 @@ const getSingleProductBySlug = async (slug: string) => {
   // the LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
   const campaigns = (checkProduct as any).campaigns || [];
 
+  const { campaigns: _campaignRows, ...productWithoutCampaigns } = checkProduct;
+
   const productWithPricing = {
-    ...checkProduct,
+    ...productWithoutCampaigns,
     flavors: checkProduct.flavors.map(flavor => ({
       ...flavor,
       sizes: flavor.sizes.map((size: any) => {
