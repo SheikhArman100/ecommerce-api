@@ -10,8 +10,19 @@ import ApiError from '../errors/ApiError';
  */
 const transformFormData = (req: Request, res: Response, next: NextFunction) => {
   try {
+    // A multipart request whose only part is an uploaded file (e.g. a
+    // photo-only profile update) has an empty `req.body` — multer puts files
+    // on `req.file` / `req.files`, not on the body. That is still a valid
+    // request, so only reject when there is neither a body nor a file.
+    const hasFile = Boolean(
+      req.file ||
+        (Array.isArray(req.files)
+          ? req.files.length > 0
+          : req.files && Object.keys(req.files).length > 0),
+    );
+
     // Check if req.body exists and has data
-    if (!req.body || Object.keys(req.body).length === 0) {
+    if ((!req.body || Object.keys(req.body).length === 0) && !hasFile) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'No form data found!');
     }
     console.log("Req Body before transform",req.body);           
