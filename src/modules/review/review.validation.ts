@@ -3,7 +3,9 @@ import { z } from 'zod';
 const createReviewSchema = z.object({
   body: z
     .object({
+      // .coerce accepts both JSON numbers and multipart/form-data strings
       rating: z
+        .coerce
         .number()
         .int()
         .min(1, { message: 'Rating must be at least 1' })
@@ -13,10 +15,12 @@ const createReviewSchema = z.object({
         .min(10, { message: 'Comment must be at least 10 characters long' })
         .max(500, { message: 'Comment must be at most 500 characters long' }),
       orderId: z
+        .coerce
         .number()
         .int()
         .positive({ message: 'Order ID must be a positive integer' }),
       productId: z
+        .coerce
         .number()
         .int()
         .positive({ message: 'Product ID must be a positive integer' }),
@@ -28,6 +32,7 @@ const updateReviewSchema = z.object({
   body: z
     .object({
       rating: z
+        .coerce
         .number()
         .int()
         .min(1, { message: 'Rating must be at least 1' })

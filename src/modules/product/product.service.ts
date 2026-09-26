@@ -802,7 +802,7 @@ const getSingleProductBySlug = async (slug: string) => {
 
   const { campaigns: _campaignRows, ...productWithoutCampaigns } = checkProduct;
 
-  const productWithPricing = {
+  const productWithPricingAndReviews = {
     ...productWithoutCampaigns,
     flavors: checkProduct.flavors.map(flavor => ({
       ...flavor,
@@ -835,7 +835,59 @@ const getSingleProductBySlug = async (slug: string) => {
     })),
   };
 
-  return productWithPricing;
+  // ── Public reviews: visible (non-hidden) only, newest first, capped at 20 ──
+  // Display-safe: reviewer name + avatar path only, no emails / IPs / order ids.
+  const [reviews, ratingStats] = await Promise.all([
+    prisma.review.findMany({
+      where: { productId: productWithPricingAndReviews.id, isHidden: false },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            detail: {
+              select: {
+                profileImage: true,
+                image: { select: { id: true, path: true } },
+              },
+            },
+          },
+        },
+        images: { select: { id: true, path: true } },
+      },
+    }),
+    prisma.review.groupBy({
+      by: ['rating'],
+      where: { productId: productWithPricingAndReviews.id, isHidden: false },
+      _count: { rating: true },
+    }),
+  ]);
+
+  const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let totalCount = 0;
+  let totalStars = 0;
+  for (const row of ratingStats) {
+    const c = row._count.rating;
+    distribution[row.rating] = c;
+    totalCount += c;
+    totalStars += row.rating * c;
+  }
+
+  return {
+    ...productWithPricingAndReviews,
+    reviews,
+    reviewSummary: {
+      count: totalCount,
+      average: totalCount > 0 ? Number((totalStars / totalCount).toFixed(1)) : 0,
+      distribution,
+    },
+  };
 };
 const updateProduct = async (
   productId: string,

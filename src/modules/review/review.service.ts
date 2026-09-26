@@ -461,6 +461,56 @@ const updateReview = async (
   return updatedReview;
 };
 
+const getPendingReviews = async (userInfo: UserInfoFromToken) => {
+  const user = await prisma.user.findUnique({
+    where: { id: Number(userInfo.id) },
+  });
+  if (!user) {
+    throw new ApiError(status.NOT_FOUND, 'User not found');
+  }
+
+  const deliveredOrders = await prisma.order.findMany({
+    where: { userId: user.id, status: 'Delivered' },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    include: {
+      items: {
+        include: {
+          product: { select: { id: true, title: true, slug: true } },
+        },
+      },
+      reviews: { select: { id: true, productId: true, orderId: true } },
+    },
+  });
+
+  const pending: Array<{
+    orderId: number;
+    orderNumber: string;
+    productId: number;
+    productTitle: string;
+    productSlug: string | null;
+  }> = [];
+
+  for (const order of deliveredOrders) {
+    const reviewedKeys = new Set(
+      (order.reviews ?? []).map(r => `${r.orderId}:${r.productId}`),
+    );
+    for (const item of order.items ?? []) {
+      if (!item?.productId || !item?.product) continue;
+      if (reviewedKeys.has(`${order.id}:${item.productId}`)) continue;
+      pending.push({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        productId: item.productId,
+        productTitle: item.productTitle || item.product.title,
+        productSlug: item.product.slug ?? null,
+      });
+    }
+  }
+
+  return pending.slice(0, 10);
+};
+
 const deleteReview = async (id: string, userInfo: UserInfoFromToken) => {
   const user = await prisma.user.findUnique({
     where: { id: Number(userInfo.id) },
@@ -491,6 +541,7 @@ const deleteReview = async (id: string, userInfo: UserInfoFromToken) => {
 export const ReviewService = {
   createReview,
   getAllReviews,
+  getPendingReviews,
   getReviewByID,
   updateReview,
   deleteReview,

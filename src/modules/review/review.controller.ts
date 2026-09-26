@@ -35,6 +35,17 @@ const getAllReviews = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPendingReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getPendingReviews(req.user as UserInfoFromToken);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Pending reviews retrieved successfully',
+    data: result,
+  });
+});
+
 const getReviewByID = catchAsync(async (req: Request, res: Response) => {
   const result = await ReviewService.getReviewByID(req.params.id as string);
 
@@ -71,6 +82,7 @@ const deleteReview = catchAsync(async (req: Request, res: Response) => {
 export const ReviewController = {
   createReview,
   getAllReviews,
+  getPendingReviews,
   getReviewByID,
   updateReview,
   deleteReview,
