@@ -8,6 +8,7 @@ import { calculatePagination } from '../../helpers/paginationHelper';
 import { Prisma } from '../../generated/client';
 import { cartSearchableFields } from './cart.constant';
 import { calculateCartTotals } from './cart.utils';
+import { toSolidTaka } from '../../utils';
 import { ENUM_USER_ROLE } from '../../enum/user';
 
 
@@ -325,7 +326,7 @@ const getAllCarts = async (
       return {
         ...item,
         originalPrice,
-        salesPrice: parseFloat(bestPrice.toFixed(2)),
+        salesPrice: toSolidTaka(bestPrice),
         activeCampaign,
       };
     });
@@ -461,7 +462,7 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
       }
     }
 
-    const salesPrice = parseFloat(bestPrice.toFixed(2));
+    const salesPrice = toSolidTaka(bestPrice);
 
     return {
       ...item,
@@ -630,7 +631,7 @@ const getCartByID = async (cartId: string, userInfo: UserInfoFromToken) => {
       }
     }
 
-    const salesPrice = parseFloat(bestPrice.toFixed(2));
+    const salesPrice = toSolidTaka(bestPrice);
 
     return {
       ...item,

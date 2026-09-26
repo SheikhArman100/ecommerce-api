@@ -11,6 +11,7 @@ import { UserInfoFromToken } from '../../types/common';
 import { campaignSearchableFields } from './campaign.constant';
 
 import { calculatePagination } from '../../helpers/paginationHelper';
+import { toSolidTaka } from '../../utils';
 import { IPaginationOptions } from '../../interfaces/common';
 
 /**
@@ -82,8 +83,8 @@ const applyCampaignPricing = (
       const salesPrice =
         discount > 0
           ? discountType === 'FIXED'
-            ? parseFloat(Math.max(base - discount, 0).toFixed(2))
-            : parseFloat((base * (1 - discount / 100)).toFixed(2))
+            ? toSolidTaka(Math.max(base - discount, 0))
+            : toSolidTaka(base * (1 - discount / 100))
           : base;
       return {
         ...size,

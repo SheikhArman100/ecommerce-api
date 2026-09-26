@@ -11,6 +11,7 @@ import {
 } from './category.interface';
 import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
+import { toSolidTaka } from '../../utils';
 import { categorySearchableFields } from './category.constant';
 import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
@@ -440,10 +441,12 @@ const shapePublicPreviewProduct = (product: any): IPublicProductPreview => {
           price: size.price,
           soldByQuantity: size.soldByQuantity,
           originalPrice: base,
-          salesPrice: parseFloat(best.toFixed(2)),
+          // Percentage derived from the rounded price actually charged, so the
+          // -N% chip can never disagree with the sale price beside it.
+          salesPrice: toSolidTaka(best),
           discountPercentage:
             best < base
-              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              ? parseFloat(((1 - toSolidTaka(best) / base) * 100).toFixed(2))
               : 0,
         };
       }),

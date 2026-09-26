@@ -6,6 +6,7 @@ import { IWishlist, IWishlistFilters } from './wishlist.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { Prisma } from '../../generated/client';
 import { calculatePagination } from '../../helpers/paginationHelper';
+import { toSolidTaka } from '../../utils';
 import { wishlistSearchableFields } from './wishlist.constant';
 
 const createWishlist = async (
@@ -296,7 +297,7 @@ const getWishlistByUser = async (userInfo: UserInfoFromToken) => {
         return {
           ...size,
           originalPrice: base,
-          salesPrice: parseFloat(best.toFixed(2)),
+          salesPrice: toSolidTaka(best),
         };
       }),
     }));

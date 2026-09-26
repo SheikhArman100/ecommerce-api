@@ -4,6 +4,7 @@ import { prisma } from '../../client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import ApiError from '../../errors/ApiError';
 import { calculatePagination } from '../../helpers/paginationHelper';
+import { toSolidTaka } from '../../utils';
 import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { UserInfoFromToken } from '../../types/common';
 import { productSearchableFields } from './product.constant';
@@ -521,7 +522,10 @@ const getAllProducts = async (
         select: {
           customDiscountPercentage: true,
           campaign: {
-            select: {discountDefault: true,
+            select: {
+              id: true,
+              title: true,
+              discountDefault: true,
 
               discountType: true,
             },
@@ -533,7 +537,14 @@ const getAllProducts = async (
 
   // Calculate campaign-aware prices — pick whichever campaign yields the
   // LOWEST final price. PERCENTAGE = % off; FIXED = flat ৳ off per unit.
+  // While pricing, track which active campaign produced the LOWEST price seen
+  // so far — the storefront card advertises the cheapest size, so the campaign
+  // behind that price is the one named on the card (product-level counterpart
+  // of getSingleProduct's per-size `activeCampaign`).
   const resultWithPricing = result.map(product => {
+    let winningCampaign: any = null;
+    let winningSales: number | null = null;
+
     const flavorsWithPricing = product.flavors.map(flavor => ({
       ...flavor,
       sizes: flavor.sizes.map((size: any) => {
@@ -543,18 +554,24 @@ const getAllProducts = async (
           const candidate = cp.campaign.discountType === 'FIXED'
             ? Math.max(base - cp.campaign.discountDefault, 0) // flat ৳ off; % override doesn't apply
             : base * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
-          if (candidate < best) best = candidate;
+          if (candidate < best) {
+            best = candidate;
+            winningCampaign = cp.campaign;
+          }
         });
         return {
           ...size,
           originalPrice: base,
-          salesPrice: parseFloat(best.toFixed(2)),
+          salesPrice: toSolidTaka(best),
         };
       }),
     }));
 
     return {
       ...product,
+      // Campaign behind the cheapest advertised size (null when no active
+      // campaign discounts it) — the storefront names it on the card.
+      activeCampaign: winningCampaign,
       flavors: flavorsWithPricing,
     };
   });
@@ -703,11 +720,13 @@ const getSingleProduct = async (productId: string) => {
         return {
           ...size,
           originalPrice: base,
-          salesPrice: parseFloat(best.toFixed(2)),
+          // Rounded first, then the percentage is derived from the price actually
+          // charged, so the -N% chip can never disagree with the sale price.
+          salesPrice: toSolidTaka(best),
           activeCampaign,
           discountPercentage:
             best < base
-              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              ? parseFloat(((1 - toSolidTaka(best) / base) * 100).toFixed(2))
               : 0,
         };
       }),
@@ -824,11 +843,13 @@ const getSingleProductBySlug = async (slug: string) => {
         return {
           ...size,
           originalPrice: base,
-          salesPrice: parseFloat(best.toFixed(2)),
+          // Rounded first, then the percentage is derived from the price actually
+          // charged, so the -N% chip can never disagree with the sale price.
+          salesPrice: toSolidTaka(best),
           activeCampaign,
           discountPercentage:
             best < base
-              ? parseFloat(((1 - best / base) * 100).toFixed(2))
+              ? parseFloat(((1 - toSolidTaka(best) / base) * 100).toFixed(2))
               : 0,
         };
       }),

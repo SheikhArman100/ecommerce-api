@@ -5,6 +5,7 @@ import { UserInfoFromToken } from '../../types/common';
 import { IOrder, IOrderCreate, IOrderFilters, IOrderInitiationResponse, IOrderUpdate } from './order.interface';
 import { IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
+import { toSolidTaka } from '../../utils';
 import { Prisma, OrderStatus, PaymentStatus } from '../../generated/client';
 import { orderSearchableFields, ALLOWED_STATUS_TRANSITIONS } from './order.constant';
 import config from '../../config';
@@ -182,7 +183,9 @@ const createOrderFromCart = async (
           : basePrice * (1 - (cp.customDiscountPercentage ?? cp.campaign.discountDefault) / 100);
       if (candidatePrice < discountedPrice) discountedPrice = candidatePrice;
     });
-    discountedPrice = parseFloat(discountedPrice.toFixed(2));
+    // Round to whole taka BEFORE multiplying by the quantity, so both the
+    // snapshot unit price and the line total are whole numbers.
+    discountedPrice = toSolidTaka(discountedPrice);
 
     const itemPrice = discountedPrice * cartItem.quantity;
     totalAmount += itemPrice;
@@ -208,7 +211,9 @@ const createOrderFromCart = async (
     couponId = coupon.id;
 
     if (coupon.discountType === 'PERCENTAGE') {
-      discountAmount = (totalAmount * coupon.discountValue) / 100;
+      // A percentage off a whole-taka total can land on a fraction; round the
+      // coupon too so `payableAmount` stays a whole number.
+      discountAmount = toSolidTaka((totalAmount * coupon.discountValue) / 100);
       if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
         discountAmount = coupon.maxDiscountAmount;
       }
