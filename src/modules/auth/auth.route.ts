@@ -5,6 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthValidation } from './auth.validation';
 import passport from '../../middleware/passport';
 import auth from '../../middleware/auth';
+import config from '../../config';
 
 
 
@@ -19,10 +20,16 @@ router.post('/signin',validateRequest(AuthValidation.SigninSchema), passport.aut
 // Redirect to Google login page
 router.get("/google", passport.authenticate("google"));
 
-// Google callback route
+// Google callback route — on success the controller redirects back to the
+// storefront; on failure (consent denied, invalid code, …) passport bounces
+// to the same page so the user lands on a friendly toast + /auth/signin
+// instead of a 401 JSON blob on the backend origin.
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false }),
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${config.frontend_url}/auth/google/callback`,
+  }),
  AuthController.googleSignIn
 );
 

@@ -102,23 +102,27 @@ const signin = catchAsync(async (req: Request, res: Response) => {
 });
 
 const googleSignIn = catchAsync(async (req: Request, res: Response) => {
+  // This route is a browser top-level navigation (Google's OAuth redirect),
+  // not an XHR — a JSON body would leave the user staring at raw JSON on the
+  // backend origin. Set the refresh cookie, then bounce back to the
+  // storefront's /auth/google/callback page, which re-establishes the session
+  // (cookie → access token) on the storefront origin via GET /auth/token.
+  const callbackUrl = `${config.frontend_url}/auth/google/callback`;
+
   if (!req.user) {
-    throw new ApiError(status.UNAUTHORIZED, 'Google authentication failed');
+    // No user → the storefront callback page will fail its token exchange,
+    // toast the error and route to /auth/signin (nicer than a 401 JSON blob).
+    return res.redirect(callbackUrl);
   }
 
-  const { refreshToken, ...result } = await AuthService.googleSignIn(
+  const { refreshToken } = await AuthService.googleSignIn(
     req.user as IUser,
     req.ip as string,
   );
 
   res.cookie(ENUM_COOKIE_NAME.REFRESH_TOKEN, refreshToken, cookieOptions);
 
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Signin successful!',
-    data: result,
-  });
+  return res.redirect(callbackUrl);
 });
 const updateToken = catchAsync(async (req: Request, res: Response) => {
   const cookies = req?.cookies?.[ENUM_COOKIE_NAME.REFRESH_TOKEN];
