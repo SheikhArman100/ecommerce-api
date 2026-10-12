@@ -820,6 +820,9 @@ const getSingleProductBySlug = async (slug: string) => {
 
   const { campaigns: _campaignRows, ...productWithoutCampaigns } = checkProduct;
 
+  let winningCampaign: any = null;
+  let winningPrice: number | null = null;
+
   const productWithPricingAndReviews = {
     ...productWithoutCampaigns,
     flavors: checkProduct.flavors.map(flavor => ({
@@ -839,6 +842,11 @@ const getSingleProductBySlug = async (slug: string) => {
           }
         });
 
+        if (activeCampaign && (winningPrice === null || best < winningPrice)) {
+          winningPrice = best;
+          winningCampaign = activeCampaign;
+        }
+
         return {
           ...size,
           originalPrice: base,
@@ -853,6 +861,7 @@ const getSingleProductBySlug = async (slug: string) => {
         };
       }),
     })),
+    activeCampaign: winningCampaign,
   };
 
   // ── Public reviews: visible (non-hidden) only, newest first, capped at 20 ──
