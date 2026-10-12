@@ -220,6 +220,7 @@ const getAllProducts = async (
     createdBy,
     categoryId,
     categoryName,
+    categorySlug,
     minPrice,
     maxPrice,
     flavorName,
@@ -283,6 +284,14 @@ const getAllProducts = async (
     andConditions.push({
       category: {
         name: { equals: categoryName },
+      },
+    });
+  }
+
+  if (categorySlug) {
+    andConditions.push({
+      category: {
+        slug: { equals: categorySlug },
       },
     });
   }
@@ -756,6 +765,7 @@ const getSingleProductBySlug = async (slug: string) => {
         select: {
           id: true,
           name: true,
+          slug: true,
         },
       },
       flavors: {

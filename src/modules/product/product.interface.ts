@@ -91,6 +91,7 @@ export type IProductFilters = {
   createdBy?:string
   categoryId?: string;
   categoryName?: string;
+  categorySlug?: string;
   minPrice?: string;
   maxPrice?: string;
   flavorName?: string;

@@ -7,6 +7,7 @@ export const productFilterableFields = [
   'createdBy',
   'categoryId',
   'categoryName',
+  'categorySlug',
   'minPrice',
   'maxPrice',
   'flavorName',
@@ -28,6 +29,7 @@ export const productSearchableFields = ['title', 'description'];
 export const productPublicFilterableFields = [
   'searchTerm',
   'categoryId',
+  'categorySlug',
   'minPrice',
   'maxPrice',
   'inStock',
