@@ -425,7 +425,13 @@ const getSingleCart = async (userInfo: UserInfoFromToken) => {
   });
 
   if (!checkCart) {
-    throw new ApiError(status.NOT_FOUND, 'Cart not found');
+    return {
+      id: null,
+      userId: checkUser.id,
+      user: { id: checkUser.id, name: checkUser.name, email: checkUser.email },
+      items: [],
+      totals: { totalItems: 0, totalAmount: 0 },
+    };
   }
 
   // Calculate pricing for each item — pick whichever campaign yields the

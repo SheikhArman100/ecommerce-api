@@ -17,7 +17,7 @@ const createCart = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Cart created successfully',
+        message: 'Item added to your cart',
         data: result,
     });
 });
@@ -31,7 +31,7 @@ const getAllCarts = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Carts are retrieved successfully',
+        message: 'Carts retrieved successfully',
         data: result.data,
         meta: result.meta,
     });
@@ -43,7 +43,7 @@ const getSingleCart = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Single Cart retrieved successfully',
+        message: 'Your cart retrieved successfully',
         data: result,
     });
 });
@@ -54,7 +54,7 @@ const updateCartItemByID = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Cart Item is updated successfully',
+        message: 'Cart item updated successfully',
         data: result,
     });
 });
@@ -76,7 +76,7 @@ const deleteCartItemByID = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         success:true,
         statusCode: status.OK,
-        message: 'Cart Item is deleted successfully',
+        message: 'Cart item removed successfully',
         data: result,
     });
 });
