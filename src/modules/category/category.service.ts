@@ -13,10 +13,9 @@ import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { toSolidTaka } from '../../utils';
 import { categorySearchableFields } from './category.constant';
+import { deleteStoredFile, storedPathFor } from '../../helpers/fileUploadHelpers';
 import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
-import fs from 'fs';
-import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
 
 const createCategory = async (
@@ -73,8 +72,8 @@ const createCategory = async (
     await prisma.file.create({
       data: {
         categoryId: data.id,
-        diskType: 'LOCAL',
-        path: `category/images/${multerFile.filename}`,
+        diskType: 'AWS',
+        path: storedPathFor(multerFile, 'category'),
         originalName: multerFile.originalname,
         modifiedName: multerFile.filename,
         type: 'IMAGE',
@@ -228,23 +227,14 @@ const updateCategory = async (
     });
 
     if (existingImage) {
-      // Delete old image file from folder
-      const oldImagePath = path.join(process.cwd(), 'uploads', existingImage.path);
-      try {
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      } catch (error) {
-        // Log error but don't fail the update
-        console.error('Error deleting old category image:', error);
-        ErrorLogger.error(`Error deleting old category image: ${error}`);
-      }
+      // Delete the old image from object storage
+      await deleteStoredFile(existingImage.path);
 
       // Update existing image record
       await prisma.file.update({
         where: { id: existingImage.id },
         data: {
-          path: `category/images/${multerFile.filename}`,
+          path: storedPathFor(multerFile, 'category'),
           originalName: multerFile.originalname,
           modifiedName: multerFile.filename,
         },
@@ -254,8 +244,8 @@ const updateCategory = async (
       await prisma.file.create({
         data: {
           categoryId: Number(id),
-          diskType: 'LOCAL',
-          path: `category/images/${multerFile.filename}`,
+          diskType: 'AWS',
+          path: storedPathFor(multerFile, 'category'),
           originalName: multerFile.originalname,
           modifiedName: multerFile.filename,
           type: 'IMAGE',
@@ -299,16 +289,9 @@ const deleteCategoryByID = async (id:string,userInfo:UserInfoFromToken) => {
   });
 
   // Delete image file from folder after successful deletion
+  // Delete the image from object storage after successful deletion
   if (categoryImage) {
-    const imagePath = path.join(process.cwd(), 'uploads', categoryImage.path);
-    try {
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    } catch (error) {
-      // Log error but don't fail the deletion
-      console.error('Error deleting category image:', error);
-    }
+    await deleteStoredFile(categoryImage.path);
   }
 
   return data;

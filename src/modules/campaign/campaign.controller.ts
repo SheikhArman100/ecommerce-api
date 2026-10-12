@@ -1,3 +1,4 @@
+import { storedPathFor } from '../../helpers/fileUploadHelpers';
 import { Request, Response } from 'express';
 import catchAsync from '../../shared/catchAsync';
 import sendResponse from '../../shared/sendResponse';
@@ -10,7 +11,7 @@ import { paginationFields } from '../../constant';
 
 const createCampaign = catchAsync(async (req: Request, res: Response) => {
   if (req.file) {
-    req.body.bannerImage = `campaign/images/${req.file.filename}`;
+    req.body.bannerImage = storedPathFor(req.file, 'campaign');
   }
 
   const user = (req as any).user;
@@ -64,7 +65,7 @@ const getSingleCampaign = catchAsync(async (req: Request, res: Response) => {
 
 const updateCampaign = catchAsync(async (req: Request, res: Response) => {
   if (req.file) {
-    req.body.bannerImage = `campaign/images/${req.file.filename}`;
+    req.body.bannerImage = storedPathFor(req.file, 'campaign');
   }
 
   const user = (req as any).user;

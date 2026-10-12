@@ -1,3 +1,4 @@
+import { storedPathFor } from '../../helpers/fileUploadHelpers';
 import status from 'http-status';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
@@ -103,7 +104,7 @@ const createReview = async (
         data: {
           type: FileType.IMAGE,
           diskType: DiskType.LOCAL, // or AWS based on config
-          path: `review/images/${file.filename}`,
+          path: storedPathFor(file, 'review'),
           originalName: file.originalname,
           modifiedName: file.filename,
           reviewId: review.id,

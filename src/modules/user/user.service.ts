@@ -11,11 +11,10 @@ import {
 import { IFile, IPaginationOptions } from '../../interfaces/common';
 import { calculatePagination } from '../../helpers/paginationHelper';
 import { userSearchableFields } from './user.constant';
+import { deleteStoredFile, storedPathFor } from '../../helpers/fileUploadHelpers';
 import { Prisma } from '../../generated/client';
 import { ENUM_USER_ROLE } from '../../enum/user';
 import bcrypt from 'bcrypt';
-import fs from 'fs';
-import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
 
 // Shared select for UserDetail with image (used by all routes except getAllUsers & deleteUser)
@@ -129,8 +128,8 @@ const createUser = async (
           ...(multerFile && {
             image: {
               create: {
-                diskType: 'LOCAL',
-                path: `user/images/${multerFile.filename}`,
+                diskType: 'AWS',
+                path: storedPathFor(multerFile, 'user'),
                 originalName: multerFile.originalname,
                 modifiedName: multerFile.filename,
               },
@@ -343,23 +342,14 @@ const updateUser = async (
     });
 
     if (existingDetail && existingDetail.image) {
-      // Delete old image file from folder
-      const oldImagePath = path.join(process.cwd(), 'uploads', existingDetail.image.path);
-      try {
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      } catch (error) {
-        // Log error but don't fail the update
-        console.error('Error deleting old user image:', error);
-        ErrorLogger.error(`Error deleting old user image: ${error}`);
-      }
+      // Delete the old image from object storage
+      await deleteStoredFile(existingDetail.image.path);
 
       // Update existing image record
       await prisma.file.update({
         where: { id: existingDetail.image.id },
         data: {
-          path: `user/images/${multerFile.filename}`,
+          path: storedPathFor(multerFile, 'user'),
           originalName: multerFile.originalname,
           modifiedName: multerFile.filename,
         },
@@ -371,8 +361,8 @@ const updateUser = async (
         data: {
           image: {
             create: {
-              diskType: 'LOCAL',
-              path: `user/images/${multerFile.filename}`,
+              diskType: 'AWS',
+              path: storedPathFor(multerFile, 'user'),
               originalName: multerFile.originalname,
               modifiedName: multerFile.filename,
             },
@@ -389,8 +379,8 @@ const updateUser = async (
           road: '',
           image: {
             create: {
-              diskType: 'LOCAL',
-              path: `user/images/${multerFile.filename}`,
+              diskType: 'AWS',
+              path: storedPathFor(multerFile, 'user'),
               originalName: multerFile.originalname,
               modifiedName: multerFile.filename,
             },
@@ -529,23 +519,14 @@ const updateMyProfile = async (
 
     if (multerFile) {
       if (existingDetail && existingDetail.image) {
-        // Delete old image file from folder
-        const oldImagePath = path.join(process.cwd(), 'uploads', existingDetail.image.path);
-        try {
-          if (fs.existsSync(oldImagePath)) {
-            fs.unlinkSync(oldImagePath);
-          }
-        } catch (error) {
-          // Log error but don't fail the update
-          console.error('Error deleting old profile image:', error);
-          ErrorLogger.error(`Error deleting old profile image: ${error}`);
-        }
+        // Delete the old image from object storage
+        await deleteStoredFile(existingDetail.image.path);
 
         // Update existing image record
         await prisma.file.update({
           where: { id: existingDetail.image.id },
           data: {
-            path: `user/images/${multerFile.filename}`,
+            path: storedPathFor(multerFile, 'user'),
             originalName: multerFile.originalname,
             modifiedName: multerFile.filename,
           },
@@ -554,8 +535,8 @@ const updateMyProfile = async (
         // Create new image record
         detailUpdateData.image = {
           create: {
-            diskType: 'LOCAL',
-            path: `user/images/${multerFile.filename}`,
+            diskType: 'AWS',
+            path: storedPathFor(multerFile, 'user'),
             originalName: multerFile.originalname,
             modifiedName: multerFile.filename,
           },

@@ -1,4 +1,5 @@
 import { Prisma } from '../../generated/client';
+import { deleteStoredFileSafe, storedPathFor } from '../../helpers/fileUploadHelpers';
 import status from 'http-status';
 import { prisma } from '../../client';
 import { ENUM_USER_ROLE } from '../../enum/user';
@@ -24,8 +25,6 @@ import {
   handleFlavorAdditions,
   handleFlavorUpdates,
 } from './product.utils';
-import fs from 'fs';
-import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
 
 // ===== HELPER FUNCTIONS =====
@@ -137,8 +136,8 @@ const createProduct = async (
               data: {
                 productId: newProduct.id,
                 flavorId: createdFlavor.flavorId,
-                diskType: 'LOCAL',
-                path: `product/images/${img.filename}`,
+                diskType: 'AWS',
+                path: storedPathFor(img, 'product'),
                 originalName: img.originalname,
                 modifiedName: img.filename,
               },
@@ -1083,14 +1082,7 @@ const deleteProduct = async (
       // Clean up image files from filesystem
       if (productImages.length > 0) {
         productImages.forEach(img => {
-          const imagePath = path.join(process.cwd(), 'uploads', img.path);
-          try {
-            if (fs.existsSync(imagePath)) {
-              fs.unlinkSync(imagePath);
-            }
-          } catch (error) {
-            ErrorLogger.error(`Error deleting product image: ${error}`);
-          }
+          deleteStoredFileSafe(img.path);
         });
       }
 

@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { deleteStoredFile } from '../../helpers/fileUploadHelpers';
 import { prisma } from '../../client';
 import ApiError from '../../errors/ApiError';
 import httpStatus from 'http-status';
@@ -290,8 +289,7 @@ const updateCampaign = async (id: number, payload: ICampaignUpdate, userInfo: Us
   }
 
   if (restPayload.bannerImage && isExist.bannerImage) {
-    const oldImagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
-    if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
+    await deleteStoredFile(isExist.bannerImage);
   }
 
   const updateData: any = { ...restPayload };
@@ -331,8 +329,7 @@ const deleteCampaign = async (id: number, userInfo: UserInfoFromToken) => {
   const deleted = await prisma.campaign.delete({ where: { id } });
 
   if (isExist.bannerImage) {
-    const imagePath = path.join(process.cwd(), 'uploads', isExist.bannerImage);
-    if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+    await deleteStoredFile(isExist.bannerImage);
   }
 
   return deleted;

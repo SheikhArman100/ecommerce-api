@@ -31,4 +31,23 @@ export default {
   ssl_store_pass: process.env.SSL_STORE_PASS,
   ssl_is_sandbox: process.env.SSL_IS_SANDBOX,
   delivery_charge: Number(process.env.DELIVERY_CHARGE) || 60,
+
+  /**
+   * Object storage (Amazon S3) for uploads.
+   *
+   * Render's filesystem is ephemeral: every deploy, restart or scale cycle
+   * discards anything written to disk, so files saved under ./uploads vanish
+   * and the `path` stored in the database points at nothing. Uploads are held
+   * in S3 instead, which survives restarts and is shared across instances.
+   */
+  storage: {
+    bucket: process.env.BUCKET_NAME,
+    region: process.env.BUCKET_REGION || process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    endpoint: process.env.AWS_ENDPOINT_URL_S3,
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+    objectAcl: process.env.S3_OBJECT_ACL || '',
+    publicUrl: (process.env.BUCKET_PUBLIC_URL || '').replace(/\/$/, ''),
+  },
 };

@@ -1,8 +1,7 @@
+import { deleteStoredFileSafe, storedPathFor } from '../../helpers/fileUploadHelpers';
 import { Prisma } from '../../generated/client';
 import { IFile } from '../../interfaces/common';
 import ApiError from '../../errors/ApiError';
-import fs from 'fs';
-import path from 'path';
 import ErrorLogger from '../../logger/errorLogger';
 import status from 'http-status';
 
@@ -118,8 +117,8 @@ export const createFlavorImages = async (
         data: {
           productId,
           flavorId,
-          diskType: 'LOCAL',
-          path: `product/images/${img.filename}`,
+          diskType: 'AWS',
+          path: storedPathFor(img, 'product'),
           originalName: img.originalname,
           modifiedName: img.filename,
         },
@@ -133,14 +132,7 @@ export const createFlavorImages = async (
  */
 export const deleteImageFiles = (images: { path: string }[]) => {
   images.forEach((img) => {
-    const imagePath = path.join(process.cwd(), 'uploads', img.path);
-    try {
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    } catch (error) {
-      ErrorLogger.error(`Error deleting product image: ${error}`);
-    }
+    deleteStoredFileSafe(img.path);
   });
 };
 
