@@ -12,24 +12,48 @@ const app: Application = express();
 /**
  * Allowed domains for CORS
  */
-const allowedURL = [
+const allowedOrigins: string[] = [
   config.admin_client_url,
   config.frontend_url,
+  'http://localhost:3000',
+  'http://localhost:3010',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3010',
   'http://192.168.68.120:3017',
   'http://192.168.68.107:3017',
   'https://sandbox.sslcommerz.com',
   'https://securepay.sslcommerz.com',
-];
+].filter(Boolean) as string[];
 
-// More permissive CORS - allow all origins but still track credentials
-// Payment callback URLs from SSLCommerz need to work cross-origin
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (server-to-server, redirects, etc.)
-      // Allow all configured URLs
-      // Allow any origin (needed for SSLCommerz payment callbacks)
-      callback(null, true);
+      // 1. Allow requests with no origin or string "null"
+      // (origin is null or "null" during server-to-server IPN, curl, or cross-origin form POST redirects from payment gateways like SSLCommerz)
+      if (!origin || origin === 'null') {
+        return callback(null, true);
+      }
+
+      const normalizedOrigin = origin.replace(/\/$/, '');
+
+      // 2. Allow any localhost or 127.0.0.1 port for local development
+      const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(
+        normalizedOrigin,
+      );
+
+      // 3. Allow explicitly configured origins (frontend, admin, payment gateways)
+      const isAllowed =
+        isLocalhost ||
+        allowedOrigins.some(
+          allowed => allowed.replace(/\/$/, '') === normalizedOrigin,
+        );
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+
+      // Disallow origin gracefully without throwing an unhandled 500 exception
+      return callback(null, false);
     },
     credentials: true,
   }),
