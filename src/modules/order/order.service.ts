@@ -418,12 +418,23 @@ const createOrderItemsFromSnapshot = async (tran_id: string, txClient?: any) => 
         throw new Error(`Product flavor size not found for product ${item.productId}, flavor ${item.flavorId}, size ${item.sizeId}`);
       }
 
-      await tx.productFlavorSize.update({
-        where: { id: productFlavorSize.id },
+      // Atomic conditional decrement: guarantees stock never goes negative under concurrent checkouts
+      const updateResult = await tx.productFlavorSize.updateMany({
+        where: {
+          id: productFlavorSize.id,
+          stock: { gte: item.quantity },
+        },
         data: {
           stock: { decrement: item.quantity },
         },
       });
+
+      if (updateResult.count === 0) {
+        throw new ApiError(
+          status.CONFLICT,
+          `Insufficient stock for "${item.productTitle}" (${item.flavorName || ''}${item.sizeName ? ' - ' + item.sizeName : ''}). Available: ${productFlavorSize.stock}, requested: ${item.quantity}.`,
+        );
+      }
 
       // Low-stock alert for admins — fire-and-forget so a notification
       // failure never rolls back the order transaction.
