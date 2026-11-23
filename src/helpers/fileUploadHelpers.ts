@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import multer from 'multer';
 import {
@@ -100,6 +102,30 @@ export const uploadToObjectStorage = async (
   return key;
 };
 
+/** Uploads a buffer to local disk when object storage is not configured. */
+export const uploadToLocalStorage = async (
+  key: string,
+  body: Buffer,
+): Promise<string> => {
+  const filePath = path.join(process.cwd(), 'uploads', key);
+  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.promises.writeFile(filePath, body);
+  return key;
+};
+
+/** Deletes a local file. Never throws. */
+export const deleteFromLocalStorage = async (key: string): Promise<void> => {
+  if (!key) return;
+  try {
+    const filePath = path.join(process.cwd(), 'uploads', key);
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+    }
+  } catch (error) {
+    console.error(`Failed to delete local file "${key}":`, error);
+  }
+};
+
 /** Deletes an object. Never throws. */
 export const deleteFromObjectStorage = async (key: string): Promise<void> => {
   if (!key) return;
@@ -116,15 +142,27 @@ export const deleteFromObjectStorage = async (key: string): Promise<void> => {
 export const publicUrlFor = (key: string): string => {
   if (!key) return '';
   if (/^https?:\/\//i.test(key)) return key;
+  if (!isObjectStorageEnabled()) {
+    const baseUrl = config.backend_url
+      ? config.backend_url.replace(/\/$/, '')
+      : `http://localhost:${config.port || 5000}`;
+    return `${baseUrl}/file/${key}`;
+  }
   return `${storageConfig.publicUrl}/${key}`;
 };
-/** Deletes the object a database row points at. Never throws. */
+
+/** Deletes the file a database row points at (from S3 or local disk). Never throws. */
 export const deleteStoredFile = async (key?: string | null): Promise<void> => {
   if (!key) return;
   // A fully-qualified URL predates the key-based layout and maps back to no
   // bucket key, so skip rather than issue a malformed delete.
   if (/^https?:\/\//i.test(key)) return;
-  await deleteFromObjectStorage(key);
+
+  if (isObjectStorageEnabled()) {
+    await deleteFromObjectStorage(key);
+  } else {
+    await deleteFromLocalStorage(key);
+  }
 };
 
 /** Fire-and-forget delete for synchronous call sites. */
@@ -164,13 +202,17 @@ const memoryUpload = multer({
     );
   },
 });
-/** Uploads a buffered file to S3 and restores the IFile shape (path, filename, destination). */
+/** Uploads a buffered file to S3 or local disk and restores the IFile shape (path, filename, destination). */
 const persist = async (
   file: Express.Multer.File,
   folder: string,
 ): Promise<Express.Multer.File> => {
   const key = buildObjectKey(folder, file);
-  await uploadToObjectStorage(key, file.buffer, file.mimetype);
+  if (isObjectStorageEnabled()) {
+    await uploadToObjectStorage(key, file.buffer, file.mimetype);
+  } else {
+    await uploadToLocalStorage(key, file.buffer);
+  }
 
   const persisted = file as Express.Multer.File & {
     destination: string;
@@ -208,7 +250,7 @@ const persistAll = async (req: Request, folder: string): Promise<void> => {
       uploaded.push((file as any).path);
     }
   } catch (error) {
-    await Promise.all(uploaded.map((key) => deleteFromObjectStorage(key)));
+    await Promise.all(uploaded.map((key) => deleteStoredFile(key)));
     throw error;
   }
 };
