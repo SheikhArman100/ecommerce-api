@@ -153,7 +153,24 @@ const handleSuccess = async (tran_id: string, val_id: string) => {
 
   const verificationResponse = await SSLCommerzService.verifyPayment(val_id) as any;
 
-  if (verificationResponse?.status === 'VALID' || verificationResponse?.status === 'AUTHENTICATED') {
+  // Strict verification guard:
+  // 1. Status must be VALID or AUTHENTICATED
+  // 2. Transaction ID must match this payment record (prevents val_id reuse / replay)
+  // 3. Paid amount must match or exceed the order amount (prevents price tampering)
+  // 4. Currency must be BDT
+  const isStatusValid =
+    verificationResponse?.status === 'VALID' ||
+    verificationResponse?.status === 'AUTHENTICATED';
+  const isTranIdMatching = verificationResponse?.tran_id === tran_id;
+  const isAmountValid =
+    parseFloat(verificationResponse?.amount || '0') >=
+    parseFloat(existingPayment.amount || '0') - 0.01;
+  const isCurrencyValid = verificationResponse?.currency === 'BDT';
+
+  const isValidPayment =
+    isStatusValid && isTranIdMatching && isAmountValid && isCurrencyValid;
+
+  if (isValidPayment) {
     // Capture order info for email notifications (payment variable is scoped inside the transaction)
     let orderInfo: any = null;
 
