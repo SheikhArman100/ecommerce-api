@@ -1,4 +1,4 @@
-﻿import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import multer from 'multer';
 import {
   S3Client,
@@ -140,12 +140,28 @@ export const storedPathFor = (
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 10;
 
+// Whitelist safe image & video MIME types — explicitly blocks SVG (script execution risk) and executables
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'video/mp4',
+  'video/webm',
+];
+
 const memoryUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_SIZE, files: MAX_FILES },
   fileFilter: (_req, file, cb) => {
-    if (/^(image|video)\//.test(file.mimetype)) return cb(null, true);
-    cb(new Error(`Unsupported file type: ${file.mimetype}`));
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype.toLowerCase())) {
+      return cb(null, true);
+    }
+    cb(
+      new Error(
+        `Unsupported file type: ${file.mimetype}. Allowed formats: JPEG, PNG, WEBP, GIF, MP4, WEBM (SVGs and scripts are prohibited)`,
+      ),
+    );
   },
 });
 /** Uploads a buffered file to S3 and restores the IFile shape (path, filename, destination). */

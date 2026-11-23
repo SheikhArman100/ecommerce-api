@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
+import helmet from 'helmet';
 
 import config from './config';
 import { ApplicationRouters } from './routes';
@@ -8,6 +9,9 @@ import globalErrorHandler from './middleware/globalErrorHandler';
 import passport from 'passport';
 
 const app: Application = express();
+
+// Security headers (nosniff, frameguard, etc.)
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
 /**
  * Allowed domains for CORS

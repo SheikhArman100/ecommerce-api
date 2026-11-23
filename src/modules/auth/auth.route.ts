@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 
 import validateRequest from '../../middleware/validateRequest';
 import { AuthController } from './auth.controller';
@@ -7,15 +8,39 @@ import passport from '../../middleware/passport';
 import auth from '../../middleware/auth';
 import config from '../../config';
 
-
-
 const router = express.Router();
 
-router.post('/signup', validateRequest(AuthValidation.SignupSchema), AuthController.signup),
-router.put('/verify-email',validateRequest(AuthValidation.verifyEmailSchema),AuthController.verifyEmail)
-router.post('/resend-verification', validateRequest(AuthValidation.resendVerificationSchema), AuthController.resendVerification)
+// Rate limiter for signin/signup (20 requests per 15 minutes)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many authentication attempts. Please try again after 15 minutes.',
+  },
+});
 
-router.post('/signin',validateRequest(AuthValidation.SigninSchema), passport.authenticate('local', { session: false }),AuthController.signin)
+// Stricter rate limiter for password reset requests (5 requests per 15 minutes)
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many password reset requests. Please try again after 15 minutes.',
+  },
+});
+
+router.post('/signup', authLimiter, validateRequest(AuthValidation.SignupSchema), AuthController.signup),
+router.put('/verify-email',validateRequest(AuthValidation.verifyEmailSchema),AuthController.verifyEmail)
+router.post('/resend-verification', passwordResetLimiter, validateRequest(AuthValidation.resendVerificationSchema), AuthController.resendVerification)
+
+router.post('/signin', authLimiter, validateRequest(AuthValidation.SigninSchema), passport.authenticate('local', { session: false }),AuthController.signin)
 
 // Redirect to Google login page
 router.get("/google", passport.authenticate("google"));
@@ -49,6 +74,7 @@ router.put(
 //forget password
 router.post(
   '/forget-password',
+  passwordResetLimiter,
   validateRequest(AuthValidation.forgetPasswordSchema),
   AuthController.forgetPassword,
 );

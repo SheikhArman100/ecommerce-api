@@ -377,7 +377,10 @@ const forgetPassword = async (payload: { email: string }) => {
   });
 
   if (!findUser) {
-    throw new ApiError(status.NOT_FOUND, 'User not found.');
+    // Return gracefully without throwing 404 to prevent user email enumeration
+    return {
+      message: 'If an account exists with this email, a password reset link has been dispatched.',
+    };
   }
 
   const forgetPasswordToken = jwtHelpers.createToken(
