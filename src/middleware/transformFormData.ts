@@ -10,6 +10,13 @@ import ApiError from '../errors/ApiError';
  */
 const transformFormData = (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Only multipart/form-data requests carry flat string/bracket keys that
+    // need nesting and coercion; JSON bodies are already parsed with real types
+    // (e.g. road: "12" must remain a string, not be coerced into a number).
+    if (!req.is('multipart/form-data')) {
+      return next();
+    }
+
     // A multipart request whose only part is an uploaded file (e.g. a
     // photo-only profile update) has an empty `req.body` — multer puts files
     // on `req.file` / `req.files`, not on the body. That is still a valid

@@ -14,6 +14,7 @@ const emailValidator = z
 
 const bangladeshiPhoneValidator = z
   .string({ error: 'Phone number is required' })
+  .trim()
   .min(1, 'Phone number is required')
   .refine(
     (val) => /^(?:\+?88)?01[3-9]\d{8}$/.test(val),
@@ -23,11 +24,11 @@ const bangladeshiPhoneValidator = z
 const nameValidator = (fieldName: string) =>
   z
     .string({ error: `${fieldName} is required` })
+    .trim()
     .min(1, `${fieldName} is required`)
     .min(2, `${fieldName} must be at least 2 characters`)
     .max(50, `${fieldName} must not exceed 50 characters`)
-    .regex(/^[a-zA-Z\s'-]+$/, `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`)
-    .trim();
+    .regex(/^[a-zA-Z\s'.-]+$/, `${fieldName} can only contain letters, spaces, periods, hyphens, and apostrophes`);
 
 const createUserSchema = z.object({
   body: z
@@ -63,16 +64,19 @@ const updateProfileSchema = z.object({
       phoneNumber: bangladeshiPhoneValidator.optional(),
       address: z
         .string()
+        .trim()
         .min(5, 'Address must be at least 5 characters')
         .max(200, 'Address must not exceed 200 characters')
         .optional(),
       city: z
         .string()
+        .trim()
         .min(2, 'City must be at least 2 characters')
         .max(50, 'City must not exceed 50 characters')
         .optional(),
       road: z
         .string()
+        .trim()
         .min(2, 'Road must be at least 2 characters')
         .max(100, 'Road must not exceed 100 characters')
         .optional(),
